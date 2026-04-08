@@ -1,0 +1,164 @@
+/* Общие сбросы и базовые стили */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1c20 0%, #0f1114 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Контейнер для центрирования содержимого */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* ========== СТИЛИ ДЛЯ ШАПКИ (HEADER) ========== */
+header {
+    background: #2D3037;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px 0;
+    
+    /* НЕОНОВАЯ ПОЛОСА ТОЛЬКО СВЕРХУ */
+    border-top: 3px solid #FD48B6;
+    box-shadow: 0 -2px 10px rgba(253, 72, 182, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    
+    transition: all 0.3s ease;
+    
+    /* Ширина такая же как у main */
+    width: 100%;
+    max-width: 1200px;
+}
+
+header:hover {
+    box-shadow: 0 -2px 15px rgba(253, 72, 182, 0.5), 0 6px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    letter-spacing: 1px;
+}
+
+header nav {
+    display: flex;
+    gap: 25px;
+}
+
+header nav a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+header nav a:hover {
+    color: #FD48B6;
+}
+
+/* ========== СТИЛИ ДЛЯ ОСНОВНОГО КОНТЕНТА ========== */
+main {
+    flex: 1;
+    background: rgba(45, 48, 55, 0.6);
+    border-radius: 8px;
+    padding: 30px 0;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    
+    /* Ширина ограничена */
+    width: 100%;
+    max-width: 1200px;
+}
+
+main .container {
+    padding: 0 20px;
+}
+
+main h2, main h3 {
+    color: #FD48B6;
+    margin-bottom: 15px;
+}
+
+main p {
+    line-height: 1.6;
+    color: #e0e0e0;
+}
+
+/* ========== СТИЛИ ДЛЯ ПОДВАЛА (FOOTER) ========== */
+footer {
+    background: #2D3037;
+    border-radius: 8px;
+    padding: 20px 0;
+    
+    /* Ширина такая же как у main */
+    width: 100%;
+    max-width: 1200px;
+    
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+footer .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 0 20px;
+}
+
+footer p {
+    color: #a0a0a0;
+}
+
+footer .social-links a {
+    color: #a0a0a0;
+    text-decoration: none;
+    margin: 0 8px;
+    transition: color 0.3s ease;
+}
+
+footer .social-links a:hover {
+    color: #FD48B6;
+}
+
+/* ========== АДАПТИВНОСТЬ ДЛЯ МОБИЛЬНЫХ ========== */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    header .container {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    header nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    footer .container {
+        flex-direction: column;
+        text-align: center;
+    }
+}

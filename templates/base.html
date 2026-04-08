@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Ermitage{% endblock %}</title>
+    <!-- ЭТО СТРОКА ПОДКЛЮЧЕНИЯ CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Или если без Flask/Django, то просто: -->
+    <!-- <link rel="stylesheet" href="style.css"> -->
+</head>
+<body>
+    <!-- Вот эта шапка будет на ВСЕХ страницах -->
+    <header>
+        <div class="container">
+            <h1>Логотип</h1>
+            <nav>
+                <a href="/">Главная</a>
+                <a href="/koslist">Кос-лист</a>
+                <a href="/profile">Профиль</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Здесь будет уникальное содержимое каждой страницы -->
+    <main>
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Подвал тоже можно сделать общим -->
+    <footer>
+        <div class="container">
+            <p>© 2026 THEChrismoth. Все права защищены.</p>
+            <div class="social-links">
+                <a href="#">Telegram</a> |
+                <a href="#">VK</a> |
+                <a href="#">GitHub</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
