@@ -4,11 +4,12 @@
 <head>
     <title>{% block title %}Ermitage{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
         <div class="container">
-            <h1>Логотип</h1>
+          <h1><a href="/">Логотип</a></h1>
             <nav>
                 <a href="/">Главная</a>
                 <a href="/koslist">Кос-лист</a>

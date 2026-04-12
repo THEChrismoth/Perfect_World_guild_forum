@@ -1,0 +1,76 @@
+.koslist-container {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.koslist-container h1 {
+    color: #ffffff;
+    text-align: center;
+    margin-bottom: 0px;
+}
+
+.koslist-container h2 {
+  color: #66CCFF;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.koslist-container h3 {
+  color: #66CCFF;
+  margin-bottom: 10px;
+}
+
+.koslist-container p {
+    color: #cccccc !important;
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.koslist-container hr {
+    margin: 0px 0;
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #FD48B6, transparent);
+}
+
+.koslist-container a {
+  color: #ffffff;
+}
+
+.koslist-container .guilds-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  list-style: none;
+  padding: 0;
+}
+
+.koslist-container .guilds-grid li {
+  padding: 10px;
+  color: #ffffff;
+}
+
+.koslist-container .guilds-grid a {
+  text-decoration: none;
+}
+
+.koslist-container .player-item {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.koslist-container .player-item a {
+  text-decoration: none;
+}
+
+.koslist-container .class-icons {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.koslist-container .class-icons img {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'koslist/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="koslist-container">
+  <h1>КОС-ЛИСТ<br>Гильдии Ermitage</h1>
+  <p>(kill on sight - убить при встрече)</p>
+  <div class="class-icons">
+    <img src="{% static 'class_icon/voin.png' %}">
+    <img src="{% static 'class_icon/mag.png' %}">
+    <img src="{% static 'class_icon/luk.png' %}">
+    <img src="{% static 'class_icon/zhrec.png' %}">
+    <img src="{% static 'class_icon/obor.png' %}">
+    <img src="{% static 'class_icon/dru.png' %}">
+    <img src="{% static 'class_icon/sin.png' %}">
+    <img src="{% static 'class_icon/sham.png' %}">
+    <img src="{% static 'class_icon/mist.png' %}">
+    <img src="{% static 'class_icon/strazh.png' %}">
+    <img src="{% static 'class_icon/pal.png' %}">
+    <img src="{% static 'class_icon/strel.png' %}">
+    <img src="{% static 'class_icon/priz.png' %}">
+    <img src="{% static 'class_icon/zhnec.png' %}">
+    <img src="{% static 'class_icon/makaka.png' %}">
+    <img src="{% static 'class_icon/bard1.png' %}">
+  </div>
+  <hr>
+  <h2>Гильдии:</h2>
+  <ul class="guilds-grid">
+    {% for guild in guilds %}
+        <li><a href="{{ guild.url_obs }}">{{ guild.name }}</a></li>
+    {% endfor %}
+  </ul>
+  <hr>
+  <h2>Персонажи:</h2>
+  <ul class="player-grid">
+  {% for class, players in players_by_class.items %}
+    <h3>{{ players.0.get_player_class_display }}</h3>
+    {% for player in players %}
+      <div class="player-item">
+        <img src="{{ player.get_icon_url }}" >
+        <a href="{{ player.url_obs }}">{{ player.name }}</a>
+      </div>
+    {% endfor %}
+  {% endfor %}
+  </ul>
+</div>
+{% endblock %}
