@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/topic_detail.css' %}">
+{% endblock %}
+
+{% block title %}{{ topic.title }} | Ermitage{% endblock %}
+
+{% block content %}
+<div class="topic-detail-container">
+    <div class="topic-header">
+        <div class="topic-header-top">
+            <h1 class="topic-title-main">{{ topic.title }}</h1>
+            {% if user == topic.author or user.is_superuser %}
+                <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form-header" onsubmit="return confirm('Вы уверены, что хотите удалить тему &quot;{{ topic.title }}&quot;?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete-topic-header">🗑️ Удалить тему</button>
+                </form>
+            {% endif %}
+        </div>
+        <div class="topic-meta-info">
+            <span>Автор: {{ topic.author.username }}</span>
+            <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
+        </div>
+    </div>
+
+    <div class="posts-block">
+        <div class="posts-container">
+            {% if posts %}
+                <ul class="posts-list">
+                    {% for post in posts %}
+                        <li class="post-item">
+                            <div class="post-author">
+                                <div class="author-avatar">
+                                    {{ post.author.username|make_list|first|upper }}
+                                </div>
+                                <div class="author-name">{{ post.author.username }}</div>
+                                <div class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</div>
+                            </div>
+                            <div class="post-content">
+                                <div class="post-text">
+                                    {{ post.content|linebreaks }}
+                                </div>
+                                {% if post.updated_at != post.created_at %}
+                                    <div class="post-edited">Отредактировано: {{ post.updated_at|date:"d.m.Y H:i" }}</div>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="no-posts">
+                    В этой теме пока нет сообщений
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="reply-section">
+        <a href="{% url 'post_create' slug=topic.slug %}" class="btn-reply">✏️ Ответить в тему</a>
+    </div>
+</div>
+{% endblock %}

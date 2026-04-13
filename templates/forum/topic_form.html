@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
+{% endblock %}
+
+{% block title %}Создать тему в {{ subcategory.title }} | Ermitage{% endblock %}
+
+{% block content %}
+<div class="subcategory-forum-container">
+    <div class="subcategory-header">
+        <h1 class="subcategory-title-main">Создать тему в "{{ subcategory.title }}"</h1>
+    </div>
+
+    <div class="topics-block">
+        <div class="topics-container">
+            <form method="post" class="topic-form">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="{{ form.title.id_for_label }}">Название темы</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="form-error">{{ form.title.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.content.id_for_label }}">Сообщение</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <div class="form-error">{{ form.content.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn-create-topic">Создать тему</button>
+                    <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="btn-cancel">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

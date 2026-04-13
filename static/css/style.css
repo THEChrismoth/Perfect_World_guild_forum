@@ -15,7 +15,7 @@ body {
 }
 
 .container {
-    max-width: 1400px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 20px;
 }
@@ -29,7 +29,7 @@ header {
     box-shadow: 0 -2px 10px rgba(253, 72, 182, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px;
 }
 
 header:hover {
@@ -73,14 +73,14 @@ header nav a:hover {
 }
 
 main {
-    flex: 1;
+
     background: rgba(45, 48, 55, 0.6);
     border-radius: 8px;
     padding: 30px 0;
     margin-bottom: 20px;
     backdrop-filter: blur(10px);
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px;
 }
 
 footer {
@@ -88,8 +88,9 @@ footer {
     border-radius: 8px;
     padding: 20px 0;
     width: 100%;
-    max-width: 1400px;
+    max-width: 1600px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
 }
 
 footer .container {

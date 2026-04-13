@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+{% endblock %}
+
+{% block title %}Удаление темы | Ermitage{% endblock %}
+
+{% block content %}
+<div class="subcategory-forum-container">
+    <div class="subcategory-header">
+        <h1 class="subcategory-title-main">Удаление темы</h1>
+    </div>
+
+    <div class="topics-block">
+        <div class="topics-container">
+            <div class="delete-confirmation">
+                <p class="delete-question">Вы уверены, что хотите удалить тему <strong>"{{ topic.title }}"</strong>?</p>
+                <p class="delete-warning">Это действие нельзя отменить. Все сообщения в теме также будут удалены.</p>
+
+                <form method="post" class="delete-form">
+                    {% csrf_token %}
+                    <div class="delete-buttons">
+                        <button type="submit" class="btn-delete-confirm">Да, удалить</button>
+                        <a href="{% url 'subcategory_detail' slug=topic.subcategory.slug %}" class="btn-cancel">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

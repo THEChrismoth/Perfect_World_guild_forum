@@ -117,22 +117,22 @@ main .container {
     .categorys {
         gap: 20px;
     }
-    
+
     .category-title {
         font-size: 22px;
         margin-bottom: 8px;
         padding: 0 15px;
     }
-    
+
     .subcategory-card {
         padding: 12px 15px;
         min-height: 50px;
     }
-    
+
     .subcategory-card:hover {
         padding-left: 20px;
     }
-    
+
     .subcategory-title {
         font-size: 14px;
     }

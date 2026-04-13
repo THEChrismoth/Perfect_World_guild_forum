@@ -17,7 +17,7 @@
                             <ul class="subcategories-grid">
                                 {% for subcategory in category.subcategories.all %}
                                     <li>
-                                        <a href="#" class="subcategory-card">
+                                        <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
                                             <span class="subcategory-title">{{ subcategory.title }}</span>
                                         </a>
                                     </li>

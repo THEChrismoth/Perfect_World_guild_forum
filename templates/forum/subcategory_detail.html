@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+{% endblock %}
+
+{% block title %}{{ subcategory.title }} | Ermitage{% endblock %}
+
+{% block content %}
+<div class="subcategory-forum-container">
+    <div class="subcategory-header">
+        <h1 class="subcategory-title-main">{{ subcategory.title }}</h1>
+        <a href="{% url 'topic_create' slug=subcategory.slug %}" class="btn-create-topic">+ Создать тему</a>
+    </div>
+
+    <div class="topics-block">
+        <div class="topics-container">
+            {% if subcategory.topics.all %}
+                <ul class="topics-list">
+                    {% for topic in subcategory.topics.all %}
+                        <li class="topic-list-item">
+                            <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-card">
+                                <span class="topic-title">{{ topic.title }}</span>
+                            </a>
+                            {% if user == topic.author or user.is_superuser %}
+                                <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form" onsubmit="return confirm('Вы уверены, что хотите удалить тему "{{ topic.title }}"? Это действие нельзя отменить.');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-delete-topic" title="Удалить тему">🗑️</button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <div class="no-topics">
+                    В этой подкатегории пока нет тем
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
