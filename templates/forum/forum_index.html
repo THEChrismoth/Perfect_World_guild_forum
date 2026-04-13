@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="forum-container">
+    <ul class="categorys">
+        {% for category in categories %}
+            <li class="category-item">
+                <h2 class="category-title">{{ category.title }}</h2>
+                <div class="subcategories-block">
+                    <div class="subcategories-container">
+                        {% if category.subcategories.all %}
+                            <ul class="subcategories-grid">
+                                {% for subcategory in category.subcategories.all %}
+                                    <li>
+                                        <a href="#" class="subcategory-card">
+                                            <span class="subcategory-title">{{ subcategory.title }}</span>
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <div class="no-subcategories">
+                                В этой категории пока нет подкатегорий
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

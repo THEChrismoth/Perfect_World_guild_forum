@@ -1,5 +1,5 @@
 from django.db import models
-from django.utils import choices
+#from django.utils import choices
 from django.templatetags.static import static
 
 class Guild(models.Model):
@@ -8,7 +8,7 @@ class Guild(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Гильдия'
+        verbose_name = 'Гильдию'
         verbose_name_plural = 'Гильдии'
 
     def __str__(self):
@@ -41,7 +41,7 @@ class Player(models.Model):
 
     class Meta:
         ordering = ('name',)
-        verbose_name = 'Игрок'
+        verbose_name = 'Игрока'
         verbose_name_plural = 'Игроки'
 
     def __str__(self):
