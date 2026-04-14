@@ -5,8 +5,6 @@
     <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
 {% endblock %}
 
-{% block title %}{{ subcategory.title }} | Ermitage{% endblock %}
-
 {% block content %}
 <div class="subcategory-forum-container">
     <div class="subcategory-header">
@@ -20,14 +18,18 @@
                 <ul class="topics-list">
                     {% for topic in subcategory.topics.all %}
                         <li class="topic-list-item">
-                            <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-card">
-                                <span class="topic-title">{{ topic.title }}</span>
-                                <div class="topic-meta">
-                                   <span class="author-wrapper"><span class="author-label">Автор:</span><a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span> 
-                                    <span>{{ topic.created_at|date:"d.m.Y H:i" }}</span>
-                                    <span>Ответов: {{ topic.posts.count }}</span>
+                            <div class="topic-card">
+                                <div class="topic-info">
+                                    <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-title-link">
+                                        <span class="topic-title">{{ topic.title }}</span>
+                                    </a>
+                                    <div class="topic-meta">
+                                        <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
+                                        <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
+                                        <span>Ответов: {{ topic.posts.count }}</span>
+                                    </div>
                                 </div>
-                            </a>
+                            </div>
                             {% if user == topic.author or user.is_superuser %}
                                 <div class="topic-actions">
                                     <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic-list" title="Редактировать тему">✏️</a>

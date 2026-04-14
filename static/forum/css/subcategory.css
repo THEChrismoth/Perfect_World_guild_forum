@@ -88,129 +88,39 @@ main .container {
     width: 100%;
 }
 
-.topic-list-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
-    transition: all 0.3s ease;
-}
-
-.topic-list-item:hover {
-    background: rgba(253, 72, 182, 0.05);
-}
-
 .topic-card {
-    flex: 1;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 20px;
+    text-align: left;
+    background: transparent;
     text-decoration: none;
-    gap: 20px;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    position: relative;
+    padding: 15px 20px;
+    min-height: 60px;
 }
 
-.topic-title {
-    color: #e0e0e0;
-    font-size: 16px;
-    font-weight: 500;
-    transition: color 0.3s ease;
-    min-width: 200px;
+.topic-card:last-child {
+    border-bottom: none;
+}
+
+.topic-card:hover {
+    background: rgba(253, 72, 182, 0.1);
+    padding-left: 25px;
 }
 
 .topic-card:hover .topic-title {
     color: #FD48B6;
 }
 
-.topic-meta {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.topic-title {
     color: #e0e0e0;
-    font-size: 12px;
-}
-
-.topic-meta span {
-    color: #e0e0e0;
-    white-space: nowrap;
-}
-
-/* ============================================ */
-/* РЕШЕНИЕ - УБИРАЕМ ОТСТУП МЕЖДУ "АВТОР:" И ССЫЛКОЙ */
-/* ============================================ */
-
-.author-wrapper {
-    display: inline-flex;
-    align-items: center;
-    margin: 0;
-    padding: 0;
-}
-
-.author-label {
-    color: #e0e0e0;
-    margin: 0;
-    padding: 0;
-}
-
-.topic-author-link {
-    color: #FD48B6;
-    text-decoration: none;
-    margin: 0;
-    padding: 0;
-}
-
-.topic-author-link:hover {
-    text-decoration: underline;
-}
-
-/* ============================================ */
-
-.topic-actions {
-    display: flex;
-    gap: 10px;
-    margin-right: 20px;
-    flex-shrink: 0;
-    margin-left: 30px;
-}
-
-.btn-edit-topic-list {
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 14px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.btn-edit-topic-list:hover {
-    background: #218838;
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
-}
-
-.btn-delete-topic-list {
-    background: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    opacity: 0.7;
-}
-
-.btn-delete-topic-list:hover {
-    background: #c82333;
-    transform: scale(1.05);
-    opacity: 1;
-    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+    font-size: 16px;
+    font-weight: 500;
+    display: block;
+    transition: color 0.3s ease;
+    line-height: 1.4;
 }
 
 .no-topics {
@@ -219,6 +129,48 @@ main .container {
     padding: 30px 20px;
     font-style: italic;
     background: rgba(26, 28, 32, 0.2);
+}
+
+.topic-list-item {
+    display: flex;
+    align-items: center;
+    position: relative;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    transition: all 0.3s ease;
+}
+
+.topic-list-item:hover {
+    background: rgba(253, 72, 182, 0.05);
+}
+
+.topic-list-item .topic-card {
+    flex: 1;
+    padding: 15px 20px;
+    border-bottom: none;
+}
+
+.topic-delete-form {
+    flex-shrink: 0;
+    margin-right: 20px;
+}
+
+.btn-delete-topic {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.btn-delete-topic:hover {
+    background: #c82333;
+    transform: scale(1.05);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
 }
 
 .delete-confirmation {
@@ -262,7 +214,52 @@ main .container {
     box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
 }
 
-/* Анимация */
+@media (max-width: 768px) {
+    .subcategory-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .subcategory-title-main {
+        font-size: 24px;
+    }
+
+    .btn-create-topic {
+        padding: 10px 20px;
+        font-size: 14px;
+        width: 100%;
+        text-align: center;
+    }
+
+    .topic-card {
+        padding: 12px 15px;
+    }
+
+    .topic-title {
+        font-size: 14px;
+    }
+
+    .topic-list-item {
+        flex-wrap: wrap;
+    }
+    
+    .topic-list-item .topic-card {
+        width: calc(100% - 60px);
+        padding: 12px 15px;
+    }
+    
+    .topic-delete-form {
+        margin-right: 15px;
+    }
+    
+    .btn-delete-topic {
+        padding: 6px 10px;
+        font-size: 14px;
+    }
+}
+
 .subcategory-header {
     animation: fadeInUp 0.4s ease forwards;
     opacity: 0;
@@ -285,86 +282,170 @@ main .container {
     }
 }
 
+.topic-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    transition: all 0.3s ease;
+}
+
+.topic-list-item:hover {
+    background: rgba(253, 72, 182, 0.05);
+}
+
+.topic-list-item .topic-card {
+    flex: 1;
+    padding: 15px 20px;
+    border-bottom: none;
+    text-decoration: none;
+}
+
+.topic-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.topic-title {
+    color: #e0e0e0;
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.topic-card:hover .topic-title {
+    color: #FD48B6;
+}
+
+.topic-meta {
+    display: flex;
+    gap: 20px;
+    color: #888;
+    font-size: 12px;
+}
+
+.topic-actions {
+    display: flex;
+    gap: 10px;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.btn-edit-topic-list {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-edit-topic-list:hover {
+    background: #218838;
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+}
+
+.btn-delete-topic-list {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    opacity: 0.7;
+}
+
+.btn-delete-topic-list:hover {
+    background: #c82333;
+    transform: scale(1.05);
+    opacity: 1;
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
 @media (max-width: 768px) {
-    .subcategory-header {
+    .topic-list-item {
         flex-direction: column;
         align-items: flex-start;
-        padding: 15px;
-        margin-bottom: 20px;
     }
-
-    .subcategory-title-main {
-        font-size: 24px;
-    }
-
-    .btn-create-topic {
-        padding: 10px 20px;
-        font-size: 14px;
+    
+    .topic-list-item .topic-card {
         width: 100%;
-        text-align: center;
-    }
-
-    .topic-card {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        padding: 12px 15px;
     }
     
     .topic-meta {
         flex-wrap: wrap;
-        gap: 8px;
-    }
-    
-    .topic-meta span {
-        white-space: normal;
+        gap: 10px;
+        font-size: 11px;
     }
     
     .topic-actions {
-        margin: 0 10px 10px 0;
-        margin-left: 0;
+        margin: 0 0 10px 15px;
+        width: 100%;
+    }
+    
+    .btn-edit-topic-list,
+    .btn-delete-topic-list {
+        padding: 6px 10px;
+        font-size: 12px;
+        flex: 1;
+        justify-content: center;
     }
 }
 
-/* РАДИКАЛЬНОЕ ТЕСТОВОЕ РЕШЕНИЕ */
-.author-wrapper {
-    font-size: 0 !important;
-    line-height: 0 !important;
+.topic-title-link {
+    text-decoration: none;
+    display: inline-block;
 }
 
-.author-label {
-    font-size: 12px !important;
-    display: inline !important;
-    background: red !important;
+.topic-title-link:hover .topic-title {
+    color: #FD48B6;
 }
 
 .topic-author-link {
-    font-size: 12px !important;
-    display: inline !important;
-    background: blue !important;
+    color: #FD48B6;
+    text-decoration: none;
+    margin-left: 0;
+    padding-left: 0;
 }
 
-.author-wrapper * {
-    margin: 0 !important;
-    padding: 0 !important;
-    letter-spacing: 0 !important;
+.topic-author-link:hover {
+    text-decoration: underline;
 }
 
-.author-label {
-    background: red !important;
-    display: inline !important;
-    margin: 0 !important;
-    padding: 0 !important;
+.topic-card {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    background: transparent;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    position: relative;
+    padding: 15px 20px;
+    min-height: 60px;
 }
 
-.author-wrapper {
-    background: yellow !important;
-    display: inline-block !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-size: 0 !important;
+.topic-card:hover {
+    background: rgba(253, 72, 182, 0.1);
+    padding-left: 25px;
 }
 
-.author-label,
-.topic-author-link {
-    font-size: 12px !important;
+.topic-list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    border-bottom: none;
 }

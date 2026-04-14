@@ -6,11 +6,9 @@
     <link rel="stylesheet" href="{% static 'forum/css/topic_detail.css' %}">
 {% endblock %}
 
-{% block title %}{{ topic.title }} | Ermitage{% endblock %}
-
 {% block content %}
 <div class="topic-detail-container">
-    <!-- Верхний блок с названием темы -->
+
     <div class="topic-header">
         <div class="topic-header-top">
             <h1 class="topic-title-main">{{ topic.title }}</h1>
@@ -33,7 +31,6 @@
         </div>
     </div>
 
-    <!-- Блок с сообщениями -->
     <div class="posts-block">
         <div class="posts-container">
             {% if posts %}
@@ -59,8 +56,7 @@
                                 <div class="post-text" id="post-text-{{ post.id }}">
                                     {{ post.content|linebreaks }}
                                 </div>
-                                
-                                <!-- Форма редактирования (скрыта по умолчанию) -->
+
                                 {% if user == post.author or user.is_superuser %}
                                     <div class="post-edit-form" id="edit-form-{{ post.id }}" style="display: none;">
                                         <form method="post" action="{% url 'post_edit' post_id=post.id %}" class="inline-edit-form">
@@ -73,7 +69,7 @@
                                         </form>
                                     </div>
                                 {% endif %}
-                                
+
                                 <div class="post-meta">
                                     {% if post.updated_at|date:"Y-m-d H:i" != post.created_at|date:"Y-m-d H:i" %}
                                         <span class="post-edited">Отредактировано: {{ post.updated_at|date:"d.m.Y H:i" }}</span>
@@ -81,8 +77,7 @@
                                         <span class="post-created">Отправлено: {{ post.created_at|date:"d.m.Y H:i" }}</span>
                                     {% endif %}
                                 </div>
-                                
-                                <!-- Кнопки действий для сообщений -->
+
                                 {% if user == post.author or user.is_superuser %}
                                     <div class="post-actions">
                                         <button type="button" class="btn-post-edit" onclick="showEditForm({{ post.id }})" title="Редактировать">✏️ Редактировать</button>
@@ -104,7 +99,6 @@
         </div>
     </div>
 
-    <!-- Форма ответа -->
     <div class="reply-form-block">
         <h3 class="reply-title">Ответить в тему</h3>
         {% if user.is_authenticated %}

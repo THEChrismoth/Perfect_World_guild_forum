@@ -94,7 +94,6 @@ main .container {
     background: rgba(253, 72, 182, 0.1);
 }
 
-/* Левая часть - название подкатегории */
 .subcategory-main {
     flex: 0 0 250px;
     min-width: 200px;
@@ -113,7 +112,6 @@ main .container {
     color: #FD48B6;
 }
 
-/* Центральная часть - статистика */
 .subcategory-stats {
     display: flex;
     gap: 30px;
@@ -141,7 +139,6 @@ main .container {
     margin-top: 4px;
 }
 
-/* Правая часть - последний пост */
 .subcategory-last-post {
     display: flex;
     align-items: center;
@@ -205,7 +202,6 @@ main .container {
     background: rgba(26, 28, 32, 0.2);
 }
 
-/* Адаптивность */
 @media (max-width: 1200px) {
     .subcategory-main {
         flex: 0 0 200px;
@@ -297,7 +293,6 @@ main .container {
     }
 }
 
-/* Анимация */
 @keyframes fadeInUp {
     from {
         opacity: 0;

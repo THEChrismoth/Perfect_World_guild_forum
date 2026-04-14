@@ -116,14 +116,12 @@ footer .social-links a:hover {
     color: #FD48B6;
 }
 
-/* Левая часть хедера */
 .header-left {
     display: flex;
     align-items: center;
     gap: 30px;
 }
 
-/* Вертикальная разделительная полоса */
 .nav-divider {
     width: 1px;
     height: 30px;
@@ -131,13 +129,11 @@ footer .social-links a:hover {
     opacity: 0.5;
 }
 
-/* Правая часть хедера */
 .header-right {
     display: flex;
     align-items: center;
 }
 
-/* Кнопки авторизации */
 .auth-buttons {
     display: flex;
     gap: 15px;
@@ -160,7 +156,6 @@ footer .social-links a:hover {
     transform: translateY(-2px);
 }
 
-/* Кнопка регистрации */
 .register-btn {
     padding: 8px 20px;
     border-radius: 6px;
@@ -178,7 +173,6 @@ footer .social-links a:hover {
     box-shadow: 0 2px 8px rgba(253, 72, 182, 0.4);
 }
 
-/* Ссылка на профиль в хедере */
 .profile-link {
     color: #FD48B6;
     font-weight: 600;
@@ -195,7 +189,6 @@ footer .social-links a:hover {
     transform: translateY(-1px);
 }
 
-/* Меню пользователя */
 .user-menu {
     display: flex;
     align-items: center;
@@ -223,7 +216,6 @@ footer .social-links a:hover {
     transform: translateY(-2px);
 }
 
-/* Форма входа и регистрации */
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
@@ -315,7 +307,6 @@ footer .social-links a:hover {
     text-decoration: underline;
 }
 
-/* Админ ссылка */
 .admin-link {
     color: #ffffff !important;
     font-weight: 600;
@@ -326,7 +317,6 @@ footer .social-links a:hover {
     text-shadow: 0 0 5px rgba(253, 72, 182, 0.5);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
     body {
         padding: 10px;

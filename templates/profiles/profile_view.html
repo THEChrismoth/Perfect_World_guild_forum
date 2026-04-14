@@ -42,7 +42,6 @@
                 <p>🎧 TS3 ID: {{ profile.ts3_id }}</p>
             {% endif %}
             
-            <!-- Очки активности - видит только владелец -->
             {% if is_owner %}
                 <div class="activity-points">
                     <span class="activity-label">⭐ Очки активности:</span>
@@ -110,7 +109,7 @@
                     <span class="stat-value">{{ profile.magic_pierce|default:"0"|floatformat:0 }}</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Крит. урон:</span>
+                      <span class="stat-label">Крит. урон:</span>
                     <span class="stat-value">{{ profile.crit_damage|default:"0" }}%</span>
                 </div>
                 <div class="stat-row">

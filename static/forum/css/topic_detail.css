@@ -12,14 +12,12 @@ main .container {
     max-width: 100% !important;
 }
 
-/* topic_detail.css */
 .topic-detail-container {
     width: 100%;
     margin: 0;
     padding: 0;
 }
 
-/* Верхний блок с названием темы */
 .topic-header {
     background: #2D3037;
     border-radius: 8px;
@@ -52,7 +50,6 @@ main .container {
     flex-wrap: wrap;
 }
 
-/* Блок с сообщениями */
 .posts-block {
     width: 100%;
     background: transparent;
@@ -73,7 +70,6 @@ main .container {
     width: 100%;
 }
 
-/* Каждый пост - отдельный блок */
 .post-item {
     display: flex;
     background: #2D3037;
@@ -88,7 +84,6 @@ main .container {
     transform: translateY(-2px);
 }
 
-/* Левая часть - автор */
 .post-author {
     width: 200px;
     padding: 20px;
@@ -144,7 +139,6 @@ main .container {
     text-align: center;
 }
 
-/* Правая часть - содержание */
 .post-content {
     flex: 1;
     padding: 20px;
@@ -164,7 +158,6 @@ main .container {
     margin-bottom: 10px;
 }
 
-/* Мета информация о посте */
 .post-meta {
     margin-top: 10px;
     font-size: 11px;
@@ -180,7 +173,6 @@ main .container {
     font-style: italic;
 }
 
-/* Кнопки действий - в строку, прижаты к низу */
 .post-actions {
     display: flex;
     gap: 15px;
@@ -224,7 +216,6 @@ main .container {
     transform: translateY(-1px);
 }
 
-/* Форма редактирования на месте */
 .post-edit-form {
     margin-top: 15px;
 }
@@ -287,7 +278,6 @@ main .container {
     transform: translateY(-1px);
 }
 
-/* Кнопки в шапке темы */
 .topic-header-buttons {
     display: flex;
     gap: 10px;
@@ -314,7 +304,6 @@ main .container {
     box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
 }
 
-/* Кнопка удаления темы */
 .btn-delete-topic-header {
     background: #dc3545;
     color: white;
@@ -342,7 +331,6 @@ main .container {
     text-decoration: underline;
 }
 
-/* Форма ответа */
 .reply-form-block {
     margin-top: 30px;
     background: #2D3037;
@@ -434,7 +422,6 @@ main .container {
     margin-top: 5px;
 }
 
-/* Адаптивность для мобильных */
 @media (max-width: 768px) {
     .post-item {
         flex-direction: column;
@@ -506,7 +493,6 @@ main .container {
     }
 }
 
-/* Анимация */
 .topic-header {
     animation: fadeInUp 0.4s ease forwards;
     opacity: 0;
