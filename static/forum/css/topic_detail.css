@@ -97,6 +97,13 @@ main .container {
     flex-shrink: 0;
 }
 
+.post-author-link {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .author-avatar {
     width: 60px;
     height: 60px;
@@ -111,16 +118,30 @@ main .container {
     color: white;
 }
 
+.author-avatar-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
 .author-name {
     font-weight: 600;
     color: #FD48B6;
     margin-bottom: 5px;
     font-size: 14px;
+    text-align: center;
+}
+
+.post-author-link:hover .author-name {
+    text-decoration: underline;
 }
 
 .post-date {
     font-size: 11px;
     color: #888;
+    text-align: center;
 }
 
 /* Правая часть - содержание */
@@ -266,6 +287,33 @@ main .container {
     transform: translateY(-1px);
 }
 
+/* Кнопки в шапке темы */
+.topic-header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-edit-topic {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-topic:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
+}
+
 /* Кнопка удаления темы */
 .btn-delete-topic-header {
     background: #dc3545;
@@ -283,6 +331,15 @@ main .container {
     background: #c82333;
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+.topic-author-link {
+    color: #FD48B6;
+    text-decoration: none;
+}
+
+.topic-author-link:hover {
+    text-decoration: underline;
 }
 
 /* Форма ответа */
@@ -393,7 +450,12 @@ main .container {
         border-bottom: 1px solid rgba(253, 72, 182, 0.1);
     }
     
-    .author-avatar {
+    .post-author-link {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .author-avatar, .author-avatar-img {
         width: 40px;
         height: 40px;
         font-size: 18px;
@@ -402,7 +464,6 @@ main .container {
     
     .author-name {
         margin-bottom: 0;
-        flex: 1;
     }
     
     .post-date {
@@ -422,7 +483,7 @@ main .container {
         align-items: flex-start;
     }
     
-    .btn-delete-topic-header {
+    .btn-delete-topic-header, .btn-edit-topic {
         width: 100%;
         text-align: center;
     }
@@ -471,31 +532,4 @@ main .container {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-/* Кнопки в шапке темы */
-.topic-header-buttons {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.btn-edit-topic {
-    display: inline-block;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-}
-
-.btn-edit-topic:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
 }

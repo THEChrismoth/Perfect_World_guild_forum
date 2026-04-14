@@ -17,9 +17,7 @@
                             {% for subcategory in category_data.subcategories %}
                                 <li>
                                     <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
-                                        <div class="subcategory-main">
-                                            <span class="subcategory-title">{{ subcategory.title }}</span>
-                                        </div>
+                                        <span class="subcategory-title">{{ subcategory.title }}</span>
                                         
                                         <div class="subcategory-stats">
                                             <div class="stat-item">
@@ -35,18 +33,15 @@
                                         <div class="subcategory-last-post">
                                             {% with last_post=subcategory.last_post %}
                                                 {% if last_post %}
-                                                    <div class="last-post-avatar">
-                                                        {{ last_post.author.username|make_list|first|upper }}
-                                                    </div>
-                                                    <div class="last-post-info">
-                                                        <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
+                                                    <div class="last-post-content">
+                                                        <div class="last-post-topic">{{ last_post.topic.title|truncatechars:25 }}</div>
                                                         <div class="last-post-meta">
-                                                            {{ last_post.created_at|date:"d.m.Y H:i" }}
-                                                            <span>от {{ last_post.author.username }}</span>
+                                                            {{ last_post.created_at|date:"d.m.Y H:i" }} от 
+                                                            <a href="{% url 'profile_view' username=last_post.author.username %}" class="last-post-author">{{ last_post.author.username }}</a>
                                                         </div>
                                                     </div>
                                                 {% else %}
-                                                    <div class="no-posts">Нет сообщений</div>
+                                                    <span class="no-posts">Нет сообщений</span>
                                                 {% endif %}
                                             {% endwith %}
                                         </div>

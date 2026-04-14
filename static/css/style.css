@@ -73,7 +73,6 @@ header nav a:hover {
 }
 
 main {
-
     background: rgba(45, 48, 55, 0.6);
     border-radius: 8px;
     padding: 30px 0;
@@ -115,28 +114,6 @@ footer .social-links a {
 
 footer .social-links a:hover {
     color: #FD48B6;
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    header .container {
-        flex-direction: column;
-        text-align: center;
-        gap: 15px;
-    }
-    
-    header nav {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    footer .container {
-        flex-direction: column;
-        text-align: center;
-    }
 }
 
 /* Левая часть хедера */
@@ -183,20 +160,46 @@ footer .social-links a:hover {
     transform: translateY(-2px);
 }
 
-/* Меню пользователя */
-.user-menu {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+/* Кнопка регистрации */
+.register-btn {
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background: #FD48B6;
+    color: white;
 }
 
-.user-name {
+.register-btn:hover {
+    background: #e03a9e;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.4);
+}
+
+/* Ссылка на профиль в хедере */
+.profile-link {
     color: #FD48B6;
     font-weight: 600;
     font-size: 14px;
     padding: 8px 12px;
     border-radius: 6px;
     background: rgba(253, 72, 182, 0.1);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.profile-link:hover {
+    background: rgba(253, 72, 182, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Меню пользователя */
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .logout-form {
@@ -220,7 +223,7 @@ footer .social-links a:hover {
     transform: translateY(-2px);
 }
 
-/* Форма входа */
+/* Форма входа и регистрации */
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
@@ -261,6 +264,12 @@ footer .social-links a:hover {
 .auth-container .form-group input:focus {
     outline: none;
     border-color: #FD48B6;
+}
+
+.auth-container .help-text {
+    font-size: 11px;
+    color: #888;
+    margin-top: 5px;
 }
 
 .auth-container .form-error {
@@ -306,7 +315,23 @@ footer .social-links a:hover {
     text-decoration: underline;
 }
 
+/* Админ ссылка */
+.admin-link {
+    color: #ffffff !important;
+    font-weight: 600;
+}
+
+.admin-link:hover {
+    color: #ffffff !important;
+    text-shadow: 0 0 5px rgba(253, 72, 182, 0.5);
+}
+
+/* Адаптивность */
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
     header .container {
         flex-direction: column;
         align-items: stretch;
@@ -335,14 +360,9 @@ footer .social-links a:hover {
     .user-menu {
         justify-content: center;
     }
-}  
-
-.admin-link {
-    color: #FFFFFF !important;
-    font-weight: 600;
-}
-
-.admin-link:hover {
-    color: #FFFFFF !important;
-    text-shadow: 0 0 5px rgba(253, 72, 182, 0.5);
+    
+    footer .container {
+        flex-direction: column;
+        text-align: center;
+    }
 }

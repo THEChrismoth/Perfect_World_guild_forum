@@ -17,14 +17,14 @@
                     <a href="/koslist">Кос-лист</a>
                     <a href="/forum/">Форум</a>
                     {% if user.is_superuser %}
-                        <a href="/admin/">Панель управления</a>
+                        <a href="/admin/" class="admin-link">Панель управления</a>
                     {% endif %}
                 </nav>
             </div>
             <div class="header-right">
                 {% if user.is_authenticated %}
                     <div class="user-menu">
-                        <span class="user-name">{{ user.username }}</span>
+                        <a href="{% url 'profile_view' username=user.username %}" class="profile-link">{{ user.username }}</a>
                         <form method="post" action="{% url 'logout' %}" class="logout-form">
                             {% csrf_token %}
                             <button type="submit" class="logout-btn">Выход</button>
@@ -32,6 +32,7 @@
                     </div>
                 {% else %}
                     <div class="auth-buttons">
+                        <a href="{% url 'register' %}" class="register-btn">Регистрация</a>
                         <a href="{% url 'login' %}" class="login-btn">Вход</a>
                     </div>
                 {% endif %}
@@ -50,9 +51,9 @@
         <div class="container">
             <p>© 2026 THEChrismoth. Все права защищены.</p>
             <div class="social-links">
-                <a href="https://t.me/thechrismoth">Telegram</a> |
-                <a href="https://vk.com/thechrismoth">VK</a> |
-                <a href="https://github.com/THEChrismoth">GitHub</a>
+                <a href="#">Telegram</a> |
+                <a href="#">VK</a> |
+                <a href="#">GitHub</a>
             </div>
         </div>
     </footer>

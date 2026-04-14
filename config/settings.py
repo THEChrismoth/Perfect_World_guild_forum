@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'forum',
     'koslist',
+    'profiles',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +111,11 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'),]
 
+# Добавьте в конец файла
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
+
+# Для загрузки файлов (аватаров)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

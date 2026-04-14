@@ -21,13 +21,11 @@
                     {% for topic in subcategory.topics.all %}
                         <li class="topic-list-item">
                             <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-card">
-                                <div class="topic-info">
-                                    <span class="topic-title">{{ topic.title }}</span>
-                                    <div class="topic-meta">
-                                        <span>Автор: {{ topic.author.username }}</span>
-                                        <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
-                                        <span>Ответов: {{ topic.posts.count }}</span>
-                                    </div>
+                                <span class="topic-title">{{ topic.title }}</span>
+                                <div class="topic-meta">
+                                    <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
+                                    <span>{{ topic.created_at|date:"d.m.Y H:i" }}</span>
+                                    <span>Ответов: {{ topic.posts.count }}</span>
                                 </div>
                             </a>
                             {% if user == topic.author or user.is_superuser %}

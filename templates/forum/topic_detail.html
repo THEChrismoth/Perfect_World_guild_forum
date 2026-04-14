@@ -25,7 +25,7 @@
             </div>
         </div>
         <div class="topic-meta-info">
-            <span>Автор: {{ topic.author.username }}</span>
+            <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
             <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
             {% if topic.updated_at|date:"Y-m-d H:i" != topic.created_at|date:"Y-m-d H:i" %}
                 <span>Отредактировано: {{ topic.updated_at|date:"d.m.Y H:i" }}</span>
@@ -41,10 +41,18 @@
                     {% for post in posts %}
                         <li class="post-item" id="post-{{ post.id }}">
                             <div class="post-author">
-                                <div class="author-avatar">
-                                    {{ post.author.username|make_list|first|upper }}
-                                </div>
-                                <div class="author-name">{{ post.author.username }}</div>
+                                <a href="{% url 'profile_view' username=post.author.username %}" class="post-author-link">
+                                    {% with profile=post.author.profile %}
+                                        {% if profile.avatar %}
+                                            <img src="{{ profile.avatar.url }}" alt="{{ post.author.username }}" class="author-avatar-img">
+                                        {% else %}
+                                            <div class="author-avatar">
+                                                {{ post.author.username|make_list|first|upper }}
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                    <div class="author-name">{{ post.author.username }}</div>
+                                </a>
                                 <div class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</div>
                             </div>
                             <div class="post-content">

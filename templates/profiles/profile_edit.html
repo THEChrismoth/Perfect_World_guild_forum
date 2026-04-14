@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="profile-edit-container">
+    <h1>Редактирование профиля</h1>
+    
+    <form method="post" enctype="multipart/form-data" class="profile-edit-form">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h3>Основная информация</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="{{ user_form.first_name.id_for_label }}">Имя</label>
+                    {{ user_form.first_name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ user_form.last_name.id_for_label }}">Фамилия</label>
+                    {{ user_form.last_name }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.avatar.id_for_label }}">Аватар</label>
+                    {{ profile_form.avatar }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
+                    {{ profile_form.ts3_id }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.birth_date.id_for_label }}">Дата рождения</label>
+                    {{ profile_form.birth_date }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
+                    {{ profile_form.city }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.player_class.id_for_label }}">Класс персонажа</label>
+                    {{ profile_form.player_class }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h3>Характеристики</h3>
+            <div class="stats-form-grid">
+                <div class="form-group">
+                    <label for="{{ profile_form.hp.id_for_label }}">❤️ HP</label>
+                    {{ profile_form.hp }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.mp.id_for_label }}">💧 MP</label>
+                    {{ profile_form.mp }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.pa.id_for_label }}">ПА (Физ. атака)</label>
+                    {{ profile_form.pa }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.ma.id_for_label }}">МА (Маг. атака)</label>
+                    {{ profile_form.ma }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.pz.id_for_label }}">ПЗ (Прямая защита)</label>
+                    {{ profile_form.pz }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.bd.id_for_label }}">БД (Блок дамага)</label>
+                    {{ profile_form.bd }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.bu.id_for_label }}">БУ (Блок удачи)</label>
+                    {{ profile_form.bu }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.physical_defense.id_for_label }}">Физическая защита</label>
+                    {{ profile_form.physical_defense }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.magic_defense.id_for_label }}">Магическая защита</label>
+                    {{ profile_form.magic_defense }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.physical_pierce.id_for_label }}">Физический пробив</label>
+                    {{ profile_form.physical_pierce }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.magic_pierce.id_for_label }}">Магический пробив</label>
+                    {{ profile_form.magic_pierce }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.crit_damage.id_for_label }}">Крит. урон (%)</label>
+                    {{ profile_form.crit_damage }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.crit_chance.id_for_label }}">Крит. шанс (%)</label>
+                    {{ profile_form.crit_chance }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.accuracy.id_for_label }}">Меткость</label>
+                    {{ profile_form.accuracy }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.dodge.id_for_label }}">Уклонение</label>
+                    {{ profile_form.dodge }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-buttons">
+            <button type="submit" class="btn-save">💾 Сохранить изменения</button>
+            <a href="{% url 'profile_view' username=request.user.username %}" class="btn-cancel">❌ Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
