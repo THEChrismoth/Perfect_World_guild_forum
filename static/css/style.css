@@ -336,3 +336,13 @@ footer .social-links a:hover {
         justify-content: center;
     }
 }  
+
+.admin-link {
+    color: #FFFFFF !important;
+    font-weight: 600;
+}
+
+.admin-link:hover {
+    color: #FFFFFF !important;
+    text-shadow: 0 0 5px rgba(253, 72, 182, 0.5);
+}
