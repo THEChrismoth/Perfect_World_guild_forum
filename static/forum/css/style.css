@@ -82,7 +82,7 @@ main .container {
     border-bottom: 1px solid rgba(253, 72, 182, 0.2);
     position: relative;
     padding: 15px 20px;
-    min-height: 70px;
+    min-height: 80px;
     gap: 20px;
 }
 
@@ -94,24 +94,32 @@ main .container {
     background: rgba(253, 72, 182, 0.1);
 }
 
-/* Название подкатегории */
+/* Левая часть - название подкатегории */
+.subcategory-main {
+    flex: 0 0 250px;
+    min-width: 200px;
+}
+
 .subcategory-title {
     color: #e0e0e0;
     font-size: 16px;
     font-weight: 500;
+    display: block;
     transition: color 0.3s ease;
-    min-width: 200px;
+    line-height: 1.4;
 }
 
 .subcategory-card:hover .subcategory-title {
     color: #FD48B6;
 }
 
-/* Статистика */
+/* Центральная часть - статистика */
 .subcategory-stats {
     display: flex;
     gap: 30px;
     text-align: center;
+    flex: 0 0 auto;
+    margin-left: auto;
 }
 
 .stat-item {
@@ -133,16 +141,34 @@ main .container {
     margin-top: 4px;
 }
 
-/* Последний пост */
+/* Правая часть - последний пост */
 .subcategory-last-post {
-    min-width: 220px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 280px;
+    min-width: 250px;
     text-align: right;
 }
 
-.last-post-content {
+.last-post-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    border-radius: 50%;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.last-post-info {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
 }
 
 .last-post-topic {
@@ -152,7 +178,6 @@ main .container {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 220px;
     margin-bottom: 4px;
 }
 
@@ -161,19 +186,15 @@ main .container {
     font-size: 11px;
 }
 
-.last-post-author {
+.last-post-meta span {
     color: #FD48B6;
-    text-decoration: none;
-}
-
-.last-post-author:hover {
-    text-decoration: underline;
 }
 
 .no-posts {
     color: #888;
     font-size: 12px;
     font-style: italic;
+    text-align: left;
 }
 
 .no-subcategories {
@@ -186,8 +207,8 @@ main .container {
 
 /* Адаптивность */
 @media (max-width: 1200px) {
-    .subcategory-title {
-        min-width: 180px;
+    .subcategory-main {
+        flex: 0 0 200px;
     }
     
     .subcategory-stats {
@@ -199,32 +220,30 @@ main .container {
     }
     
     .subcategory-last-post {
-        min-width: 200px;
-    }
-    
-    .last-post-topic {
-        max-width: 200px;
+        flex: 0 0 240px;
+        min-width: 220px;
     }
 }
 
 @media (max-width: 992px) {
     .subcategory-card {
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 15px;
+    }
+    
+    .subcategory-main {
+        flex: 1 1 100%;
     }
     
     .subcategory-stats {
         margin-left: 0;
+        flex: 1;
         justify-content: flex-start;
     }
     
     .subcategory-last-post {
-        text-align: left;
-        width: 100%;
-    }
-    
-    .last-post-content {
-        align-items: flex-start;
+        flex: 1 1 100%;
+        min-width: auto;
     }
 }
 
@@ -243,10 +262,10 @@ main .container {
         flex-direction: column;
         align-items: flex-start;
         padding: 15px;
-        gap: 10px;
+        gap: 12px;
     }
     
-    .subcategory-title {
+    .subcategory-main {
         width: 100%;
     }
     
@@ -254,6 +273,7 @@ main .container {
         width: 100%;
         justify-content: space-around;
         gap: 0;
+        margin-left: 0;
     }
     
     .subcategory-last-post {
@@ -264,11 +284,16 @@ main .container {
         font-size: 16px;
     }
     
+    .last-post-avatar {
+        width: 35px;
+        height: 35px;
+        font-size: 14px;
+    }
+    
     .last-post-topic {
         font-size: 12px;
         white-space: normal;
         word-break: break-word;
-        max-width: 100%;
     }
 }
 

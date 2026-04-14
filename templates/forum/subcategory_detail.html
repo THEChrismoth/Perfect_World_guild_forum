@@ -23,7 +23,7 @@
                             <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-card">
                                 <span class="topic-title">{{ topic.title }}</span>
                                 <div class="topic-meta">
-                                    <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
+                                   <span class="author-wrapper"><span class="author-label">Автор:</span><a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span> 
                                     <span>{{ topic.created_at|date:"d.m.Y H:i" }}</span>
                                     <span>Ответов: {{ topic.posts.count }}</span>
                                 </div>

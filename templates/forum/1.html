@@ -35,15 +35,9 @@
                                         <div class="subcategory-last-post">
                                             {% with last_post=subcategory.last_post %}
                                                 {% if last_post %}
-                                                    {% with profile=last_post.author.profile %}
-                                                        {% if profile.avatar %}
-                                                            <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
-                                                        {% else %}
-                                                            <div class="last-post-avatar">
-                                                                {{ last_post.author.username|make_list|first|upper }}
-                                                            </div>
-                                                        {% endif %}
-                                                    {% endwith %}
+                                                    <div class="last-post-avatar">
+                                                        {{ last_post.author.username|make_list|first|upper }}
+                                                    </div>
                                                     <div class="last-post-info">
                                                         <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
                                                         <div class="last-post-meta">

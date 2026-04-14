@@ -105,7 +105,7 @@ main .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 15px 20px;
+    padding: 12px 20px;
     text-decoration: none;
     gap: 20px;
 }
@@ -132,23 +132,45 @@ main .container {
 
 .topic-meta span {
     color: #e0e0e0;
+    white-space: nowrap;
+}
+
+/* ============================================ */
+/* РЕШЕНИЕ - УБИРАЕМ ОТСТУП МЕЖДУ "АВТОР:" И ССЫЛКОЙ */
+/* ============================================ */
+
+.author-wrapper {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.author-label {
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
 }
 
 .topic-author-link {
-    color: #e0e0e0;
+    color: #FD48B6;
     text-decoration: none;
+    margin: 0;
+    padding: 0;
 }
 
 .topic-author-link:hover {
-    color: #FD48B6;
     text-decoration: underline;
 }
+
+/* ============================================ */
 
 .topic-actions {
     display: flex;
     gap: 10px;
     margin-right: 20px;
     flex-shrink: 0;
+    margin-left: 30px;
 }
 
 .btn-edit-topic-list {
@@ -156,7 +178,7 @@ main .container {
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     cursor: pointer;
     font-size: 14px;
     text-decoration: none;
@@ -177,7 +199,7 @@ main .container {
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 8px 12px;
+    padding: 6px 10px;
     cursor: pointer;
     font-size: 14px;
     transition: all 0.3s ease;
@@ -290,10 +312,59 @@ main .container {
     
     .topic-meta {
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 8px;
+    }
+    
+    .topic-meta span {
+        white-space: normal;
     }
     
     .topic-actions {
         margin: 0 10px 10px 0;
+        margin-left: 0;
     }
+}
+
+/* РАДИКАЛЬНОЕ ТЕСТОВОЕ РЕШЕНИЕ */
+.author-wrapper {
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+.author-label {
+    font-size: 12px !important;
+    display: inline !important;
+    background: red !important;
+}
+
+.topic-author-link {
+    font-size: 12px !important;
+    display: inline !important;
+    background: blue !important;
+}
+
+.author-wrapper * {
+    margin: 0 !important;
+    padding: 0 !important;
+    letter-spacing: 0 !important;
+}
+
+.author-label {
+    background: red !important;
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.author-wrapper {
+    background: yellow !important;
+    display: inline-block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 0 !important;
+}
+
+.author-label,
+.topic-author-link {
+    font-size: 12px !important;
 }
