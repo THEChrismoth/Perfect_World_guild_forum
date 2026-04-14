@@ -1,8 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Редактирование профиля{% endblock %}
-
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
 {% endblock %}
@@ -26,8 +24,17 @@
                     {{ user_form.last_name }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.avatar.id_for_label }}">Аватар</label>
-                    {{ profile_form.avatar }}
+                    <label>Аватар</label>
+                    <input type="file" name="avatar" accept="image/*" id="id_avatar">
+                    {% if profile_form.instance.avatar %}
+                        <div class="current-avatar">
+                            <span>Текущий аватар: {{ profile_form.instance.avatar.name|cut:"avatars/" }}</span>
+                            <label class="clear-avatar-label">
+                                <input type="checkbox" name="avatar-clear" id="avatar-clear_id">
+                                Очистить
+                            </label>
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="form-group">
                     <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
