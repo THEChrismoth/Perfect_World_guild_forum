@@ -1,3 +1,4 @@
+/* forms.css */
 .topic-form {
     padding: 20px;
 }
@@ -65,22 +66,4 @@
 .btn-cancel:hover {
     background: #5a6268;
     transform: translateY(-2px);
-}
-
-.form-group textarea {
-    width: 100%;
-    padding: 12px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
-    border-radius: 8px;
-    color: #ffffff;
-    font-size: 14px;
-    font-family: inherit;
-    resize: vertical;
-}
-
-.form-group textarea:focus {
-    outline: none;
-    border-color: #FD48B6;
-    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
 }

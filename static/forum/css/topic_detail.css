@@ -1,3 +1,17 @@
+main {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+main .container {
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+}
+
 /* topic_detail.css */
 .topic-detail-container {
     width: 100%;
@@ -52,7 +66,7 @@
 .posts-list {
     display: flex;
     flex-direction: column;
-    gap: 20px;  /* Отступ 20px между сообщениями */
+    gap: 20px;
     list-style: none;
     padding: 0;
     margin: 0;
@@ -114,50 +128,145 @@
     flex: 1;
     padding: 20px;
     background: transparent;
+    display: flex;
+    flex-direction: column;
 }
 
 .post-text {
     color: #e0e0e0;
     line-height: 1.6;
     font-size: 14px;
+    flex: 1;
 }
 
 .post-text p {
     margin-bottom: 10px;
 }
 
-.post-edited {
+/* Мета информация о посте */
+.post-meta {
     margin-top: 10px;
     font-size: 11px;
+}
+
+.post-created {
     color: #888;
     font-style: italic;
 }
 
-/* Кнопка ответить */
-.reply-section {
-    margin-top: 30px;
-    text-align: center;
+.post-edited {
+    color: #ff8c42;
+    font-style: italic;
 }
 
-.btn-reply {
-    display: inline-block;
-    background: #FD48B6;
-    color: white;
-    padding: 12px 30px;
-    border-radius: 8px;
+/* Кнопки действий - в строку, прижаты к низу */
+.post-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(253, 72, 182, 0.2);
+    justify-content: flex-end;
+}
+
+.btn-post-edit,
+.btn-post-delete {
+    background: transparent;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-radius: 5px;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-post-edit {
+    color: #28a745;
+}
+
+.btn-post-edit:hover {
+    background: rgba(40, 167, 69, 0.2);
+    transform: translateY(-1px);
+}
+
+.btn-post-delete {
+    color: #dc3545;
+}
+
+.btn-post-delete:hover {
+    background: rgba(220, 53, 69, 0.2);
+    transform: translateY(-1px);
+}
+
+/* Форма редактирования на месте */
+.post-edit-form {
+    margin-top: 15px;
+}
+
+.edit-textarea {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid rgba(253, 72, 182, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.edit-textarea:focus {
+    outline: none;
+    border-color: #FD48B6;
+    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
+}
+
+.edit-form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-save-edit {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
     font-weight: 600;
-    font-size: 16px;
     transition: all 0.3s ease;
 }
 
-.btn-reply:hover {
-    background: #e03a9e;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(253, 72, 182, 0.4);
+.btn-save-edit:hover {
+    background: #218838;
+    transform: translateY(-1px);
 }
 
-/* Кнопка удаления */
+.btn-cancel-edit {
+    background: #6c757d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel-edit:hover {
+    background: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* Кнопка удаления темы */
 .btn-delete-topic-header {
     background: #dc3545;
     color: white;
@@ -174,6 +283,98 @@
     background: #c82333;
     transform: translateY(-2px);
     box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+/* Форма ответа */
+.reply-form-block {
+    margin-top: 30px;
+    background: #2D3037;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.reply-title {
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FD48B6;
+    display: inline-block;
+}
+
+.reply-form {
+    margin-top: 15px;
+}
+
+.reply-form .form-group {
+    margin-bottom: 15px;
+}
+
+.reply-form .form-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid rgba(253, 72, 182, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all 0.3s ease;
+}
+
+.reply-form .form-group textarea:focus {
+    outline: none;
+    border-color: #FD48B6;
+    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
+}
+
+.btn-submit-reply {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-submit-reply:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.login-to-reply {
+    text-align: center;
+    padding: 20px;
+    background: rgba(26, 28, 32, 0.5);
+    border-radius: 8px;
+}
+
+.login-to-reply p {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.login-to-reply a {
+    color: #FD48B6;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.login-to-reply a:hover {
+    text-decoration: underline;
+}
+
+.form-error {
+    color: #ff6b6b;
+    font-size: 12px;
+    margin-top: 5px;
 }
 
 /* Адаптивность для мобильных */
@@ -225,6 +426,23 @@
         width: 100%;
         text-align: center;
     }
+    
+    .post-actions {
+        justify-content: flex-start;
+    }
+    
+    .reply-form-block {
+        padding: 15px;
+    }
+    
+    .reply-title {
+        font-size: 16px;
+    }
+    
+    .btn-submit-reply {
+        width: 100%;
+        padding: 12px;
+    }
 }
 
 /* Анимация */
@@ -253,4 +471,31 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Кнопки в шапке темы */
+.topic-header-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-edit-topic {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-edit-topic:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.4);
 }

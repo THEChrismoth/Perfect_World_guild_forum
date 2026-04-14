@@ -6,12 +6,12 @@
     <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
 {% endblock %}
 
-{% block title %}Ответ в теме {{ topic.title }} | Ermitage{% endblock %}
+{% block title %}Редактирование темы | Ermitage{% endblock %}
 
 {% block content %}
 <div class="subcategory-forum-container">
     <div class="subcategory-header">
-        <h1 class="subcategory-title-main">Ответ в теме "{{ topic.title }}"</h1>
+        <h1 class="subcategory-title-main">Редактирование темы</h1>
     </div>
 
     <div class="topics-block">
@@ -20,15 +20,15 @@
                 {% csrf_token %}
                 
                 <div class="form-group">
-                    <label for="{{ form.content.id_for_label }}">{{ form.content.label }}</label>
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <div class="form-error">{{ form.content.errors }}</div>
+                    <label for="{{ form.title.id_for_label }}">Название темы</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="form-error">{{ form.title.errors }}</div>
                     {% endif %}
                 </div>
                 
                 <div class="form-buttons">
-                    <button type="submit" class="btn-create-topic">Отправить ответ</button>
+                    <button type="submit" class="btn-create-topic">Сохранить изменения</button>
                     <a href="{% url 'topic_detail' slug=topic.slug %}" class="btn-cancel">Отмена</a>
                 </div>
             </form>

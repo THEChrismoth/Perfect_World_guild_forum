@@ -9,12 +9,30 @@
 <body>
     <header>
         <div class="container">
-          <h1><a href="/">Логотип</a></h1>
-            <nav>
-                <a href="/">Главная</a>
-                <a href="/koslist">Кос-лист</a>
-                <a href="/profile">Профиль</a>
-            </nav>
+            <div class="header-left">
+                <h1><a href="/">Логотип</a></h1>
+                <div class="nav-divider"></div>
+                <nav>
+                    <a href="/">Главная</a>
+                    <a href="/koslist">Кос-лист</a>
+                    <a href="/">Форум</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                {% if user.is_authenticated %}
+                    <div class="user-menu">
+                        <span class="user-name">{{ user.username }}</span>
+                        <form method="post" action="{% url 'logout' %}" class="logout-form">
+                            {% csrf_token %}
+                            <button type="submit" class="logout-btn">Выход</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="auth-buttons">
+                        <a href="{% url 'login' %}" class="login-btn">Вход</a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </header>
 

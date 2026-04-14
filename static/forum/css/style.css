@@ -70,9 +70,11 @@ main .container {
     width: 100%;
 }
 
+/* Основные стили для карточки подкатегории */
 .subcategory-card {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     text-align: left;
     background: transparent;
     text-decoration: none;
@@ -80,7 +82,8 @@ main .container {
     border-bottom: 1px solid rgba(253, 72, 182, 0.2);
     position: relative;
     padding: 15px 20px;
-    min-height: 60px;
+    min-height: 80px;
+    gap: 20px;
 }
 
 .subcategory-card:last-child {
@@ -89,11 +92,12 @@ main .container {
 
 .subcategory-card:hover {
     background: rgba(253, 72, 182, 0.1);
-    padding-left: 25px;
 }
 
-.subcategory-card:hover .subcategory-title {
-    color: #FD48B6;
+/* Левая часть - название подкатегории */
+.subcategory-main {
+    flex: 0 0 250px;
+    min-width: 200px;
 }
 
 .subcategory-title {
@@ -105,12 +109,142 @@ main .container {
     line-height: 1.4;
 }
 
+.subcategory-card:hover .subcategory-title {
+    color: #FD48B6;
+}
+
+/* Центральная часть - статистика */
+.subcategory-stats {
+    display: flex;
+    gap: 30px;
+    text-align: center;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #FD48B6;
+}
+
+.stat-label {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+/* Правая часть - последний пост */
+.subcategory-last-post {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 280px;
+    min-width: 250px;
+    text-align: right;
+}
+
+.last-post-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+    flex-shrink: 0;
+}
+
+.last-post-info {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+}
+
+.last-post-topic {
+    color: #e0e0e0;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 4px;
+}
+
+.last-post-meta {
+    color: #888;
+    font-size: 11px;
+}
+
+.last-post-meta span {
+    color: #FD48B6;
+}
+
+.no-posts {
+    color: #888;
+    font-size: 12px;
+    font-style: italic;
+    text-align: left;
+}
+
 .no-subcategories {
     color: #888;
     text-align: center;
     padding: 30px 20px;
     font-style: italic;
     background: rgba(26, 28, 32, 0.2);
+}
+
+/* Адаптивность */
+@media (max-width: 1200px) {
+    .subcategory-main {
+        flex: 0 0 200px;
+    }
+    
+    .subcategory-stats {
+        gap: 20px;
+    }
+    
+    .stat-item {
+        min-width: 50px;
+    }
+    
+    .subcategory-last-post {
+        flex: 0 0 240px;
+        min-width: 220px;
+    }
+}
+
+@media (max-width: 992px) {
+    .subcategory-card {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .subcategory-main {
+        flex: 1 1 100%;
+    }
+    
+    .subcategory-stats {
+        margin-left: 0;
+        flex: 1;
+        justify-content: flex-start;
+    }
+    
+    .subcategory-last-post {
+        flex: 1 1 100%;
+        min-width: auto;
+    }
 }
 
 @media (max-width: 768px) {
@@ -125,19 +259,45 @@ main .container {
     }
 
     .subcategory-card {
-        padding: 12px 15px;
-        min-height: 50px;
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        gap: 12px;
     }
-
-    .subcategory-card:hover {
-        padding-left: 20px;
+    
+    .subcategory-main {
+        width: 100%;
     }
-
-    .subcategory-title {
+    
+    .subcategory-stats {
+        width: 100%;
+        justify-content: space-around;
+        gap: 0;
+        margin-left: 0;
+    }
+    
+    .subcategory-last-post {
+        width: 100%;
+    }
+    
+    .stat-value {
+        font-size: 16px;
+    }
+    
+    .last-post-avatar {
+        width: 35px;
+        height: 35px;
         font-size: 14px;
+    }
+    
+    .last-post-topic {
+        font-size: 12px;
+        white-space: normal;
+        word-break: break-word;
     }
 }
 
+/* Анимация */
 @keyframes fadeInUp {
     from {
         opacity: 0;

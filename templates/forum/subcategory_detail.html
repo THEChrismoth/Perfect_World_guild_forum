@@ -21,13 +21,23 @@
                     {% for topic in subcategory.topics.all %}
                         <li class="topic-list-item">
                             <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-card">
-                                <span class="topic-title">{{ topic.title }}</span>
+                                <div class="topic-info">
+                                    <span class="topic-title">{{ topic.title }}</span>
+                                    <div class="topic-meta">
+                                        <span>Автор: {{ topic.author.username }}</span>
+                                        <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
+                                        <span>Ответов: {{ topic.posts.count }}</span>
+                                    </div>
+                                </div>
                             </a>
                             {% if user == topic.author or user.is_superuser %}
-                                <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form" onsubmit="return confirm('Вы уверены, что хотите удалить тему "{{ topic.title }}"? Это действие нельзя отменить.');">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn-delete-topic" title="Удалить тему">🗑️</button>
-                                </form>
+                                <div class="topic-actions">
+                                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic-list" title="Редактировать тему">✏️</a>
+                                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-delete-topic-list" title="Удалить тему">🗑️</button>
+                                    </form>
+                                </div>
                             {% endif %}
                         </li>
                     {% endfor %}

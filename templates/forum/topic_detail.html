@@ -10,28 +10,36 @@
 
 {% block content %}
 <div class="topic-detail-container">
+    <!-- Верхний блок с названием темы -->
     <div class="topic-header">
         <div class="topic-header-top">
             <h1 class="topic-title-main">{{ topic.title }}</h1>
-            {% if user == topic.author or user.is_superuser %}
-                <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form-header" onsubmit="return confirm('Вы уверены, что хотите удалить тему &quot;{{ topic.title }}&quot;?');">
-                    {% csrf_token %}
-                    <button type="submit" class="btn-delete-topic-header">🗑️ Удалить тему</button>
-                </form>
-            {% endif %}
+            <div class="topic-header-buttons">
+                {% if user == topic.author or user.is_superuser %}
+                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic" title="Редактировать тему">✏️ Редактировать тему</a>
+                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form-header" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-delete-topic-header">🗑️ Удалить тему</button>
+                    </form>
+                {% endif %}
+            </div>
         </div>
         <div class="topic-meta-info">
             <span>Автор: {{ topic.author.username }}</span>
             <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
+            {% if topic.updated_at|date:"Y-m-d H:i" != topic.created_at|date:"Y-m-d H:i" %}
+                <span>Отредактировано: {{ topic.updated_at|date:"d.m.Y H:i" }}</span>
+            {% endif %}
         </div>
     </div>
 
+    <!-- Блок с сообщениями -->
     <div class="posts-block">
         <div class="posts-container">
             {% if posts %}
                 <ul class="posts-list">
                     {% for post in posts %}
-                        <li class="post-item">
+                        <li class="post-item" id="post-{{ post.id }}">
                             <div class="post-author">
                                 <div class="author-avatar">
                                     {{ post.author.username|make_list|first|upper }}
@@ -40,11 +48,41 @@
                                 <div class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</div>
                             </div>
                             <div class="post-content">
-                                <div class="post-text">
+                                <div class="post-text" id="post-text-{{ post.id }}">
                                     {{ post.content|linebreaks }}
                                 </div>
-                                {% if post.updated_at != post.created_at %}
-                                    <div class="post-edited">Отредактировано: {{ post.updated_at|date:"d.m.Y H:i" }}</div>
+                                
+                                <!-- Форма редактирования (скрыта по умолчанию) -->
+                                {% if user == post.author or user.is_superuser %}
+                                    <div class="post-edit-form" id="edit-form-{{ post.id }}" style="display: none;">
+                                        <form method="post" action="{% url 'post_edit' post_id=post.id %}" class="inline-edit-form">
+                                            {% csrf_token %}
+                                            <textarea name="content" class="edit-textarea" rows="6">{{ post.content }}</textarea>
+                                            <div class="edit-form-buttons">
+                                                <button type="submit" class="btn-save-edit">💾 Сохранить</button>
+                                                <button type="button" class="btn-cancel-edit" onclick="cancelEdit({{ post.id }})">❌ Отмена</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="post-meta">
+                                    {% if post.updated_at|date:"Y-m-d H:i" != post.created_at|date:"Y-m-d H:i" %}
+                                        <span class="post-edited">Отредактировано: {{ post.updated_at|date:"d.m.Y H:i" }}</span>
+                                    {% else %}
+                                        <span class="post-created">Отправлено: {{ post.created_at|date:"d.m.Y H:i" }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Кнопки действий для сообщений -->
+                                {% if user == post.author or user.is_superuser %}
+                                    <div class="post-actions">
+                                        <button type="button" class="btn-post-edit" onclick="showEditForm({{ post.id }})" title="Редактировать">✏️ Редактировать</button>
+                                        <form method="post" action="{% url 'post_delete' post_id=post.id %}" class="post-delete-form" style="display: inline;" onsubmit="return confirm('Удалить сообщение?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-post-delete" title="Удалить">🗑️ Удалить</button>
+                                        </form>
+                                    </div>
                                 {% endif %}
                             </div>
                         </li>
@@ -58,8 +96,43 @@
         </div>
     </div>
 
-    <div class="reply-section">
-        <a href="{% url 'post_create' slug=topic.slug %}" class="btn-reply">✏️ Ответить в тему</a>
+    <!-- Форма ответа -->
+    <div class="reply-form-block">
+        <h3 class="reply-title">Ответить в тему</h3>
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'post_create' slug=topic.slug %}" class="reply-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                        <div class="form-error">{{ form.content.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="form-buttons">
+                    <button type="submit" class="btn-submit-reply">Отправить ответ</button>
+                </div>
+            </form>
+        {% else %}
+            <div class="login-to-reply">
+                <p>Чтобы ответить в теме, пожалуйста, <a href="{% url 'login' %}?next={{ request.path }}">войдите</a> в систему.</p>
+            </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+function showEditForm(postId) {
+    document.getElementById('post-text-' + postId).style.display = 'none';
+    document.getElementById('edit-form-' + postId).style.display = 'block';
+    const actions = document.querySelector('#post-' + postId + ' .post-actions');
+    if (actions) actions.style.display = 'none';
+}
+
+function cancelEdit(postId) {
+    document.getElementById('post-text-' + postId).style.display = 'block';
+    document.getElementById('edit-form-' + postId).style.display = 'none';
+    const actions = document.querySelector('#post-' + postId + ' .post-actions');
+    if (actions) actions.style.display = 'flex';
+}
+</script>
 {% endblock %}
