@@ -65,12 +65,12 @@
                     <span class="stat-value">{{ profile.mp|default:"0"|floatformat:0 }}</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">ПА (Физ. атака):</span>
-                    <span class="stat-value">{{ profile.pa|default:"0"|floatformat:0 }}</span>
+                    <span class="stat-label">БД (Боевой дух):</span>
+                    <span class="stat-value">{{ profile.bd|default:"0"|floatformat:0 }}</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">МА (Маг. атака):</span>
-                    <span class="stat-value">{{ profile.ma|default:"0"|floatformat:0 }}</span>
+                    <span class="stat-label">БУ (Бонус уровня):</span>
+                    <span class="stat-value">{{ profile.bu|default:"0"|floatformat:0 }}</span>
                 </div>
             </div>
             
@@ -79,14 +79,6 @@
                 <div class="stat-row">
                     <span class="stat-label">ПЗ (Прямая защита):</span>
                     <span class="stat-value">{{ profile.pz|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">БД (Блок дамага):</span>
-                    <span class="stat-value">{{ profile.bd|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">БУ (Блок удачи):</span>
-                    <span class="stat-value">{{ profile.bu|default:"0"|floatformat:0 }}</span>
                 </div>
                 <div class="stat-row">
                     <span class="stat-label">Физ. защита:</span>
@@ -100,6 +92,18 @@
             
             <div class="stat-card">
                 <div class="stat-card-title">⚔️ Атака</div>
+                <div class="stat-row">
+                    <span class="stat-label">ПА (Показатель атаки):</span>
+                    <span class="stat-value">{{ profile.pa|default:"0"|floatformat:0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ФА (Физ. атака):</span>
+                    <span class="stat-value">{{ profile.fa|default:"0"|floatformat:0 }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">МА (Маг. атака):</span>
+                    <span class="stat-value">{{ profile.ma|default:"0"|floatformat:0 }}</span>
+                </div>
                 <div class="stat-row">
                     <span class="stat-label">Физ. пробив:</span>
                     <span class="stat-value">{{ profile.physical_pierce|default:"0"|floatformat:0 }}</span>

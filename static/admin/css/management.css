@@ -1,0 +1,228 @@
+/* static/admin/css/management.css */
+/* Общие стили */
+#content {
+    margin: 0 !important;
+    padding: 15px !important;
+}
+
+.activity-container {
+    padding: 0;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+/* Шапка */
+.table-header {
+    background: linear-gradient(135deg, #417690 0%, #2a5a6e 100%);
+    color: white;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table-header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 500;
+}
+
+/* Секции классов */
+.class-section {
+    margin-bottom: 25px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e3e3e3;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.class-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%);
+    padding: 12px 20px;
+    border-bottom: 2px solid #417690;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.class-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.class-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.member-count {
+    font-size: 13px;
+    color: #666;
+    background: #fff;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-left: 10px;
+}
+
+/* Таблица */
+.members-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.members-table th {
+    background: #f8f9fa;
+    padding: 12px 15px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 13px;
+    color: #495057;
+}
+
+.members-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.members-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* Поля ввода */
+.points-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.points-input {
+    width: 100px;
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.points-input:focus {
+    outline: none;
+    border-color: #417690;
+    box-shadow: 0 0 0 2px rgba(65,118,144,0.1);
+}
+
+.points-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.points-btn {
+    background: #fff;
+    border: 1px solid #ced4da;
+    padding: 2px 8px;
+    cursor: pointer;
+    font-size: 11px;
+    border-radius: 3px;
+    transition: all 0.2s;
+    line-height: 1;
+    font-weight: bold;
+}
+
+.points-btn:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.points-btn:active {
+    transform: scale(0.95);
+}
+
+.save-indicator {
+    font-size: 12px;
+    margin-left: 8px;
+    color: #28a745;
+    display: none;
+    font-weight: bold;
+}
+
+/* Цвета для полей */
+.total-points .points-input {
+    border-left: 3px solid #007bff;
+    font-weight: 600;
+    color: #007bff;
+}
+
+.spent-points .points-input {
+    border-left: 3px solid #dc3545;
+    color: #dc3545;
+}
+
+.current-points .points-input {
+    border-left: 3px solid #28a745;
+    font-weight: 600;
+    color: #28a745;
+}
+
+/* Ссылки */
+.username-link {
+    color: #0066cc;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.username-link:hover {
+    text-decoration: underline;
+}
+
+/* Анимация обновления */
+@keyframes flash {
+    0%, 100% { background-color: transparent; }
+    50% { background-color: #d4edda; }
+}
+
+.updated {
+    animation: flash 0.5s ease;
+}
+
+/* Алерты */
+.alert {
+    padding: 15px 20px;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+    color: #721c24;
+    font-size: 14px;
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+    padding: 8px 15px !important;
+    font-size: 12px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e3e3e3 !important;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .points-control {
+        flex-wrap: wrap;
+    }
+
+    .points-input {
+        width: 70px;
+    }
+
+    .members-table th,
+    .members-table td {
+        padding: 8px 10px;
+    }
+}

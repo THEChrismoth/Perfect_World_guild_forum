@@ -22,9 +22,9 @@ class ProfileForm(forms.ModelForm):
         model = Profile
         fields = [
             'avatar', 'ts3_id', 'birth_date', 'city', 'player_class',
-            'hp', 'mp', 'pa', 'ma', 'pz', 'bd', 'bu',
-            'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce',
-            'crit_damage', 'crit_chance', 'accuracy', 'dodge'
+            'hp', 'mp', 'bd',
+            'pa', 'fa', 'ma','crit_damage', 'crit_chance', 'bu', 'accuracy',
+            'pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce',  'dodge'
         ]
         widgets = {
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
@@ -33,11 +33,12 @@ class ProfileForm(forms.ModelForm):
         labels = {
             'hp': '❤️ HP',
             'mp': '💧 MP',
-            'pa': 'ПА - Физическая атака',
+            'fa': 'ФА - Физическая атака',
             'ma': 'МА - Магическая атака',
+            'pa': 'ПА - Показатель Атаки',
             'pz': 'ПЗ - Прямая защита',
-            'bd': 'БД - Блок дамага',
-            'bu': 'БУ - Блок удачи',
+            'bd': 'БД - Боевой дух',
+            'bu': 'БУ - Бонус уровня',
             'physical_defense': 'Физическая защита',
             'magic_defense': 'Магическая защита',
             'physical_pierce': 'Физический пробив',

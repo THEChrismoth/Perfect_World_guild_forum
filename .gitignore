@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+# PyCharm files
+.idea/
+
 db.sqlite3
 media/

@@ -36,11 +36,12 @@ class Profile(models.Model):
     # Характеристики (заполняются пользователем)
     hp = models.IntegerField(default=0, verbose_name='❤️ HP')
     mp = models.IntegerField(default=0, verbose_name='💧 MP')
-    pa = models.IntegerField(default=0, verbose_name='ПА - Физическая атака')
+    pa = models.IntegerField(default=0, verbose_name='ПА - Показатель Атаки')
+    fa = models.IntegerField(default=0, verbose_name='ФА - Физическая атака')
     ma = models.IntegerField(default=0, verbose_name='МА - Магическая атака')
-    pz = models.IntegerField(default=0, verbose_name='ПЗ - Прямая защита')
-    bd = models.IntegerField(default=0, verbose_name='БД - Блок дамага')
-    bu = models.IntegerField(default=0, verbose_name='БУ - Блок удачи')
+    pz = models.IntegerField(default=0, verbose_name='ПЗ - Показатель защиты')
+    bd = models.IntegerField(default=0, verbose_name='БД - Боевой дух')
+    bu = models.IntegerField(default=0, verbose_name='БУ - Бонус уровня')
     physical_defense = models.IntegerField(default=0, verbose_name='Физическая защита')
     magic_defense = models.IntegerField(default=0, verbose_name='Магическая защита')
     physical_pierce = models.IntegerField(default=0, verbose_name='Физический пробив')
@@ -52,10 +53,38 @@ class Profile(models.Model):
     
     # Очки активности (только для админа)
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
-    
+    activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
+    spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
+
+    def update_points(self, total_earned=None, spent=None):
+        """Обновляет очки активности"""
+        if total_earned is not None:
+            # total_earned = activity_points + spent_points
+            # activity_points = total_earned - spent_points
+            new_activity = total_earned - self.spent_points
+            if new_activity >= 0:
+                self.activity_points = new_activity
+
+        if spent is not None:
+            # Если меняем потраченные, пересчитываем текущие
+            if spent != self.spent_points:
+                old_spent = self.spent_points
+                self.spent_points = spent
+                # Корректируем текущие очки
+                self.activity_points = self.activity_points - (spent - old_spent)
+                if self.activity_points < 0:
+                    self.activity_points = 0
+
+        self.save()
+
+    @property
+    def total_earned_points(self):
+        """Всего начислено очков активности"""
+        return self.activity_points + self.spent_points
+
     class Meta:
-        verbose_name = 'Профиль'
-        verbose_name_plural = 'Профили'
+        verbose_name = 'Таблица активности'
+        verbose_name_plural = 'Таблица активности'
     
     def __str__(self):
         return f"Профиль {self.user.username}"

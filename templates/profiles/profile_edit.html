@@ -67,7 +67,7 @@
                     {{ profile_form.mp }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.pa.id_for_label }}">ПА (Физ. атака)</label>
+                    <label for="{{ profile_form.fa.id_for_label }}">ФА (Физ. атака)</label>
                     {{ profile_form.pa }}
                 </div>
                 <div class="form-group">
@@ -75,15 +75,19 @@
                     {{ profile_form.ma }}
                 </div>
                 <div class="form-group">
+                    <label for="{{ profile_form.pa.id_for_label }}">ПА (Показатель атаки)</label>
+                    {{ profile_form.pa }}
+                </div>
+                <div class="form-group">
                     <label for="{{ profile_form.pz.id_for_label }}">ПЗ (Прямая защита)</label>
                     {{ profile_form.pz }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.bd.id_for_label }}">БД (Блок дамага)</label>
+                    <label for="{{ profile_form.bd.id_for_label }}">БД (Боевой дух)</label>
                     {{ profile_form.bd }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.bu.id_for_label }}">БУ (Блок удачи)</label>
+                    <label for="{{ profile_form.bu.id_for_label }}">БУ (Бонус уровня)</label>
                     {{ profile_form.bu }}
                 </div>
                 <div class="form-group">

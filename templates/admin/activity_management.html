@@ -1,0 +1,247 @@
+<!-- templates/admin/activity_management.html -->
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'admin/css/management.css' %}">
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Главная</a>
+ &rsaquo;
+    Управление активностью
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="activity-container">
+    <div class="table-header">
+        <h1>📊 Управление активностью участников гильдии</h1>
+    </div>
+
+    {% if class_dict %}
+        {% for class_key, class_data in class_dict %}
+        <div class="class-section" data-class="{{ class_key }}">
+            <div class="class-header">
+                {% if class_data.icon %}
+                <img src="{{ class_data.icon }}" alt="{{ class_data.name }}" class="class-icon">
+                {% endif %}
+                <h2 class="class-title">{{ class_data.name }}</h2>
+                <span class="member-count">({{ class_data.members|length }} участников)</span>
+            </div>
+
+            <table class="members-table">
+                <thead>
+                    <tr>
+                        <th style="width: 20%">👤 Имя аккаунта</th>
+                        <th style="width: 15%">⚔️ Класс</th>
+                        <th style="width: 22%">💰 Всего начислено</th>
+                        <th style="width: 22%">💸 Потрачено</th>
+                        <th style="width: 21%">⭐ Текущие очки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for profile in class_data.members %}
+                    <tr id="profile-{{ profile.id }}">
+                        <td>
+                            <a href="{% url 'admin:auth_user_change' profile.user.id %}" class="username-link" target="_blank">
+                                {{ profile.user.username }}
+                            </a>
+                        </td>
+                        <td>{{ profile.get_player_class_display }}</td>
+                        <td class="total-points">
+                            <div class="points-control">
+                                <input type="number"
+                                       class="points-input total-input"
+                                       value="{{ profile.total_earned_points }}"
+                                       data-profile-id="{{ profile.id }}"
+                                       data-field="total"
+                                       data-original-value="{{ profile.total_earned_points }}"
+                                       min="0"
+                                       step="1">
+                                <div class="points-buttons">
+                                    <button class="points-btn points-up" data-profile-id="{{ profile.id }}" data-field="total">▲</button>
+                                    <button class="points-btn points-down" data-profile-id="{{ profile.id }}" data-field="total">▼</button>
+                                </div>
+                                <span class="save-indicator" id="indicator-total-{{ profile.id }}">✓</span>
+                            </div>
+                        </td>
+                        <td class="spent-points">
+                            <div class="points-control">
+                                <input type="number"
+                                       class="points-input spent-input"
+                                       value="{{ profile.spent_points }}"
+                                       data-profile-id="{{ profile.id }}"
+                                       data-field="spent"
+                                       data-original-value="{{ profile.spent_points }}"
+                                       min="0"
+                                       step="1">
+                                <div class="points-buttons">
+                                    <button class="points-btn points-up" data-profile-id="{{ profile.id }}" data-field="spent">▲</button>
+                                    <button class="points-btn points-down" data-profile-id="{{ profile.id }}" data-field="spent">▼</button>
+                                </div>
+                                <span class="save-indicator" id="indicator-spent-{{ profile.id }}">✓</span>
+                            </div>
+                        </td>
+                        <td class="current-points">
+                            <div class="points-control">
+                                <input type="number"
+                                       class="points-input current-input"
+                                       value="{{ profile.activity_points }}"
+                                       data-profile-id="{{ profile.id }}"
+                                       data-field="current"
+                                       data-original-value="{{ profile.activity_points }}"
+                                       min="0"
+                                       step="1">
+                                <div class="points-buttons">
+                                    <button class="points-btn points-up" data-profile-id="{{ profile.id }}" data-field="current">▲</button>
+                                    <button class="points-btn points-down" data-profile-id="{{ profile.id }}" data-field="current">▼</button>
+                                </div>
+                                <span class="save-indicator" id="indicator-current-{{ profile.id }}">✓</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="alert">
+            ⚠️ Нет пользователей в группе "Член гильдии" или у них не указан класс персонажа.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function savePoints(profileId, field, newValue) {
+        const indicator = document.getElementById(`indicator-${field}-${profileId}`);
+
+        if (indicator) {
+            indicator.style.display = 'inline';
+            indicator.textContent = '...';
+        }
+
+        fetch('/admin/auth/user/activity/update/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                profile_id: profileId,
+                field: field,
+                value: parseInt(newValue)
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelector(`.total-input[data-profile-id="${profileId}"]`).value = data.total;
+                document.querySelector(`.total-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.total);
+                document.querySelector(`.spent-input[data-profile-id="${profileId}"]`).value = data.spent;
+                document.querySelector(`.spent-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.spent);
+                document.querySelector(`.current-input[data-profile-id="${profileId}"]`).value = data.current;
+                document.querySelector(`.current-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.current);
+
+                const row = document.getElementById(`profile-${profileId}`);
+                if (row) {
+                    row.classList.add('updated');
+                    setTimeout(() => {
+                        row.classList.remove('updated');
+                    }, 500);
+                }
+
+                if (indicator) {
+                    indicator.textContent = '✓';
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                    }, 1500);
+                }
+            } else {
+                console.error('Error:', data.error);
+                if (indicator) {
+                    indicator.textContent = '✗';
+                    indicator.style.color = '#dc3545';
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                        indicator.style.color = '#28a745';
+                    }, 2000);
+                }
+                const input = document.querySelector(`.${field}-input[data-profile-id="${profileId}"]`);
+                if (input) {
+                    input.value = input.getAttribute('data-original-value');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (indicator) {
+                indicator.textContent = '✗';
+                indicator.style.color = '#dc3545';
+                setTimeout(() => {
+                    indicator.style.display = 'none';
+                    indicator.style.color = '#28a745';
+                }, 2000);
+            }
+        });
+    }
+
+    const inputs = document.querySelectorAll('.points-input');
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            const profileId = this.dataset.profileId;
+            const field = this.dataset.field;
+            const newValue = parseInt(this.value);
+            const originalValue = parseInt(this.dataset.originalValue);
+
+            if (isNaN(newValue) || newValue < 0) {
+                this.value = originalValue;
+                alert('Пожалуйста, введите корректное число (0 или больше)');
+                return;
+            }
+
+            if (newValue !== originalValue) {
+                savePoints(profileId, field, newValue);
+            }
+        });
+    });
+
+    const buttons = document.querySelectorAll('.points-btn');
+    buttons.forEach(button => {
+        button.addEventListener('click', function() {
+            const profileId = this.dataset.profileId;
+            const field = this.dataset.field;
+            const input = document.querySelector(`.${field}-input[data-profile-id="${profileId}"]`);
+            const isUp = this.classList.contains('points-up');
+
+            if (input) {
+                let currentValue = parseInt(input.value);
+                if (isNaN(currentValue)) currentValue = 0;
+                let newValue = isUp ? currentValue + 1 : Math.max(0, currentValue - 1);
+                input.value = newValue;
+                savePoints(profileId, field, newValue);
+            }
+        });
+    });
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
