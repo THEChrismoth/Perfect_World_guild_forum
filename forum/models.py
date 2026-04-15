@@ -3,6 +3,7 @@ from django.contrib.auth.models import User, Group
 from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta
+from django.contrib.sessions.models import Session
 
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
@@ -182,14 +183,18 @@ class Post(models.Model):
         return self.topic.slug
 
 def get_online_users():
-    """Получить список пользователей онлайн (активных за последние 5 минут)"""
+    """Получить список пользователей онлайн через сессии"""
     time_threshold = timezone.now() - timedelta(minutes=5)
-    # Предполагаем, что у вас есть last_activity в модели Profile
-    # Если нет, нужно добавить поле last_activity в Profile
-    online_users = User.objects.filter(
-        profile__last_activity__gte=time_threshold
-    ).exclude(is_active=False)
-    return online_users
+    active_sessions = Session.objects.filter(expire_date__gte=time_threshold)
+    
+    user_ids = []
+    for session in active_sessions:
+        session_data = session.get_decoded()
+        user_id = session_data.get('_auth_user_id')
+        if user_id:
+            user_ids.append(user_id)
+    
+    return User.objects.filter(id__in=set(user_ids), is_active=True)
 
 
 def get_forum_stats():
