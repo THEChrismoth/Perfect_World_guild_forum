@@ -1,10 +1,12 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
+from django_recaptcha.fields import ReCaptchaField
 from .models import Profile
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    captcha = ReCaptchaField()
     
     class Meta:
         model = User
@@ -13,6 +15,7 @@ class RegistrationForm(UserCreationForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
+        user.is_active = False
         if commit:
             user.save()
         return user

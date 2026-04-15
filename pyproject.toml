@@ -7,6 +7,9 @@ requires-python = ">=3.13"
 dependencies = [
     "django>=6.0.4",
     "django-jazzmin>=3.0.4",
+    "django-recaptcha==4.1.0",
+    "django-simple-captcha==0.6.3",
     "django-uuslug>=2.0.0",
     "pillow>=12.2.0",
+    "python-dotenv==1.2.2",
 ]

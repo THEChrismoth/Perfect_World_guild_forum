@@ -497,7 +497,7 @@ main .container {
     .stats-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .stats-form-grid {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -507,48 +507,48 @@ main .container {
     .stats-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .stats-form-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .form-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .profile-header {
         flex-direction: column;
         text-align: center;
         padding-top: 60px;
     }
-    
+
     .profile-actions {
         position: absolute;
         top: 15px;
         right: 15px;
     }
-    
+
     .profile-info {
         text-align: center;
     }
-    
+
     .player-class {
         justify-content: center;
     }
-    
+
     .activity-points {
         display: inline-block;
     }
-    
+
     .form-buttons {
         flex-direction: column;
     }
-    
+
     .btn-save,
     .btn-cancel {
         text-align: center;
     }
-    
+
     .avatar-upload {
         flex-direction: column;
         align-items: flex-start;

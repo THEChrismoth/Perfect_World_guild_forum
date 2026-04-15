@@ -3,11 +3,16 @@
 
 {% block title %}Регистрация | Ermitage{% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'profiles/css/register.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="auth-container">
-    <h2>Регистрация</h2>
-    <form method="post">
+    <h2>✨ Регистрация</h2>
+    <form method="post" id="register-form">
         {% csrf_token %}
+
         {% for field in form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -20,8 +25,68 @@
                 {% endif %}
             </div>
         {% endfor %}
-        <button type="submit" class="btn-submit">Зарегистрироваться</button>
+
+        <button type="submit" class="btn-submit">🚀 Зарегистрироваться</button>
     </form>
     <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
 </div>
+
+<script>
+function refreshCaptcha() {
+    // Отправляем AJAX запрос для получения новой капчи
+    fetch('/profiles/captcha/refresh/', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.key && data.image_url) {
+            // Обновляем изображение капчи
+            const captchaImg = document.querySelector('.captcha img');
+            if (captchaImg) {
+                captchaImg.src = data.image_url;
+            }
+
+            // Обновляем скрытое поле с ключом (captcha_0)
+            const keyInput = document.querySelector('input[name="captcha_0"]');
+            if (keyInput) {
+                keyInput.value = data.key;
+            }
+
+            // Очищаем поле ввода (captcha_1)
+            const codeInput = document.querySelector('input[name="captcha_1"]');
+            if (codeInput) {
+                codeInput.value = '';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка обновления капчи:', error);
+        // Fallback: просто перезагружаем страницу
+        location.reload();
+    });
+}
+
+// Добавляем кнопку обновления рядом с капчей
+document.addEventListener('DOMContentLoaded', function() {
+    const captchaContainer = document.querySelector('.captcha');
+    if (captchaContainer && !document.querySelector('.captcha-refresh-btn')) {
+        const refreshBtn = document.createElement('button');
+        refreshBtn.type = 'button';
+        refreshBtn.className = 'captcha-refresh-btn';
+        refreshBtn.innerHTML = '🔄 Обновить';
+        refreshBtn.onclick = refreshCaptcha;
+        captchaContainer.parentNode.insertBefore(refreshBtn, captchaContainer.nextSibling);
+    }
+
+    // Обновление по клику на изображение
+    const captchaImg = document.querySelector('.captcha img');
+    if (captchaImg) {
+        captchaImg.style.cursor = 'pointer';
+        captchaImg.title = 'Нажмите для обновления';
+        captchaImg.onclick = refreshCaptcha;
+    }
+});
+</script>
 {% endblock %}

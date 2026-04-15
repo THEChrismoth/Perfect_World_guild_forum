@@ -1,9 +1,11 @@
 import os
+from dotenv import load_dotenv
 
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,6 +33,8 @@ INSTALLED_APPS = [
     'forum',
     'koslist',
     'profiles',
+    'captcha',
+    'django_recaptcha',
 ]
 
 MIDDLEWARE = [
@@ -92,6 +96,10 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+SILENCED_SYSTEM_CHECKS = [
+    'django_recaptcha.recaptcha_test_key_error',
+]
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -119,3 +127,15 @@ LOGIN_URL = '/login/'
 # Для загрузки файлов (аватаров)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+#EMAIL_HOST = 'smtp.gmail.com'  # или ваш SMTP сервер
+#EMAIL_PORT = 587
+#EMAIL_USE_TLS = True
+#EMAIL_HOST_USER = 'your_email@gmail.com'
+#EMAIL_HOST_PASSWORD = 'your_password'  # или пароль приложения
+#DEFAULT_FROM_EMAIL = 'noreply@yoursite.com'
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
+RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
