@@ -6,16 +6,17 @@
 {% endblock %}
 
 {% block content %}
-<div class="forum-container">
-    <ul class="categorys">
-        {% for category_data in categories %}
-            <li class="category-item">
-                <h2 class="category-title">{{ category_data.category.title }}</h2>
-                <div class="subcategories-block">
-                    <div class="subcategories-container">
-                        <ul class="subcategories-grid">
-                            {% for subcategory in category_data.subcategories %}
-                                <li>
+<div class="forum-layout">
+    <!-- Основное содержимое форума -->
+    <div class="forum-main">
+        <ul class="categorys">
+            {% for category_data in categories %}
+                <li class="category-item">
+                    <h2 class="category-title">{{ category_data.category.title }}</h2>
+                    <div class="subcategories-block">
+                        <div class="subcategories-container">
+                            <div class="subcategories-grid">
+                                {% for subcategory in category_data.subcategories %}
                                     <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
                                         <div class="subcategory-main">
                                             <span class="subcategory-title">{{ subcategory.title }}</span>
@@ -57,19 +58,120 @@
                                             {% endwith %}
                                         </div>
                                     </a>
-                                </li>
-                            {% endfor %}
-                        </ul>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
+                </li>
+            {% empty %}
+                <li class="category-item">
+                    <div class="no-subcategories">
+                        У вас нет доступа ни к одной категории
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Правый сайдбар -->
+    <div class="forum-sidebar">
+        <!-- Блок 1: Новые сообщения -->
+        <div class="sidebar-widget">
+            <div class="widget-header">
+                <h3>📝 Новые сообщения</h3>
+            </div>
+            <div class="widget-content">
+                {% if latest_posts %}
+                    <ul class="latest-posts-list">
+                        {% for post in latest_posts %}
+                            <li class="latest-post-item">
+                                <div class="post-author-avatar">
+                                    {% if post.author.profile.avatar %}
+                                        <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar-small">
+                                    {% else %}
+                                        <div class="post-avatar-placeholder">
+                                            {{ post.author.username|make_list|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="post-info">
+                                    <a href="{% url 'topic_detail' slug=post.topic.slug %}#post-{{ post.id }}" class="post-topic-title">
+                                        {{ post.topic.title|truncatechars:35 }}
+                                    </a>
+                                    <div class="post-meta">
+                                        <span class="post-author">{{ post.author.username }}</span>
+                                        <span class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</span>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="no-data">Нет сообщений</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Блок 2: Пользователи онлайн -->
+        <div class="sidebar-widget">
+            <div class="widget-header">
+                <h3>🟢 Пользователи онлайн</h3>
+                <span class="online-count">{{ online_users|length }}</span>
+            </div>
+            <div class="widget-content">
+                {% if online_users %}
+                    <ul class="online-users-list">
+                        {% for user in online_users %}
+                            <li class="online-user-item">
+                                <a href="{% url 'profile_view' username=user.username %}" class="user-link">
+                                    <span class="online-indicator"></span>
+                                    {{ user.username }}
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="no-data">Нет пользователей онлайн</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Блок 3: Статистика форума -->
+        <div class="sidebar-widget">
+            <div class="widget-header">
+                <h3>📊 Статистика форума</h3>
+            </div>
+            <div class="widget-content">
+                <div class="stats-list">
+                    <div class="stat-row">
+                        <span class="stat-icon">📌</span>
+                        <span class="stat-label">Всего тем:</span>
+                        <span class="stat-number">{{ forum_stats.topics_count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">💬</span>
+                        <span class="stat-label">Всего сообщений:</span>
+                        <span class="stat-number">{{ forum_stats.posts_count }}</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-icon">👥</span>
+                        <span class="stat-label">Пользователей:</span>
+                        <span class="stat-number">{{ forum_stats.users_count }}</span>
+                    </div>
+                    {% if forum_stats.latest_user %}
+                        <div class="stat-row latest-user">
+                            <span class="stat-icon">🆕</span>
+                            <span class="stat-label">Последний:</span>
+                            <span class="stat-value">
+                                <a href="{% url 'profile_view' username=forum_stats.latest_user.username %}">
+                                    {{ forum_stats.latest_user.username }}
+                                </a>
+                            </span>
+                        </div>
+                    {% endif %}
                 </div>
-            </li>
-        {% empty %}
-            <li class="category-item">
-                <div class="no-subcategories">
-                    У вас нет доступа ни к одной категории
-                </div>
-            </li>
-        {% endfor %}
-    </ul>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

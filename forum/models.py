@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils.text import slugify
+from django.utils import timezone
+from datetime import timedelta
 
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
@@ -172,3 +174,42 @@ class Post(models.Model):
 
     def __str__(self):
         return f"Пост от {self.author.username} в теме {self.topic.title}"
+
+    def get_topic_title(self):
+        return self.topic.title
+    
+    def get_topic_slug(self):
+        return self.topic.slug
+
+def get_online_users():
+    """Получить список пользователей онлайн (активных за последние 5 минут)"""
+    time_threshold = timezone.now() - timedelta(minutes=5)
+    # Предполагаем, что у вас есть last_activity в модели Profile
+    # Если нет, нужно добавить поле last_activity в Profile
+    online_users = User.objects.filter(
+        profile__last_activity__gte=time_threshold
+    ).exclude(is_active=False)
+    return online_users
+
+
+def get_forum_stats():
+    """Получить статистику форума"""
+    from .models import Topic, Post
+    from django.contrib.auth.models import User
+    
+    topics_count = Topic.objects.count()
+    posts_count = Post.objects.count()
+    users_count = User.objects.count()
+    latest_user = User.objects.order_by('-date_joined').first()
+    
+    return {
+        'topics_count': topics_count,
+        'posts_count': posts_count,
+        'users_count': users_count,
+        'latest_user': latest_user,
+    }
+
+
+def get_latest_posts(limit=10):
+    """Получить последние сообщения"""
+    return Post.objects.select_related('author', 'topic').order_by('-created_at')[:limit]

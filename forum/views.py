@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
-from .models import Category, SubCategory, Topic, Post
+from .models import Category, SubCategory, Topic, Post, get_online_users, get_forum_stats, get_latest_posts
 from .forms import TopicForm, PostForm
 
 def forum_view(request):
@@ -24,8 +24,16 @@ def forum_view(request):
                     'subcategories': visible_subcategories
                 })
     
+    # Получаем данные для правого блока
+    latest_posts = get_latest_posts(10)
+    online_users = get_online_users()
+    forum_stats = get_forum_stats()
+    
     context = {
         'categories': categories,
+        'latest_posts': latest_posts,
+        'online_users': online_users,
+        'forum_stats': forum_stats,
     }
     return render(request, 'forum/forum_index.html', context)
 

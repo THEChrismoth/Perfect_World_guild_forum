@@ -319,3 +319,310 @@ main .container {
 .category-item:nth-child(8) { animation-delay: 0.4s; }
 .category-item:nth-child(9) { animation-delay: 0.45s; }
 .category-item:nth-child(10) { animation-delay: 0.5s; }
+
+/* Layout для форума с сайдбаром */
+.forum-layout {
+    display: flex;
+    gap: 25px;
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 20px;
+    align-items: flex-start;  /* Важно для sticky элемента */
+}
+
+.forum-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.forum-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    position: sticky;  /* Делаем сайдбар sticky */
+    top: 20px;  /* Отступ от верха при прокрутке */
+    align-self: flex-start;  /* Прижимаем к верху */
+    max-height: calc(100vh - 40px);  /* Максимальная высота с учетом отступов */
+    overflow-y: auto;  /* Добавляем прокрутку внутри сайдбара если нужно */
+}
+
+/* Стилизация скроллбара для сайдбара (опционально) */
+.forum-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.forum-sidebar::-webkit-scrollbar-track {
+    background: #2D3037;
+    border-radius: 4px;
+}
+
+.forum-sidebar::-webkit-scrollbar-thumb {
+    background: #FD48B6;
+    border-radius: 4px;
+}
+
+.forum-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #ff69b4;
+}
+
+/* Стили для виджетов сайдбара */
+.sidebar-widget {
+    background: #2D3037;
+    border-radius: 8px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Остальные стили остаются без изменений */
+.widget-header {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 8px 12px;
+    border-bottom: 2px solid #FD48B6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+.online-count {
+    background: #FD48B6;
+    color: white;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.widget-content {
+    padding: 8px 10px;
+}
+
+/* Новые сообщения */
+.latest-posts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.latest-post-item {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.2s ease;
+}
+
+.latest-post-item:last-child {
+    border-bottom: none;
+}
+
+.latest-post-item:hover {
+    background: rgba(253, 72, 182, 0.05);
+}
+
+.post-author-avatar {
+    flex-shrink: 0;
+}
+
+.post-avatar-small {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.post-avatar-placeholder {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+}
+
+.post-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.post-topic-title {
+    color: #e0e0e0;
+    font-size: 11px;
+    font-weight: 500;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 2px;
+    line-height: 1.3;
+    transition: color 0.2s;
+}
+
+.post-topic-title:hover {
+    color: #FD48B6;
+}
+
+.post-meta {
+    display: flex;
+    gap: 6px;
+    font-size: 9px;
+    color: #888;
+}
+
+.post-author {
+    color: #FD48B6;
+}
+
+/* Пользователи онлайн */
+.online-users-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.online-user-item {
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.online-user-item:last-child {
+    border-bottom: none;
+}
+
+.user-link {
+    color: #e0e0e0;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    transition: color 0.2s;
+}
+
+.user-link:hover {
+    color: #FD48B6;
+}
+
+.online-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #4CAF50;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Статистика */
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-icon {
+    font-size: 14px;
+    width: 20px;
+}
+
+.stat-label {
+    color: #888;
+    flex: 1;
+}
+
+.stat-number {
+    color: #FD48B6;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.stat-value a {
+    color: #e0e0e0;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.stat-value a:hover {
+    color: #FD48B6;
+}
+
+.latest-user {
+    background: rgba(253, 72, 182, 0.05);
+    border-radius: 5px;
+    padding: 4px 6px;
+    margin-top: 2px;
+}
+
+.no-data {
+    color: #888;
+    text-align: center;
+    padding: 12px;
+    font-size: 11px;
+    font-style: italic;
+}
+
+/* Адаптивность для сайдбара */
+@media (max-width: 1200px) {
+    .forum-sidebar {
+        width: 240px;
+    }
+}
+
+@media (max-width: 992px) {
+    .forum-layout {
+        flex-direction: column;
+    }
+    
+    .forum-sidebar {
+        width: 100%;
+        position: static;  /* На мобильных убираем sticky */
+        max-height: none;
+        overflow-y: visible;
+    }
+    
+    .sidebar-widget {
+        margin-bottom: 18px;
+    }
+}
+
+@media (max-width: 768px) {
+    .forum-layout {
+        padding: 12px;
+        gap: 18px;
+    }
+}

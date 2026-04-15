@@ -56,6 +56,8 @@ class Profile(models.Model):
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
 
+    last_activity = models.DateTimeField('Последняя активность', auto_now=True, null=True, blank=True)
+
     def update_points(self, total_earned=None, spent=None):
         """Обновляет очки активности"""
         if total_earned is not None:
