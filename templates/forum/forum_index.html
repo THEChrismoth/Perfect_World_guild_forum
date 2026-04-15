@@ -99,7 +99,11 @@
                                         {{ post.topic.title|truncatechars:35 }}
                                     </a>
                                     <div class="post-meta">
-                                        <span class="post-author">{{ post.author.username }}</span>
+                                        <span class="post-author">
+                                            <a href="{% url 'profile_view' username=post.author.username %}" class="post-author-link">
+                                                {{ post.author.username }}
+                                            </a>
+                                        </span>
                                         <span class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</span>
                                     </div>
                                 </div>

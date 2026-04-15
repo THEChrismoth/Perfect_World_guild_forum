@@ -356,3 +356,24 @@ footer .social-links a:hover {
         text-align: center;
     }
 }
+
+.post-author-link {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.post-author-link:hover {
+    color: #004499;
+    text-decoration: underline;
+}
+
+/* Если нужно, чтобы ссылка не отличалась от обычного текста */
+.post-author-link {
+    color: inherit;
+    text-decoration: none;
+}
+
+.post-author-link:hover {
+    text-decoration: underline;
+}
