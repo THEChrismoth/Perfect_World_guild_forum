@@ -1,3 +1,4 @@
+from uuslug import uuslug
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.utils.text import slugify
@@ -136,15 +137,7 @@ class Topic(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base_slug = slugify(self.title)
-            slug = base_slug
-            counter = 1
-            
-            while Topic.objects.filter(slug=slug).exists():
-                slug = f"{base_slug}-{counter}"
-                counter += 1
-            
-            self.slug = slug
+            self.slug = uuslug(self.title, instance=self, max_length=100)
         super().save(*args, **kwargs)
 
     def __str__(self):
