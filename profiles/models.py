@@ -85,8 +85,8 @@ class Profile(models.Model):
         return self.activity_points + self.spent_points
 
     class Meta:
-        verbose_name = 'Таблица активности'
-        verbose_name_plural = 'Таблица активности'
+        verbose_name = 'редактировать профиль'
+        verbose_name_plural = 'редактировать профили'
     
     def __str__(self):
         return f"Профиль {self.user.username}"

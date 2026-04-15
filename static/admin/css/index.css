@@ -1,3 +1,10 @@
+/* static/admin/css/index.css */
+/* Скрываем раздел Profiles */
 .app-profiles {
-        display: none !important;
+    display: none !important;
+}
+
+/* Если не работает, можно также скрыть по имени модели */
+.model-profile {
+    display: none !important;
 }

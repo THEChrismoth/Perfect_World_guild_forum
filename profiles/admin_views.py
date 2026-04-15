@@ -1,12 +1,14 @@
-# admin_views.py
+import json
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
-from .models import Profile
+from django.contrib.admin import AdminSite
 from django.views.decorators.csrf import csrf_exempt
-import json
+from .models import Profile
+
+
 
 
 @staff_member_required
@@ -107,3 +109,20 @@ def update_activity_points(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid method'})
+
+class CustomAdminSite(AdminSite):
+    def get_app_list(self, request):
+        app_list = super().get_app_list(request)
+        # Добавляем кастомный пункт в меню
+        app_list.append({
+            'name': 'Управление гильдией',
+            'app_label': 'guild',
+            'models': [{
+                'name': 'Управление активностью',
+                'object_name': 'ActivityManagement',
+                'admin_url': reverse('admin:activity_management'),
+                'view_only': True,
+                'perms': {'change': True},
+            }]
+        })
+        return app_list
