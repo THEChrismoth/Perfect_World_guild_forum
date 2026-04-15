@@ -61,8 +61,6 @@ class Profile(models.Model):
     def update_points(self, total_earned=None, spent=None):
         """Обновляет очки активности"""
         if total_earned is not None:
-            # total_earned = activity_points + spent_points
-            # activity_points = total_earned - spent_points
             new_activity = total_earned - self.spent_points
             if new_activity >= 0:
                 self.activity_points = new_activity
