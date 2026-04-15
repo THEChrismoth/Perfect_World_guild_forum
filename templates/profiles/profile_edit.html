@@ -14,6 +14,37 @@
         
         <div class="form-section">
             <h3>Основная информация</h3>
+            
+            <!-- Поле аватара - отдельно, на всю ширину -->
+            <div class="form-group-fullwidth">
+                <label>Аватар</label>
+                <div class="avatar-upload">
+                    <div class="avatar-preview" id="avatarPreview">
+                        {% if profile_form.instance.avatar %}
+                            <img src="{{ profile_form.instance.avatar.url }}" alt="Аватар" style="width: 100%; height: 100%; object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                {{ request.user.username|make_list|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="avatar-upload-controls">
+                        <label for="id_avatar_custom" class="btn-upload">
+                            📁 Выбрать файл
+                        </label>
+                        <input type="file" name="avatar" accept="image/*" id="id_avatar_custom" style="display: none;">
+                        {% if profile_form.instance.avatar %}
+                            <label class="btn-clear">
+                                <input type="checkbox" name="avatar-clear" id="avatar-clear_id">
+                                🗑️ Очистить
+                            </label>
+                        {% endif %}
+                    </div>
+                    <small class="avatar-hint">Рекомендуемый размер: 200x200px. Поддерживаются JPG, PNG, GIF</small>
+                </div>
+            </div>
+            
+            <!-- Остальные поля в сетке 2 колонки -->
             <div class="form-grid">
                 <div class="form-group">
                     <label for="{{ user_form.first_name.id_for_label }}">Имя</label>
@@ -24,29 +55,16 @@
                     {{ user_form.last_name }}
                 </div>
                 <div class="form-group">
-                    <label>Аватар</label>
-                    <input type="file" name="avatar" accept="image/*" id="id_avatar">
-                    {% if profile_form.instance.avatar %}
-                        <div class="current-avatar">
-                            <span>Текущий аватар: {{ profile_form.instance.avatar.name|cut:"avatars/" }}</span>
-                            <label class="clear-avatar-label">
-                                <input type="checkbox" name="avatar-clear" id="avatar-clear_id">
-                                Очистить
-                            </label>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
-                    {{ profile_form.ts3_id }}
+                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
+                    {{ profile_form.city }}
                 </div>
                 <div class="form-group">
                     <label for="{{ profile_form.birth_date.id_for_label }}">Дата рождения</label>
                     {{ profile_form.birth_date }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
-                    {{ profile_form.city }}
+                    <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
+                    {{ profile_form.ts3_id }}
                 </div>
                 <div class="form-group">
                     <label for="{{ profile_form.player_class.id_for_label }}">Класс персонажа</label>
@@ -67,11 +85,11 @@
                     {{ profile_form.mp }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.fa.id_for_label }}">ФА (Физ. атака)</label>
-                    {{ profile_form.pa }}
+                    <label for="{{ profile_form.fa.id_for_label }}">ФА (Физическая атака)</label>
+                    {{ profile_form.fa }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.ma.id_for_label }}">МА (Маг. атака)</label>
+                    <label for="{{ profile_form.ma.id_for_label }}">МА (Магическая атака)</label>
                     {{ profile_form.ma }}
                 </div>
                 <div class="form-group">
@@ -131,4 +149,35 @@
         </div>
     </form>
 </div>
+
+<script>
+    // Предпросмотр аватара
+    document.addEventListener('DOMContentLoaded', function() {
+        var avatarInput = document.getElementById('id_avatar_custom');
+        var avatarPreview = document.getElementById('avatarPreview');
+        
+        if (avatarInput && avatarPreview) {
+            avatarInput.addEventListener('change', function(event) {
+                var file = event.target.files[0];
+                
+                if (file && file.type.startsWith('image/')) {
+                    var reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        avatarPreview.innerHTML = '';
+                        var img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = 'Аватар';
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        avatarPreview.appendChild(img);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
