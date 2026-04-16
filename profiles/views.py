@@ -55,7 +55,7 @@ def register(request):
             return redirect('login')
     else:
         form = RegistrationForm()
-    return render(request, 'profiles/register.html', {'form': form})
+    return render(request, 'registration/register.html', {'form': form})
 
 
 def verify_email(request, uidb64, token):
