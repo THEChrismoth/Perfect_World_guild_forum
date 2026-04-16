@@ -18,13 +18,11 @@
                 <ul class="topics-list">
                     {% for topic in subcategory.topics.all %}
                         <li class="topic-list-item">
-                            <div class="topic-card">
+                            <div class="topic-card" onclick="window.location.href='{% url 'topic_detail' slug=topic.slug %}'">
                                 <div class="topic-info">
-                                    <a href="{% url 'topic_detail' slug=topic.slug %}" class="topic-title-link">
-                                        <span class="topic-title">{{ topic.title }}</span>
-                                    </a>
+                                    <span class="topic-title">{{ topic.title }}</span>
                                     <div class="topic-meta">
-                                        <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
+                                        <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link" onclick="event.stopPropagation();">{{ topic.author.username }}</a></span>
                                         <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
                                         <span>Ответов: {{ topic.posts.count }}</span>
                                     </div>
@@ -32,10 +30,10 @@
                             </div>
                             {% if user == topic.author or user.is_superuser %}
                                 <div class="topic-actions">
-                                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic-list" title="Редактировать тему">✏️</a>
-                                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form">
+                                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic-list" title="Редактировать тему" onclick="event.stopPropagation();">✏️</a>
+                                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form" onclick="event.stopPropagation();">
                                         {% csrf_token %}
-                                        <button type="submit" class="btn-delete-topic-list" title="Удалить тему">🗑️</button>
+                                        <button type="submit" class="btn-delete-topic-list" title="Удалить тему" onclick="event.stopPropagation();">🗑️</button>
                                     </form>
                                 </div>
                             {% endif %}
