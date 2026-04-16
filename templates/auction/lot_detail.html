@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="lot-detail-container">
+    <div class="lot-detail-header">
+        <div class="lot-detail-image">
+            {% if lot.image %}
+                <img src="{{ lot.image.url }}" alt="{{ lot.name }}">
+            {% else %}
+                <div class="no-image">📦</div>
+            {% endif %}
+        </div>
+        
+        <div class="lot-detail-info">
+            <h1>{{ lot.name }}</h1>
+            
+            <div class="lot-description">
+                {{ lot.description|linebreaks }}
+            </div>
+            
+            <div class="lot-detail-price">
+                <div class="price-row">
+                    <span class="label">Начальная цена:</span>
+                    <span class="value">{{ lot.initial_price }} ⭐</span>
+                </div>
+                <div class="price-row">
+                    <span class="label">Текущая цена:</span>
+                    <span class="value">{{ lot.current_price }} ⭐</span>
+                </div>
+                <div class="price-row">
+                    <span class="label">Минимальный шаг:</span>
+                    <span class="value">{{ lot.min_step }} ⭐</span>
+                </div>
+                <div class="price-row">
+                    <span class="label">Минимальная ставка:</span>
+                    <span class="value">{{ min_bid }} ⭐</span>
+                </div>
+                <div class="price-row">
+                    <span class="label">Победителей:</span>
+                    <span class="value">{{ lot.winners_count }}/{{ lot.max_winners }}</span>
+                </div>
+            </div>
+            
+            <div class="lot-timer">
+                <span class="timer-label">⏰ Осталось до окончания:</span>
+                <span class="timer-value" id="timer-value">--:--:--</span>
+            </div>
+            
+            {% if lot.is_active %}
+                <div class="user-points-info">
+                    💰 Ваш баланс: <strong id="user-balance">{{ user_balance }}</strong> ⭐
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}error{% else %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    {% if lot.is_active and user.is_authenticated %}
+        <div class="bid-section">
+            <h3>Сделать ставку</h3>
+            <form method="post" class="bid-form" id="bid-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_bid_amount">Ваша ставка (мин. {{ min_bid }} ⭐)</label>
+                    <input type="number" name="bid_amount" id="id_bid_amount" 
+                           class="bid-input" 
+                           step="{{ lot.min_step }}"
+                           value="{{ min_bid }}"
+                           required>
+                </div>
+                <button type="submit" class="btn-submit-bid">Сделать ставку</button>
+            </form>
+        </div>
+    {% elif lot.is_active and not user.is_authenticated %}
+        <div class="warning-message">
+            <a href="{% url 'login' %}">Войдите</a>, чтобы сделать ставку
+        </div>
+    {% elif not lot.is_active and lot.status == 'ended' %}
+        <div class="info-message">
+            <h3>🏆 Аукцион завершен</h3>
+            {% if winners %}
+                <div class="winners-list">
+                    <h4>Победители:</h4>
+                    <ul>
+                    {% for winner in winners %}
+                        <li>{{ winner.bidder.username }} - {{ winner.bid_amount }} ⭐</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div class="bids-table">
+        <h3>История ставок ({{ lot.total_bids_count }})</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Пользователь</th>
+                    <th>Ставка</th>
+                    <th>Время</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for bid in bids %}
+                    <tr {% if bid.is_winner %}class="winner-row"{% endif %}>
+                        <td>{{ bid.bidder.username }}</td>
+                        <td><strong>{{ bid.bid_amount }} ⭐</strong></td>
+                        <td>{{ bid.created_at|date:"d.m.Y H:i:s" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" class="no-bids">Пока нет ставок</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// Таймер
+var endTimestamp = {{ end_timestamp }};
+var timerElement = document.getElementById('timer-value');
+
+function updateTimer() {
+    if (!timerElement) return;
+    
+    var now = new Date().getTime();
+    var diff = endTimestamp - now;
+    
+    if (diff <= 0) {
+        timerElement.textContent = 'Аукцион завершен';
+        setTimeout(function() {
+            location.reload();
+        }, 3000);
+        return;
+    }
+    
+    var hours = Math.floor(diff / (1000 * 60 * 60));
+    var minutes = Math.floor((diff % (3600000)) / 60000);
+    var seconds = Math.floor((diff % 60000) / 1000);
+    
+    timerElement.textContent = 
+        hours.toString().padStart(2, '0') + ':' + 
+        minutes.toString().padStart(2, '0') + ':' + 
+        seconds.toString().padStart(2, '0');
+}
+
+// Проверка только минимальной суммы (баланс проверяется на сервере)
+var bidForm = document.getElementById('bid-form');
+if (bidForm) {
+    bidForm.addEventListener('submit', function(e) {
+        var bidAmount = parseInt(document.getElementById('id_bid_amount').value);
+        var minBid = {{ min_bid }};
+        
+        if (isNaN(bidAmount)) {
+            e.preventDefault();
+            alert('Введите корректную сумму');
+            return false;
+        }
+        
+        if (bidAmount < minBid) {
+            e.preventDefault();
+            alert('Минимальная ставка: ' + minBid + ' ⭐');
+            return false;
+        }
+        
+        return true;
+    });
+}
+
+// Запускаем таймер
+updateTimer();
+setInterval(updateTimer, 1000);
+</script>
+{% endblock %}

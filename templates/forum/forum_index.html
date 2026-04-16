@@ -3,12 +3,13 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="forum-layout">
-    <!-- Основное содержимое форума -->
     <div class="forum-main">
+        <!-- КАТЕГОРИИ ФОРУМА -->
         <ul class="categorys">
             {% for category_data in categories %}
                 <li class="category-item">
@@ -17,45 +18,60 @@
                         <div class="subcategories-container">
                             <div class="subcategories-grid">
                                 {% for subcategory in category_data.subcategories %}
-                                    <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
+                                    <a href="
+                                        {% if subcategory.is_auction %}
+                                            {% url 'auction:auction_index' %}
+                                        {% else %}
+                                            {% url 'subcategory_detail' slug=subcategory.slug %}
+                                        {% endif %}
+                                    " class="subcategory-card {% if subcategory.is_auction %}auction-card{% endif %}">
                                         <div class="subcategory-main">
-                                            <span class="subcategory-title">{{ subcategory.title }}</span>
+                                            <span class="subcategory-title">
+                                                {% if subcategory.is_auction %}🎯 {% endif %}
+                                                {{ subcategory.title }}
+                                            </span>
                                         </div>
                                         
                                         <div class="subcategory-stats">
                                             <div class="stat-item">
                                                 <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                <span class="stat-label">тем</span>
+                                                <span class="stat-label">{% if subcategory.is_auction %}лотов{% else %}тем{% endif %}</span>
                                             </div>
                                             <div class="stat-item">
                                                 <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                <span class="stat-label">ответов</span>
+                                                <span class="stat-label">{% if subcategory.is_auction %}ставок{% else %}ответов{% endif %}</span>
                                             </div>
                                         </div>
                                         
                                         <div class="subcategory-last-post">
-                                            {% with last_post=subcategory.last_post %}
-                                                {% if last_post %}
-                                                    {% with profile=last_post.author.profile %}
-                                                        {% if profile.avatar %}
-                                                            <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
-                                                        {% else %}
-                                                            <div class="last-post-avatar">
-                                                                {{ last_post.author.username|make_list|first|upper }}
+                                            {% if subcategory.is_auction %}
+                                                <div class="auction-badge">
+                                                    🎯 Активные торги
+                                                </div>
+                                            {% else %}
+                                                {% with last_post=subcategory.subcategory.posts.last %}
+                                                    {% if last_post %}
+                                                        {% with profile=last_post.author.profile %}
+                                                            {% if profile.avatar %}
+                                                                <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
+                                                            {% else %}
+                                                                <div class="last-post-avatar">
+                                                                    {{ last_post.author.username|make_list|first|upper }}
+                                                                </div>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                        <div class="last-post-info">
+                                                            <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
+                                                            <div class="last-post-meta">
+                                                                {{ last_post.created_at|date:"d.m.Y H:i" }}
+                                                                <span>от {{ last_post.author.username }}</span>
                                                             </div>
-                                                        {% endif %}
-                                                    {% endwith %}
-                                                    <div class="last-post-info">
-                                                        <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
-                                                        <div class="last-post-meta">
-                                                            {{ last_post.created_at|date:"d.m.Y H:i" }}
-                                                            <span>от {{ last_post.author.username }}</span>
                                                         </div>
-                                                    </div>
-                                                {% else %}
-                                                    <div class="no-posts">Нет сообщений</div>
-                                                {% endif %}
-                                            {% endwith %}
+                                                    {% else %}
+                                                        <div class="no-posts">Нет сообщений</div>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
                                         </div>
                                     </a>
                                 {% endfor %}

@@ -327,7 +327,7 @@ main .container {
     max-width: 1600px;
     margin: 0 auto;
     padding: 20px;
-    align-items: flex-start;  /* Важно для sticky элемента */
+    align-items: flex-start;
 }
 
 .forum-main {
@@ -338,14 +338,13 @@ main .container {
 .forum-sidebar {
     width: 260px;
     flex-shrink: 0;
-    position: sticky;  /* Делаем сайдбар sticky */
-    top: 20px;  /* Отступ от верха при прокрутке */
-    align-self: flex-start;  /* Прижимаем к верху */
-    max-height: calc(100vh - 40px);  /* Максимальная высота с учетом отступов */
-    overflow-y: auto;  /* Добавляем прокрутку внутри сайдбара если нужно */
+    position: sticky;
+    top: 20px;
+    align-self: flex-start;
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }
 
-/* Стилизация скроллбара для сайдбара (опционально) */
 .forum-sidebar::-webkit-scrollbar {
     width: 4px;
 }
@@ -364,7 +363,6 @@ main .container {
     background: #ff69b4;
 }
 
-/* Стили для виджетов сайдбара */
 .sidebar-widget {
     background: #2D3037;
     border-radius: 8px;
@@ -373,7 +371,6 @@ main .container {
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
-/* Остальные стили остаются без изменений */
 .widget-header {
     background: rgba(253, 72, 182, 0.1);
     padding: 8px 12px;
@@ -403,7 +400,6 @@ main .container {
     padding: 8px 10px;
 }
 
-/* Новые сообщения */
 .latest-posts-list {
     list-style: none;
     padding: 0;
@@ -481,7 +477,6 @@ main .container {
     color: #FD48B6;
 }
 
-/* Пользователи онлайн */
 .online-users-list {
     list-style: none;
     padding: 0;
@@ -535,7 +530,6 @@ main .container {
     }
 }
 
-/* Статистика */
 .stats-list {
     display: flex;
     flex-direction: column;
@@ -596,7 +590,6 @@ main .container {
     font-style: italic;
 }
 
-/* Адаптивность для сайдбара */
 @media (max-width: 1200px) {
     .forum-sidebar {
         width: 240px;
@@ -610,7 +603,7 @@ main .container {
     
     .forum-sidebar {
         width: 100%;
-        position: static;  /* На мобильных убираем sticky */
+        position: static;
         max-height: none;
         overflow-y: visible;
     }
@@ -625,4 +618,41 @@ main .container {
         padding: 12px;
         gap: 18px;
     }
+}
+
+/* Стили для аукциона в форуме */
+.auction-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.auction-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FD48B6, #ff8c42);
+}
+
+.auction-badge {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    color: #ffffff !important;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.subcategory-card:hover .auction-badge {
+    background: linear-gradient(135deg, #ff69b4, #ffa05e);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.3);
+}
+
+.auction-card:hover .auction-badge {
+    color: #ffffff !important;
 }

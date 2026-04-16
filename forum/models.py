@@ -74,6 +74,12 @@ class SubCategory(models.Model):
         verbose_name='Группы с доступом',
         help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
     )
+    # Флаг аукциона
+    is_auction = models.BooleanField(
+        'Это аукцион',
+        default=False,
+        help_text='Отметьте, если эта подкатегория является аукционом'
+    )
 
     class Meta:
         verbose_name = 'Подкатегорию'
@@ -107,15 +113,6 @@ class SubCategory(models.Model):
         
         user_groups = user.groups.all()
         return self.view_groups.filter(id__in=user_groups).exists()
-    
-    def topics_count(self):
-        return self.topics.count()
-    
-    def posts_count(self):
-        return Post.objects.filter(topic__subcategory=self).count()
-    
-    def last_post(self):
-        return Post.objects.filter(topic__subcategory=self).order_by('-created_at').first()
 
 class Topic(models.Model):
     title = models.CharField('Название темы', max_length=100)

@@ -2,8 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.utils import timezone
+from django.utils.text import slugify
 from .models import Category, SubCategory, Topic, Post, get_online_users, get_forum_stats, get_latest_posts
 from .forms import TopicForm, PostForm
+from auction.models import AuctionLot
 
 def forum_view(request):
     # Получаем все категории
@@ -16,7 +19,31 @@ def forum_view(request):
             visible_subcategories = []
             for subcategory in category.subcategories.all():
                 if subcategory.is_visible_to_user(request.user):
-                    visible_subcategories.append(subcategory)
+                    # Проверяем по флагу is_auction
+                    if subcategory.is_auction:
+                        # Создаем специальную ссылку для аукциона
+                        visible_subcategories.append({
+                            'subcategory': subcategory,
+                            'is_auction': True,
+                            'topics_count': AuctionLot.objects.filter(status='active').count(),
+                            'posts_count': AuctionLot.objects.count(),
+                            'slug': subcategory.slug,
+                            'title': subcategory.title,
+                        })
+                    else:
+                        # Для обычных подкатегорий считаем темы и посты
+                        topics_count = subcategory.topics.count()
+                        # Считаем все посты во всех темах подкатегории
+                        posts_count = Post.objects.filter(topic__subcategory=subcategory).count()
+                        
+                        visible_subcategories.append({
+                            'subcategory': subcategory,
+                            'is_auction': False,
+                            'topics_count': topics_count,
+                            'posts_count': posts_count,
+                            'slug': subcategory.slug,
+                            'title': subcategory.title,
+                        })
             # Добавляем категорию только если есть видимые подкатегории
             if visible_subcategories:
                 categories.append({
@@ -44,6 +71,16 @@ def subcategory_detail(request, slug):
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
     
+    # Проверяем по флагу is_auction
+    if subcategory.is_auction:
+        # Дополнительная проверка доступа к аукциону
+        from auction.views import check_auction_access
+        if not check_auction_access(request.user):
+            raise PermissionDenied("У вас нет доступа к аукциону")
+        # Перенаправляем на страницу аукциона
+        from django.urls import reverse
+        return redirect(reverse('auction:auction_index'))
+    
     context = {'subcategory': subcategory}
     return render(request, 'forum/subcategory_detail.html', context)
 
@@ -54,6 +91,10 @@ def topic_create(request, slug):
     # Проверяем доступ к подкатегории
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
+    
+    # Проверяем по флагу is_auction
+    if subcategory.is_auction:
+        return redirect('auction:auction_index')
     
     if request.method == 'POST':
         form = TopicForm(request.POST)

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auction-container">
+    <div class="auction-header">
+        <h1>🎯 Аукцион</h1>
+        <div class="auction-stats">
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.active_count }}</span>
+                <span class="stat-label">Активных лотов</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.total_lots }}</span>
+                <span class="stat-label">Всего лотов</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ stats.total_bids }}</span>
+                <span class="stat-label">Ставок сделано</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auction-content">
+        <div class="active-lots-section">
+            <h2>Активные лоты</h2>
+            <div class="lots-grid">
+                {% for lot in active_lots %}
+                    <div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp|floatformat:0 }}">
+                        <div class="lot-image">
+                            {% if lot.image %}
+                                <img src="{{ lot.image.url }}" alt="{{ lot.name }}">
+                            {% else %}
+                                <div class="no-image">📦</div>
+                            {% endif %}
+                        </div>
+                        <div class="lot-info">
+                            <h3>
+                                <a href="{% url 'auction:lot_detail' slug=lot.slug %}">{{ lot.name }}</a>
+                            </h3>
+                            <div class="lot-price">
+                                <div class="price-item">
+                                    <span class="price-label">Текущая цена:</span>
+                                    <span class="price-value">{{ lot.current_price }}</span>
+                                </div>
+                                <div class="price-item">
+                                    <span class="price-label">Начальная:</span>
+                                    <span class="price-value">{{ lot.initial_price }}</span>
+                                </div>
+                            </div>
+                            <div class="lot-timer">
+                                <span class="timer-label">Осталось:</span>
+                                <span class="timer-value" id="timer-{{ forloop.counter }}">--:--:--</span>
+                            </div>
+                            <div class="lot-stats">
+                                <span>📊 Ставок: {{ lot.total_bids_count }}</span>
+                                <span>👥 Победителей: {{ lot.winners_count }}/{{ lot.max_winners }}</span>
+                            </div>
+                            <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="btn-bid">Сделать ставку</a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="no-lots">
+                        <p>Нет активных лотов</p>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {% if active_lots.has_other_pages %}
+                <div class="pagination">
+                    {% if active_lots.has_previous %}
+                        <a href="?page=1">&laquo; Первая</a>
+                        <a href="?page={{ active_lots.previous_page_number }}">Предыдущая</a>
+                    {% endif %}
+                    
+                    <span class="current-page">
+                        Страница {{ active_lots.number }} из {{ active_lots.paginator.num_pages }}
+                    </span>
+                    
+                    {% if active_lots.has_next %}
+                        <a href="?page={{ active_lots.next_page_number }}">Следующая</a>
+                        <a href="?page={{ active_lots.paginator.num_pages }}">Последняя &raquo;</a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="ended-lots-section">
+            <h2>Завершенные лоты</h2>
+            <div class="ended-lots-list">
+                {% for lot in ended_lots %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ lot.name }}</strong>
+                            <span>Финальная цена: {{ lot.current_price }} ⭐</span>
+                            <span>Победителей: {{ lot.winners_count }}/{{ lot.max_winners }}</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% empty %}
+                    <div class="no-lots">Нет завершенных лотов</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateAllTimers() {
+    var lotCards = document.querySelectorAll('.lot-card');
+    
+    lotCards.forEach(function(card, index) {
+        var endTimestampAttr = card.getAttribute('data-end-timestamp');
+        if (!endTimestampAttr) return;
+        
+        var endTimestamp = parseInt(endTimestampAttr) * 1000;
+        var now = new Date().getTime();
+        var diff = endTimestamp - now;
+        
+        var timerElement = document.getElementById('timer-' + (index + 1));
+        if (!timerElement) return;
+        
+        if (diff <= 0) {
+            timerElement.textContent = 'Завершен';
+            var btn = card.querySelector('.btn-bid');
+            if (btn) {
+                btn.textContent = 'Завершен';
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+            }
+            return;
+        }
+        
+        var hours = Math.floor(diff / (1000 * 60 * 60));
+        var minutes = Math.floor((diff % (3600000)) / 60000);
+        var seconds = Math.floor((diff % 60000) / 1000);
+        
+        timerElement.textContent = 
+            hours.toString().padStart(2, '0') + ':' + 
+            minutes.toString().padStart(2, '0') + ':' + 
+            seconds.toString().padStart(2, '0');
+    });
+}
+
+updateAllTimers();
+setInterval(updateAllTimers, 1000);
+</script>
+{% endblock %}
