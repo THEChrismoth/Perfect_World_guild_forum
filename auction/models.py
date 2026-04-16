@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
 from django.core.validators import MinValueValidator
+from django.templatetags.static import static
 
 class AuctionLot(models.Model):
     STATUS_CHOICES = [
@@ -11,11 +12,42 @@ class AuctionLot(models.Model):
         ('cancelled', 'Отменен'),
     ]
     
+    # Типы иконок
+    ICON_CHOICES = [
+        ('wheel_of_fate', 'Колесо Судьбы'),
+        ('stone_of_universe', 'Камень мироздания'),
+        ('opal', 'Опал Лунной Кошки'),
+        ('divinity_stone', 'Камень божества'),
+        ('great_meteorite', 'Великий метеорит'),
+        ('rune_set_7', 'Набор рун (7ур)'),
+        ('time_yarn', 'Пряжа времени'),
+        ('rune_set_9', 'Набор рун 9 ур'),
+        ('absolute_stones', 'Камни абсолюта'),
+        ('custom', 'Своя картинка'),
+    ]
+    
     # Основная информация
     name = models.CharField('Название лота', max_length=200)
     slug = models.SlugField(unique=True, max_length=200)
     description = models.TextField('Описание', blank=True)
-    image = models.ImageField('Изображение лота', upload_to='auction/lots/', blank=True, null=True)
+    
+    # Выбор иконки или своей картинки
+    icon_choice = models.CharField(
+        'Выбор иконки', 
+        max_length=30, 
+        choices=ICON_CHOICES, 
+        default='custom',
+        help_text='Выберите иконку или "Своя картинка" для загрузки своего изображения'
+    )
+    
+    # Своя картинка (показывается только если выбрано custom)
+    custom_image = models.ImageField(
+        'Своя картинка', 
+        upload_to='auction/lots/', 
+        blank=True, 
+        null=True,
+        help_text='Загрузите свою картинку (только если выбрано "Своя картинка")'
+    )
     
     # Аукционные параметры
     initial_price = models.IntegerField('Начальная цена', validators=[MinValueValidator(1)])
@@ -52,6 +84,27 @@ class AuctionLot(models.Model):
     def get_absolute_url(self):
         return reverse('auction:lot_detail', args=[self.slug])
     
+    def get_image_url(self):
+        """Возвращает URL изображения (иконку или загруженную картинку)"""
+        if self.icon_choice == 'custom' and self.custom_image:
+            return self.custom_image.url
+        
+        icons = {
+            'wheel_of_fate': 'auction_icons/wheel_of_fate.png',
+            'stone_of_universe': 'auction_icons/stone_of_universe.png',
+            'opal': 'auction_icons/opal.png',
+            'divinity_stone': 'auction_icons/divinity_stone.png',
+            'great_meteorite': 'auction_icons/great_meteorite.png',
+            'rune_set_7': 'auction_icons/rune_set_7.png',
+            'time_yarn': 'auction_icons/time_yarn.png',
+            'rune_set_9': 'auction_icons/rune_set_9.png',
+            'absolute_stones': 'auction_icons/absolute_stones.png',
+        }
+        icon_path = icons.get(self.icon_choice, '')
+        if icon_path:
+            return static(icon_path)
+        return ''
+    
     @property
     def is_active(self):
         """Проверяет, активен ли аукцион"""
@@ -83,10 +136,8 @@ class AuctionLot(models.Model):
         if self.status != 'active' or timezone.now() < self.end_date:
             return False
         
-        # Получаем все ставки, отсортированные по убыванию суммы
         all_bids = self.bids.filter(is_winner=False).order_by('-bid_amount', 'created_at')
         
-        # Определяем победителей (первые max_winners)
         winners = []
         seen_users = set()
         
@@ -94,14 +145,12 @@ class AuctionLot(models.Model):
             if len(winners) >= self.max_winners:
                 break
             
-            # Пользователь может выиграть только один раз в этом лоте
             if bid.bidder.id not in seen_users:
                 bid.is_winner = True
                 bid.save()
                 winners.append(bid)
                 seen_users.add(bid.bidder.id)
                 
-                # Списание очков активности у победителя
                 profile = bid.bidder.profile
                 if profile.spend_points(bid.bid_amount):
                     PointsTransaction.objects.create(

@@ -9,8 +9,8 @@
 <div class="lot-detail-container">
     <div class="lot-detail-header">
         <div class="lot-detail-image">
-            {% if lot.image %}
-                <img src="{{ lot.image.url }}" alt="{{ lot.name }}">
+            {% if lot.get_image_url %}
+                <img src="{{ lot.get_image_url }}" alt="{{ lot.name }}">
             {% else %}
                 <div class="no-image">📦</div>
             {% endif %}
@@ -48,7 +48,13 @@
             
             <div class="lot-timer">
                 <span class="timer-label">⏰ Осталось до окончания:</span>
-                <span class="timer-value" id="timer-value">--:--:--</span>
+                <span class="timer-value" id="timer-value">
+                    {% if lot.is_active %}
+                        --:--:--
+                    {% else %}
+                        Аукцион завершен
+                    {% endif %}
+                </span>
             </div>
             
             {% if lot.is_active %}
@@ -132,8 +138,9 @@
     </div>
 </div>
 
+{% if lot.is_active %}
 <script>
-// Таймер
+// Таймер только для активных лотов
 var endTimestamp = {{ end_timestamp }};
 var timerElement = document.getElementById('timer-value');
 
@@ -145,9 +152,10 @@ function updateTimer() {
     
     if (diff <= 0) {
         timerElement.textContent = 'Аукцион завершен';
-        setTimeout(function() {
-            location.reload();
-        }, 3000);
+        var bidSection = document.querySelector('.bid-section');
+        if (bidSection) {
+            bidSection.style.display = 'none';
+        }
         return;
     }
     
@@ -161,7 +169,7 @@ function updateTimer() {
         seconds.toString().padStart(2, '0');
 }
 
-// Проверка только минимальной суммы (баланс проверяется на сервере)
+// Проверка минимальной суммы
 var bidForm = document.getElementById('bid-form');
 if (bidForm) {
     bidForm.addEventListener('submit', function(e) {
@@ -185,7 +193,10 @@ if (bidForm) {
 }
 
 // Запускаем таймер
-updateTimer();
-setInterval(updateTimer, 1000);
+if (endTimestamp > 0) {
+    updateTimer();
+    setInterval(updateTimer, 1000);
+}
 </script>
+{% endif %}
 {% endblock %}

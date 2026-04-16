@@ -127,27 +127,25 @@
     transform: scaleX(1);
 }
 
-/* Изображение лота в карточке */
+/* Изображение лота в карточке - для круглых иконок */
 .lot-image {
     width: 100%;
-    height: 200px;
+    height: 150px;
     background: linear-gradient(135deg, #1a1c20, #2D3037);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     position: relative;
+    padding: 10px;
 }
 
 .lot-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.lot-card:hover .lot-image img {
-    transform: scale(1.05);
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 130px;
+    object-fit: contain;
 }
 
 .no-image {
@@ -460,7 +458,11 @@
     }
     
     .lot-image {
-        height: 180px;
+        height: 120px;
+    }
+    
+    .lot-image img {
+        max-height: 100px;
     }
     
     .lot-info {
@@ -556,31 +558,33 @@
 .lot-detail-image {
     flex: 0 0 auto;
     max-width: 300px;
+    min-width: 150px;
     background: #1a1c20;
     border-radius: 8px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 15px;
 }
 
 .lot-detail-image img {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     height: auto;
-    max-height: 300px;
+    max-height: 200px;
     object-fit: contain;
     display: block;
 }
 
 .lot-detail-image .no-image {
-    width: 300px;
-    height: 300px;
+    width: 100%;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 64px;
+    font-size: 48px;
     color: #FD48B6;
-    background: linear-gradient(135deg, #1a1c20, #2D3037);
 }
 
 .lot-detail-info {
@@ -881,11 +885,11 @@
     
     .lot-detail-image {
         max-width: 100%;
+        width: 100%;
+        justify-content: center;
     }
     
-    .lot-detail-image .no-image {
-        width: 100%;
-        height: auto;
-        min-height: 200px;
+    .lot-detail-image img {
+        max-height: 150px;
     }
 }

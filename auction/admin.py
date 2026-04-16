@@ -14,14 +14,15 @@ class AuctionBidInline(admin.TabularInline):
 
 @admin.register(AuctionLot)
 class AuctionLotAdmin(admin.ModelAdmin):
-    list_display = ('name', 'initial_price', 'current_price', 'max_winners', 'status', 'is_active_display', 'end_date')
-    list_filter = ('status', 'created_at')  # Убрали 'subcategory' так как его нет в модели
+    list_display = ('name', 'icon_choice', 'initial_price', 'current_price', 'max_winners', 'status', 'end_date')
+    list_filter = ('status', 'icon_choice', 'created_at')
     search_fields = ('name', 'slug', 'description')
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ('current_price', 'total_bids_count_display', 'winners_count_display')
+    readonly_fields = ('current_price',)
+    
     fieldsets = (
         ('Основная информация', {
-            'fields': ('name', 'slug', 'description', 'image')
+            'fields': ('name', 'slug', 'description', 'icon_choice', 'custom_image')
         }),
         ('Аукционные параметры', {
             'fields': ('initial_price', 'min_step', 'max_winners', 'start_date', 'end_date')
@@ -29,27 +30,9 @@ class AuctionLotAdmin(admin.ModelAdmin):
         ('Статус', {
             'fields': ('status', 'current_price')
         }),
-        ('Статистика', {
-            'fields': ('total_bids_count_display', 'winners_count_display'),
-            'classes': ('collapse',)
-        }),
     )
     actions = ['force_end_auction']
-    
     inlines = [AuctionBidInline]
-    
-    def total_bids_count_display(self, obj):
-        return obj.total_bids_count
-    total_bids_count_display.short_description = 'Всего ставок'
-    
-    def winners_count_display(self, obj):
-        return f"{obj.winners_count}/{obj.max_winners}"
-    winners_count_display.short_description = 'Победители'
-    
-    def is_active_display(self, obj):
-        return obj.is_active
-    is_active_display.boolean = True
-    is_active_display.short_description = 'Активен'
     
     def force_end_auction(self, request, queryset):
         for lot in queryset:
@@ -58,16 +41,16 @@ class AuctionLotAdmin(admin.ModelAdmin):
     force_end_auction.short_description = 'Принудительно завершить выбранные аукционы'
     
     def save_model(self, request, obj, form, change):
-        if not change:  # При создании
+        if not change:
             obj.current_price = obj.initial_price
         super().save_model(request, obj, form, change)
 
 @admin.register(AuctionBid)
 class AuctionBidAdmin(admin.ModelAdmin):
     list_display = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner')
-    list_filter = ('is_winner', 'created_at', 'lot')
+    list_filter = ('is_winner', 'created_at')
     search_fields = ('bidder__username', 'lot__name')
-    readonly_fields = ('lot', 'bidder', 'bid_amount', 'created_at')
+    readonly_fields = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner')
     
     def has_add_permission(self, request):
         return False

@@ -30,17 +30,19 @@
             <h2>Активные лоты</h2>
             <div class="lots-grid">
                 {% for lot in active_lots %}
-                    <div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp|floatformat:0 }}">
+                    <div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp }}">
                         <div class="lot-image">
-                            {% if lot.image %}
-                                <img src="{{ lot.image.url }}" alt="{{ lot.name }}">
+                            {% if lot.get_image_url %}
+                                <img src="{{ lot.get_image_url }}" alt="{{ lot.name }}">
                             {% else %}
                                 <div class="no-image">📦</div>
                             {% endif %}
                         </div>
                         <div class="lot-info">
                             <h3>
-                                <a href="{% url 'auction:lot_detail' slug=lot.slug %}">{{ lot.name }}</a>
+                                <a href="{% url 'auction:lot_detail' slug=lot.slug %}">
+                                    {{ lot.name }}
+                                </a>
                             </h3>
                             <div class="lot-price">
                                 <div class="price-item">
@@ -54,7 +56,7 @@
                             </div>
                             <div class="lot-timer">
                                 <span class="timer-label">Осталось:</span>
-                                <span class="timer-value" id="timer-{{ forloop.counter }}">--:--:--</span>
+                                <span class="timer-value" id="timer-{{ lot.id }}">--:--:--</span>
                             </div>
                             <div class="lot-stats">
                                 <span>📊 Ставок: {{ lot.total_bids_count }}</span>
@@ -113,15 +115,18 @@
 function updateAllTimers() {
     var lotCards = document.querySelectorAll('.lot-card');
     
-    lotCards.forEach(function(card, index) {
+    lotCards.forEach(function(card) {
         var endTimestampAttr = card.getAttribute('data-end-timestamp');
         if (!endTimestampAttr) return;
         
-        var endTimestamp = parseInt(endTimestampAttr) * 1000;
+        var endTimestamp = parseFloat(endTimestampAttr) * 1000;
         var now = new Date().getTime();
         var diff = endTimestamp - now;
         
-        var timerElement = document.getElementById('timer-' + (index + 1));
+        var timerId = card.querySelector('.timer-value')?.id;
+        if (!timerId) return;
+        
+        var timerElement = document.getElementById(timerId);
         if (!timerElement) return;
         
         if (diff <= 0) {

@@ -61,22 +61,18 @@ def lot_detail(request, slug):
     
     lot = get_object_or_404(AuctionLot, slug=slug)
     
+    # Проверяем и обновляем статус если нужно
     if lot.status == 'active' and timezone.now() >= lot.end_date:
         lot.process_auction_end()
         lot.refresh_from_db()
     
-    # Обработка формы ставки
-    if request.method == 'POST':
-        if not lot.is_active:
-            messages.error(request, 'Аукцион уже завершен')
-            return redirect('auction:lot_detail', slug=lot.slug)
-        
+    # Обработка формы ставки (только если аукцион активен)
+    if request.method == 'POST' and lot.is_active:
         bid_amount = request.POST.get('bid_amount')
         
         if bid_amount:
             try:
                 bid_amount = int(bid_amount)
-                # Минимальная ставка - от начальной цены, а не от текущей!
                 min_bid = lot.initial_price + lot.min_step
                 user_balance = request.user.profile.activity_points
                 
@@ -90,7 +86,6 @@ def lot_detail(request, slug):
                         bidder=request.user,
                         bid_amount=bid_amount
                     )
-                    # Обновляем текущую цену только если ставка больше текущей
                     if bid_amount > lot.current_price:
                         lot.current_price = bid_amount
                         lot.save()
@@ -104,10 +99,7 @@ def lot_detail(request, slug):
     
     bids = lot.bids.all().order_by('-bid_amount', 'created_at')[:20]
     winners = lot.get_winner_bids() if lot.status == 'ended' else []
-    end_timestamp = int(lot.end_date.timestamp() * 1000) if lot.end_date else 0
-    
-    # Минимальная ставка для отображения - от начальной цены
-    min_bid_display = lot.initial_price + lot.min_step
+    end_timestamp = int(lot.end_date.timestamp() * 1000) if lot.end_date and lot.is_active else 0
     
     context = {
         'lot': lot,
@@ -115,7 +107,7 @@ def lot_detail(request, slug):
         'can_bid': lot.is_active and request.user.is_authenticated,
         'winners': winners,
         'user_balance': request.user.profile.activity_points if request.user.is_authenticated else 0,
-        'min_bid': min_bid_display,  # Минимальная ставка от начальной цены
+        'min_bid': lot.initial_price + lot.min_step if lot.is_active else 0,
         'end_timestamp': end_timestamp,
     }
     return render(request, 'auction/lot_detail.html', context)
