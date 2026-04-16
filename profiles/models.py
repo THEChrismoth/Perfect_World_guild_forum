@@ -53,34 +53,45 @@ class Profile(models.Model):
     
     # Очки активности (только для админа)
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
-    activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
+    earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
     last_activity = models.DateTimeField('Последняя активность', auto_now=True, null=True, blank=True)
 
-    def update_points(self, total_earned=None, spent=None):
-        """Обновляет очки активности"""
-        if total_earned is not None:
-            new_activity = total_earned - self.spent_points
-            if new_activity >= 0:
-                self.activity_points = new_activity
+    def save(self, *args, **kwargs):
+        # Автоматически поддерживаем консистентность при сохранении
+        if self.earned_points != self.activity_points + self.spent_points:
+            self.earned_points = self.activity_points + self.spent_points
+        super().save(*args, **kwargs)
 
-        if spent is not None:
-            # Если меняем потраченные, пересчитываем текущие
-            if spent != self.spent_points:
-                old_spent = self.spent_points
-                self.spent_points = spent
-                # Корректируем текущие очки
-                self.activity_points = self.activity_points - (spent - old_spent)
-                if self.activity_points < 0:
-                    self.activity_points = 0
+    def add_points(self, points):
+        """Начисление очков"""
+        if points > 0:
+            self.earned_points += points
+            self.activity_points += points
+            self.save()
+    
+    def spend_points(self, points):
+        """Списание очков"""
+        if points > 0 and points <= self.activity_points:
+            self.spent_points += points
+            self.activity_points -= points
+            self.save()
+            return True
+        return False 
 
-        self.save()
+    def set_balance(self, new_balance):
+        """Установка нового баланса (для администратора)"""
+        if new_balance >= 0:
+            # Корректируем earned_points чтобы баланс сходился
+            self.earned_points = new_balance + self.spent_points
+            self.activity_points = new_balance
+            self.save()
 
     @property
     def total_earned_points(self):
         """Всего начислено очков активности"""
-        return self.activity_points + self.spent_points
+        return self.earned_points
 
     class Meta:
         verbose_name = 'редактировать профиль'

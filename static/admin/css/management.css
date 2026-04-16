@@ -154,7 +154,7 @@
 }
 
 /* Цвета для полей */
-.total-points .points-input {
+.earned-points .points-input {
     border-left: 3px solid #007bff;
     font-weight: 600;
     color: #007bff;

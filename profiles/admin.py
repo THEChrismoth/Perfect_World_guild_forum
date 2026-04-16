@@ -24,7 +24,7 @@ class ProfileInline(admin.StackedInline):
             'fields': ('pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce', 'dodge')
         }),
         ('Очки активности', {
-            'fields': ('activity_points', 'spent_points'),
+            'fields': ('activity_points', 'spent_points', 'earned_points'),
             'description': 'Управляйте очками активности здесь или на специальной странице'
         }),
     )

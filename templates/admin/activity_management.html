@@ -1,4 +1,3 @@
-<!-- templates/admin/activity_management.html -->
 {% extends "admin/base_site.html" %}
 {% load static %}
 
@@ -51,21 +50,21 @@
                             </a>
                         </td>
                         <td>{{ profile.get_player_class_display }}</td>
-                        <td class="total-points">
+                        <td class="earned-points">
                             <div class="points-control">
                                 <input type="number"
-                                       class="points-input total-input"
-                                       value="{{ profile.total_earned_points }}"
+                                       class="points-input earned-input"
+                                       value="{{ profile.earned_points }}"
                                        data-profile-id="{{ profile.id }}"
-                                       data-field="total"
-                                       data-original-value="{{ profile.total_earned_points }}"
+                                       data-field="earned"
+                                       data-original-value="{{ profile.earned_points }}"
                                        min="0"
                                        step="1">
                                 <div class="points-buttons">
-                                    <button class="points-btn points-up" data-profile-id="{{ profile.id }}" data-field="total">▲</button>
-                                    <button class="points-btn points-down" data-profile-id="{{ profile.id }}" data-field="total">▼</button>
+                                    <button class="points-btn points-up" data-profile-id="{{ profile.id }}" data-field="earned">▲</button>
+                                    <button class="points-btn points-down" data-profile-id="{{ profile.id }}" data-field="earned">▼</button>
                                 </div>
-                                <span class="save-indicator" id="indicator-total-{{ profile.id }}">✓</span>
+                                <span class="save-indicator" id="indicator-earned-{{ profile.id }}">✓</span>
                             </div>
                         </td>
                         <td class="spent-points">
@@ -140,12 +139,27 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                document.querySelector(`.total-input[data-profile-id="${profileId}"]`).value = data.total;
-                document.querySelector(`.total-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.total);
-                document.querySelector(`.spent-input[data-profile-id="${profileId}"]`).value = data.spent;
-                document.querySelector(`.spent-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.spent);
-                document.querySelector(`.current-input[data-profile-id="${profileId}"]`).value = data.current;
-                document.querySelector(`.current-input[data-profile-id="${profileId}"]`).setAttribute('data-original-value', data.current);
+                // Исправлено: обновляем все три поля
+                // Для earned поля
+                const earnedInput = document.querySelector(`.earned-input[data-profile-id="${profileId}"]`);
+                if (earnedInput) {
+                    earnedInput.value = data.earned;
+                    earnedInput.setAttribute('data-original-value', data.earned);
+                }
+                
+                // Для spent поля
+                const spentInput = document.querySelector(`.spent-input[data-profile-id="${profileId}"]`);
+                if (spentInput) {
+                    spentInput.value = data.spent;
+                    spentInput.setAttribute('data-original-value', data.spent);
+                }
+                
+                // Для current поля
+                const currentInput = document.querySelector(`.current-input[data-profile-id="${profileId}"]`);
+                if (currentInput) {
+                    currentInput.value = data.current;
+                    currentInput.setAttribute('data-original-value', data.current);
+                }
 
                 const row = document.getElementById(`profile-${profileId}`);
                 if (row) {
@@ -171,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         indicator.style.color = '#28a745';
                     }, 2000);
                 }
+                // Восстанавливаем исходное значение только для изменяемого поля
                 const input = document.querySelector(`.${field}-input[data-profile-id="${profileId}"]`);
                 if (input) {
                     input.value = input.getAttribute('data-original-value');
