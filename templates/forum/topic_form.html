@@ -4,6 +4,7 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
     <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/posts.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -14,7 +15,7 @@
 
     <div class="topics-block">
         <div class="topics-container">
-            <form method="post" class="topic-form">
+            <form method="post" class="topic-form" enctype="multipart/form-data">
                 {% csrf_token %}
 
                 <div class="form-group">
@@ -33,6 +34,15 @@
                     {% endif %}
                 </div>
 
+                <div class="form-group">
+                    <label class="image-upload-label" for="images">
+                        📷 Добавить изображения (можно несколько)
+                    </label>
+                    <input type="file" name="images" id="images" multiple accept="image/*" style="display: none;">
+                    <div id="image-previews" class="image-previews-container"></div>
+                    <small class="form-text">Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB каждый</small>
+                </div>
+
                 <div class="form-buttons">
                     <button type="submit" class="btn-create-topic">Создать тему</button>
                     <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="btn-cancel">Отмена</a>
@@ -41,4 +51,52 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('images');
+    const previewContainer = document.getElementById('image-previews');
+    const uploadLabel = document.querySelector('.image-upload-label');
+    
+    if (uploadLabel) {
+        uploadLabel.addEventListener('click', function() {
+            imageInput.click();
+        });
+    }
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            previewContainer.innerHTML = '';
+            const files = Array.from(e.target.files);
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'image-preview-item';
+                
+                reader.onload = function(e) {
+                    previewDiv.innerHTML = `
+                        <img src="${e.target.result}" class="image-preview">
+                        <button type="button" class="remove-image-btn" data-index="${index}">✖</button>
+                    `;
+                    previewContainer.appendChild(previewDiv);
+                    
+                    // Добавляем обработчик для кнопки удаления
+                    const removeBtn = previewDiv.querySelector('.remove-image-btn');
+                    removeBtn.addEventListener('click', function() {
+                        // Создаем новый FileList без удаленного файла
+                        const dt = new DataTransfer();
+                        const remainingFiles = files.filter((_, i) => i !== index);
+                        remainingFiles.forEach(file => dt.items.add(file));
+                        imageInput.files = dt.files;
+                        // Перезагружаем превью
+                        imageInput.dispatchEvent(new Event('change'));
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -1,0 +1,431 @@
+/* Стили для постов - новая структура с фиксированным блоком автора */
+.posts-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.post-item {
+    display: flex;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    transition: background 0.3s ease;
+}
+
+.post-item:hover {
+    background: rgba(253, 72, 182, 0.05);
+}
+
+/* Блок автора - фиксированная ширина */
+.post-author-wrapper {
+    flex-shrink: 0;
+    width: 200px;
+    position: relative;
+}
+
+.post-author {
+    position: sticky;
+    top: 20px;
+    padding: 20px 15px;
+    text-align: center;
+    background: rgba(45, 48, 55, 0.9);
+    border-radius: 8px;
+    margin: 10px;
+}
+
+.post-author-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: #FD48B6;
+}
+
+.author-avatar {
+    width: 80px;
+    height: 80px;
+    background: #FD48B6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 32px;
+}
+
+.author-avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.author-name {
+    font-weight: 600;
+    color: #e0e0e0;
+    font-size: 16px;
+    text-align: center;
+    word-break: break-word;
+}
+
+/* Блок с содержимым поста */
+.post-content-wrapper {
+    flex: 1;
+    min-width: 0; /* Предотвращает переполнение */
+}
+
+.post-content {
+    padding: 20px;
+}
+
+.post-text {
+    color: #e0e0e0;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Галерея изображений */
+.post-images-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.gallery-item {
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    background: #1a1c20;
+}
+
+.post-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.post-image:hover {
+    transform: scale(1.05);
+}
+
+/* Мета-информация поста */
+.post-meta {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #888;
+    padding-top: 10px;
+    border-top: 1px solid rgba(253, 72, 182, 0.1);
+}
+
+/* Кнопки действий */
+.post-actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-post-edit, .btn-post-delete {
+    background: transparent;
+    border: 1px solid rgba(253, 72, 182, 0.3);
+    color: #e0e0e0;
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 12px;
+}
+
+.btn-post-edit:hover {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.btn-post-delete:hover {
+    background: rgba(220, 53, 69, 0.2);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+/* Форма редактирования */
+.edit-textarea {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid rgba(253, 72, 182, 0.3);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    resize: vertical;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.edit-image-section {
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+.current-images {
+    margin-bottom: 15px;
+}
+
+.current-images p {
+    margin: 0 0 10px 0;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.current-images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.current-image-item {
+    text-align: center;
+}
+
+.current-image-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+.current-image-item label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: #ff6b6b;
+    cursor: pointer;
+}
+
+.edit-image-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.edit-image-input {
+    display: block;
+    background: #1a1c20;
+    border: 1px solid rgba(253, 72, 182, 0.3);
+    border-radius: 8px;
+    padding: 8px;
+    color: #fff;
+    width: 100%;
+}
+
+.edit-form-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-save-edit {
+    background: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-save-edit:hover {
+    background: #218838;
+}
+
+.btn-cancel-edit {
+    background: #6c757d;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel-edit:hover {
+    background: #5a6268;
+}
+
+/* Контейнер для предпросмотра нескольких изображений */
+.image-previews-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.image-preview-item {
+    position: relative;
+    display: inline-block;
+}
+
+.image-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #FD48B6;
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.remove-image-btn:hover {
+    background: #c82333;
+}
+
+/* Стили для формы ответа */
+.form-buttons-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.image-upload-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    border: 1px dashed #FD48B6;
+}
+
+.image-upload-label:hover {
+    background: rgba(253, 72, 182, 0.3);
+    transform: translateY(-1px);
+}
+
+.btn-submit-reply {
+    background: #28a745;
+    color: white;
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-submit-reply:hover {
+    background: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.form-text {
+    color: #ffffff !important;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+    opacity: 0.7;
+}
+
+.form-error {
+    color: #ff6b6b;
+    font-size: 12px;
+    margin-top: 5px;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .post-item {
+        flex-direction: column;
+    }
+    
+    .post-author-wrapper {
+        width: 100%;
+        position: relative;
+    }
+    
+    .post-author {
+        position: relative;
+        top: 0;
+        display: flex;
+        justify-content: center;
+        margin: 0;
+        border-radius: 0;
+        border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    }
+    
+    .post-author-link {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .author-avatar, .author-avatar-img {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .post-images-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .post-image {
+        height: 150px;
+    }
+    
+    .form-buttons-wrapper {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .image-upload-wrapper {
+        width: 100%;
+    }
+    
+    .image-upload-label {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-submit-reply {
+        width: 100%;
+    }
+    
+    .current-images-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .current-image-item img {
+        height: 120px;
+    }
+}

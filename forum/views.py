@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django.utils.text import slugify
-from .models import Category, SubCategory, Topic, Post, get_online_users, get_forum_stats, get_latest_posts
+from .models import Category, SubCategory, Topic, Post, PostImage, get_online_users, get_forum_stats, get_latest_posts
 from .forms import TopicForm, PostForm
 from auction.models import AuctionLot
 
@@ -104,13 +104,22 @@ def topic_create(request, slug):
             topic.subcategory = subcategory
             topic.save()
             
-            Post.objects.create(
+            # Создаем пост
+            post = Post.objects.create(
                 content=form.cleaned_data['content'],
                 author=request.user,
                 topic=topic
             )
             
+            # Сохраняем все загруженные изображения
+            images = request.FILES.getlist('images')
+            for image in images:
+                PostImage.objects.create(post=post, image=image)
+            
+            messages.success(request, 'Тема успешно создана!')
             return redirect('topic_detail', slug=topic.slug)
+        else:
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
     else:
         form = TopicForm()
     
@@ -201,10 +210,26 @@ def post_create(request, slug):
             post.topic = topic
             post.save()
             
+            # Сохраняем все загруженные изображения
+            images = request.FILES.getlist('images')
+            for image in images:
+                PostImage.objects.create(post=post, image=image)
+            
             messages.success(request, 'Ваш ответ успешно добавлен!')
             return redirect('topic_detail', slug=topic.slug)
-    else:
-        return redirect('topic_detail', slug=topic.slug)
+        else:
+            # Если форма не валидна, показываем ошибки
+            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+            posts = topic.posts.all()
+            context = {
+                'topic': topic,
+                'posts': posts,
+                'form': form,
+            }
+            return render(request, 'forum/topic_detail.html', context)
+    
+    # Если GET запрос - редирект на страницу темы
+    return redirect('topic_detail', slug=topic.slug)
 
 @login_required
 def post_edit(request, post_id):
@@ -215,10 +240,27 @@ def post_edit(request, post_id):
     
     if request.method == 'POST':
         content = request.POST.get('content')
-        if content:
+        
+        if content is not None:
             post.content = content
-            post.save()
-            messages.success(request, 'Сообщение успешно отредактировано')
+        
+        # Обработка удаления изображений
+        delete_images = request.POST.getlist('delete_images')
+        for image_id in delete_images:
+            try:
+                image = PostImage.objects.get(id=image_id, post=post)
+                image.image.delete(save=False)
+                image.delete()
+            except PostImage.DoesNotExist:
+                pass
+        
+        # Добавление новых изображений
+        new_images = request.FILES.getlist('new_images')
+        for image in new_images:
+            PostImage.objects.create(post=post, image=image)
+        
+        post.save()
+        messages.success(request, 'Сообщение успешно отредактировано')
     
     return redirect('topic_detail', slug=post.topic.slug)
 

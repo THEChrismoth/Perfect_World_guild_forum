@@ -146,8 +146,26 @@ class Topic(models.Model):
     def last_post(self):
         return self.posts.order_by('-created_at').first()
 
+class PostImage(models.Model):
+    """Модель для хранения изображений поста"""
+    post = models.ForeignKey(
+        'Post', 
+        on_delete=models.CASCADE, 
+        related_name='images'
+    )
+    image = models.ImageField(
+        'Изображение', 
+        upload_to='forum/posts/%Y/%m/%d/'
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['uploaded_at']
+        verbose_name = 'Изображение поста'
+        verbose_name_plural = 'Изображения постов'
+
 class Post(models.Model):
-    content = models.TextField('Содержание')
+    content = models.TextField('Содержание', blank=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     topic = models.ForeignKey(
         Topic, 

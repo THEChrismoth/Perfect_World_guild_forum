@@ -25,3 +25,13 @@ class PostForm(forms.ModelForm):
     class Meta:
         model = Post
         fields = ['content']
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        content = cleaned_data.get('content')
+        
+        # Проверяем, что текст сообщения заполнен
+        if not content:
+            raise forms.ValidationError('Заполните текст сообщения')
+        
+        return cleaned_data
