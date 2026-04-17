@@ -24,14 +24,24 @@
         </div>
         <div class="profile-info">
             <h1>{{ profile_user.username }}</h1>
-            {% if profile.player_class %}
-                <div class="player-class">
-                    {% if profile.get_icon_url %}
-                        <img src="{{ profile.get_icon_url }}" alt="{{ profile.get_player_class_display }}" class="class-icon">
-                    {% endif %}
-                    <span>{{ profile.get_player_class_display }}</span>
-                </div>
-            {% endif %}
+            <div class="player-tags">
+                {% if profile.player_class %}
+                    <div class="class-badge">
+                        {% if profile.get_icon_url %}
+                            <img src="{{ profile.get_icon_url }}" alt="{{ profile.get_player_class_display }}" class="class-icon">
+                        {% endif %}
+                        <span>{{ profile.get_player_class_display }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if is_guild_member %}
+                    <div class="guild-badge">
+                        <span class="guild-icon">🏰</span>
+                        <span>Член гильдии</span>
+                    </div>
+                {% endif %}
+            </div>
+            
             {% if profile.city %}
                 <p>📍 Город: {{ profile.city }}</p>
             {% endif %}

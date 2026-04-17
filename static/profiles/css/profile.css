@@ -1,3 +1,4 @@
+/* Основные стили для страницы профиля */
 main {
     background: transparent !important;
     backdrop-filter: none !important;
@@ -99,22 +100,88 @@ main .container {
     font-size: 28px;
 }
 
-.player-class {
+/* Контейнер для тегов (класс и гильдия) */
+.player-tags {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
 }
 
-.player-class span {
-    color: #e0e0e0;
-    font-size: 14px;
-    font-weight: 500;
+/* Общий стиль для всех бейджей */
+.class-badge,
+.guild-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
 }
 
+.class-badge {
+    background: linear-gradient(135deg, rgba(253, 72, 182, 0.2), rgba(255, 140, 66, 0.2));
+    border: 1px solid rgba(253, 72, 182, 0.4);
+}
+
+.class-badge span {
+    color: #FD48B6;
+}
+
+/* Убираем фильтр, иконка будет оригинальной */
 .class-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.guild-badge {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 165, 0, 0.15));
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    color: #FFD700;
+}
+
+.guild-icon {
+    font-size: 14px;
+}
+
+/* Анимация для бейджей при наведении */
+.class-badge:hover,
+.guild-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.class-badge:hover {
+    background: linear-gradient(135deg, rgba(253, 72, 182, 0.3), rgba(255, 140, 66, 0.3));
+    border-color: #FD48B6;
+}
+
+.guild-badge:hover {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 165, 0, 0.25));
+    border-color: #FFD700;
+    animation: none;
+}
+
+/* Анимация пульсации только для гильдии */
+@keyframes guildPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.3);
+    }
+    70% {
+        box-shadow: 0 0 0 4px rgba(255, 215, 0, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 215, 0, 0);
+    }
+}
+
+.guild-badge {
+    animation: guildPulse 2s infinite;
 }
 
 .profile-info p {
@@ -532,7 +599,7 @@ main .container {
         text-align: center;
     }
 
-    .player-class {
+    .player-tags {
         justify-content: center;
     }
 

@@ -82,10 +82,14 @@ def profile_view(request, username):
     profile = user.profile
     is_owner = request.user == user
     
+    # Проверяем, состоит ли пользователь в группе "Член гильдии"
+    is_guild_member = user.groups.filter(name='Член гильдии').exists()
+    
     context = {
         'profile_user': user,
         'profile': profile,
         'is_owner': is_owner,
+        'is_guild_member': is_guild_member,  # Добавляем эту переменную
     }
     return render(request, 'profiles/profile_view.html', context)
 
@@ -119,5 +123,3 @@ def profile_edit(request):
         'profile_form': profile_form,
     }
     return render(request, 'profiles/profile_edit.html', context)
-
-
