@@ -7,19 +7,22 @@
 
 .post-item {
     display: flex;
+    align-items: flex-start;
     border-bottom: 1px solid rgba(253, 72, 182, 0.2);
     transition: background 0.3s ease;
+    position: relative;
 }
 
 .post-item:hover {
     background: rgba(253, 72, 182, 0.05);
 }
 
-/* Блок автора - фиксированная ширина */
+/* Блок автора - фиксированная ширина с прилипанием */
 .post-author-wrapper {
     flex-shrink: 0;
-    width: 200px;
+    width: 220px;
     position: relative;
+    align-self: flex-start;
 }
 
 .post-author {
@@ -27,9 +30,20 @@
     top: 20px;
     padding: 20px 15px;
     text-align: center;
-    background: rgba(45, 48, 55, 0.9);
+    background: #2D3037;
     border-radius: 8px;
     margin: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+}
+
+/* Убедимся, что sticky работает */
+.posts-container {
+    overflow: visible;
+}
+
+.posts-block {
+    overflow: visible;
 }
 
 .post-author-link {
@@ -52,6 +66,7 @@
     color: white;
     font-weight: bold;
     font-size: 32px;
+    flex-shrink: 0;
 }
 
 .author-avatar-img {
@@ -59,6 +74,7 @@
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
+    flex-shrink: 0;
 }
 
 .author-name {
@@ -73,6 +89,7 @@
 .post-content-wrapper {
     flex: 1;
     min-width: 0; /* Предотвращает переполнение */
+    overflow: hidden;
 }
 
 .post-content {
@@ -380,6 +397,7 @@
         margin: 0;
         border-radius: 0;
         border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+        background: #2D3037;
     }
     
     .post-author-link {
@@ -428,4 +446,18 @@
     .current-image-item img {
         height: 120px;
     }
+}
+
+/* Для очень длинных постов - добавляем плавный скролл */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Улучшаем отображение при скролле */
+.post-author {
+    transition: box-shadow 0.3s ease;
+}
+
+.post-author:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }

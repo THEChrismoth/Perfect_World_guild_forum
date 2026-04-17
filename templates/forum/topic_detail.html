@@ -37,7 +37,7 @@
             {% if posts %}
                 <ul class="posts-list">
                     {% for post in posts %}
-                        <li class="post-item" id="post-{{ post.id }}">
+                        <li class="post-item" id="post-{{ post.id }}" data-post-id="{{ post.id }}">
                             <div class="post-author-wrapper">
                                 <div class="post-author">
                                     <a href="{% url 'profile_view' username=post.author.username %}" class="post-author-link">
@@ -149,9 +149,6 @@
                 <div class="form-group">
                     <div id="reply-image-previews" class="image-previews-container"></div>
                     <small class="form-text">Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB каждый</small>
-                    {% if form.image.errors %}
-                        <div class="form-error">{{ form.image.errors }}</div>
-                    {% endif %}
                 </div>
                 
                 <div class="form-buttons-wrapper">
@@ -173,11 +170,11 @@
 </div>
 
 <script>
+// Функции для редактирования постов
 function showEditForm(postId) {
     document.getElementById('post-text-' + postId).style.display = 'none';
     document.getElementById('edit-form-' + postId).style.display = 'block';
     
-    // Добавляем обработчик для предпросмотра новых изображений при редактировании
     const editImageInput = document.querySelector('#edit-form-' + postId + ' input[name="new_images"]');
     const editPreviewContainer = document.getElementById('edit-image-previews-' + postId);
     
@@ -254,5 +251,83 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Sticky блок автора через JavaScript
+(function() {
+    function initStickyAuthors() {
+        const authorBlocks = document.querySelectorAll('.post-author');
+        
+        function updateStickyPositions() {
+            const scrollTop = window.pageYOffset;
+            const viewportHeight = window.innerHeight;
+            
+            authorBlocks.forEach(function(authorBlock) {
+                const postItem = authorBlock.closest('.post-item');
+                if (!postItem) return;
+                
+                const postRect = postItem.getBoundingClientRect();
+                const authorRect = authorBlock.getBoundingClientRect();
+                const authorHeight = authorBlock.offsetHeight;
+                const postTop = postRect.top + scrollTop;
+                const postBottom = postRect.bottom + scrollTop;
+                
+                // Настройки
+                const offsetTop = 20;
+                const offsetBottom = 20;
+                
+                // Проверяем, виден ли пост
+                const isPostVisible = postRect.bottom > 0 && postRect.top < viewportHeight;
+                
+                if (isPostVisible) {
+                    // Если пост виден, делаем блок sticky
+                    let newTop = scrollTop + offsetTop;
+                    
+                    // Не выходим за пределы поста
+                    if (newTop + authorHeight > postBottom - offsetBottom) {
+                        newTop = postBottom - authorHeight - offsetBottom;
+                    }
+                    
+                    if (newTop < postTop + offsetTop) {
+                        newTop = postTop + offsetTop;
+                    }
+                    
+                    // Применяем позиционирование
+                    authorBlock.style.position = 'absolute';
+                    authorBlock.style.top = (newTop - postTop) + 'px';
+                    authorBlock.style.bottom = 'auto';
+                    authorBlock.style.width = authorBlock.parentElement.offsetWidth + 'px';
+                } else {
+                    // Если пост не виден, возвращаем обычное позиционирование
+                    authorBlock.style.position = '';
+                    authorBlock.style.top = '';
+                    authorBlock.style.bottom = '';
+                    authorBlock.style.width = '';
+                }
+            });
+        }
+        
+        // Настраиваем каждый блок автора
+        authorBlocks.forEach(function(authorBlock) {
+            const postItem = authorBlock.closest('.post-item');
+            if (postItem) {
+                postItem.style.position = 'relative';
+            }
+        });
+        
+        // Обновляем при скролле и ресайзе
+        window.addEventListener('scroll', updateStickyPositions);
+        window.addEventListener('resize', updateStickyPositions);
+        
+        // Первоначальное обновление
+        setTimeout(updateStickyPositions, 100);
+    }
+    
+    // Запускаем после загрузки страницы
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initStickyAuthors);
+    } else {
+        initStickyAuthors();
+    }
+})();
 </script>
 {% endblock %}
