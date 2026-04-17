@@ -1,0 +1,307 @@
+/* Основной контейнер */
+.reception-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Заголовок */
+.reception-header {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    color: white;
+}
+
+.reception-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+
+.reception-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Карточка профиля */
+.profile-info-card {
+    background: #2D3037;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-left: 4px solid #FD48B6;
+}
+
+.profile-info-card h3 {
+    margin: 0 0 15px 0;
+    color: #FD48B6;
+    font-size: 18px;
+}
+
+/* Сетка характеристик */
+.profile-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    border-bottom: none;
+}
+
+.info-label {
+    color: #888;
+    font-size: 13px;
+}
+
+.info-value {
+    color: #FD48B6;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Форма */
+.application-form {
+    background: #2D3037;
+    border-radius: 10px;
+    padding: 25px;
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(253,72,182,0.2);
+}
+
+.form-section h2 {
+    color: #FD48B6;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    color: #e0e0e0;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.form-control, .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: #1a1c20;
+    border: 1px solid #FD48B6;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: #ff8c42;
+    box-shadow: 0 0 5px rgba(253,72,182,0.3);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    width: auto;
+    margin: 0;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #888;
+}
+
+.section-hint {
+    color: #888;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+/* Скриншоты */
+.screenshots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.screenshot-field {
+    background: #1a1c20;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.screenshot-field label {
+    font-size: 12px;
+    margin-bottom: 10px;
+    display: block;
+    color: #e0e0e0;
+}
+
+/* Стили для загрузки файлов */
+.screenshot-field input[type="file"] {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: #1a1c20;
+    border: 1px solid #FD48B6;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.screenshot-field input[type="file"]::-webkit-file-upload-button {
+    background: #FD48B6;
+    color: white;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.screenshot-field input[type="file"]::-webkit-file-upload-button:hover {
+    background: #ff69b4;
+}
+
+/* Превью изображений */
+.image-preview {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 100px;
+    border-radius: 4px;
+    border: 1px solid #FD48B6;
+}
+
+/* Кнопки */
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(253,72,182,0.4);
+}
+
+.btn-cancel {
+    background: #6c757d;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+/* Сообщения об ошибках */
+.error-text {
+    color: #dc3545;
+    font-size: 12px;
+    display: block;
+    margin-top: 5px;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background: rgba(220,53,69,0.2);
+    border-left: 3px solid #dc3545;
+    color: #dc3545;
+}
+
+/* Скрытие блока с ЧС */
+#blacklist-details-group {
+    margin-top: 10px;
+    margin-left: 25px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .profile-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .screenshots-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .btn-submit, .btn-cancel {
+        text-align: center;
+    }
+    
+    .info-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 5px;
+    }
+}

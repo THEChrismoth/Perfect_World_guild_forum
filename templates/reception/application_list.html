@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'reception/css/application_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reception-container">
+    <div class="reception-header">
+        <h1>📋 Заявки на вступление</h1>
+        <p>Заявки, ожидающие голосования членов гильдии</p>
+    </div>
+    
+    {% if applications %}
+        <div class="applications-grid">
+            {% for application in applications %}
+                <div class="application-card">
+                    <div class="application-header">
+                        <div class="applicant-info">
+                            <div class="applicant-avatar">
+                                {% if application.user.profile.avatar %}
+                                    <img src="{{ application.user.profile.avatar.url }}" alt="{{ application.user.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder">
+                                        {{ application.user.username|make_list|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="applicant-details">
+                                <h3>{{ application.user.username }}</h3>
+                                <span class="player-class">{{ application.get_player_class_display }}</span>
+                            </div>
+                        </div>
+                        <div class="application-date">
+                            Подана: {{ application.created_at|date:"d.m.Y" }}
+                        </div>
+                    </div>
+                    
+                    <div class="application-preview">
+                        <div class="preview-item">
+                            <strong>📝 Планы развития:</strong>
+                            <p>{{ application.development_plans|truncatechars:100 }}</p>
+                        </div>
+                        <div class="preview-item">
+                            <strong>👥 Поручители:</strong>
+                            <p>{{ application.guarantors|default:"Не указаны" }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="application-stats">
+                        <div class="stat-badge for">
+                            ✅ За: {{ application.get_vote_stats.for }}
+                        </div>
+                        <div class="stat-badge against">
+                            ❌ Против: {{ application.get_vote_stats.against }}
+                        </div>
+                        <div class="stat-badge abstain">
+                            ⚪ Воздержались: {{ application.get_vote_stats.abstain }}
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'reception:application_detail' id=application.id %}" class="btn-view-application">
+                        Подробнее и голосовать →
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-applications">
+            <div class="no-data-icon">📭</div>
+            <h3>Нет активных заявок</h3>
+            <p>В данный момент нет заявок, ожидающих голосования</p>
+        </div>
+    {% endif %}
+    
+    <div class="back-link">
+        <a href="/" class="btn-back">← Вернуться на форум</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,219 @@
+.reception-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.reception-header {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    color: white;
+}
+
+.reception-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 28px;
+}
+
+.reception-header p {
+    margin: 0;
+    opacity: 0.9;
+}
+
+/* Сетка заявок */
+.applications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+/* Карточка заявки */
+.application-card {
+    background: #2D3037;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(253,72,182,0.2);
+}
+
+.application-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    border-color: #FD48B6;
+}
+
+.application-header {
+    padding: 20px;
+    background: rgba(253,72,182,0.1);
+    border-bottom: 1px solid rgba(253,72,182,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.applicant-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.applicant-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+}
+
+.applicant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+}
+
+.applicant-details h3 {
+    margin: 0 0 5px 0;
+    color: #e0e0e0;
+}
+
+.player-class {
+    color: #FD48B6;
+    font-size: 12px;
+}
+
+.application-date {
+    color: #888;
+    font-size: 12px;
+}
+
+.application-preview {
+    padding: 20px;
+}
+
+.preview-item {
+    margin-bottom: 15px;
+}
+
+.preview-item strong {
+    color: #FD48B6;
+    font-size: 13px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.preview-item p {
+    margin: 0;
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.application-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 20px;
+    background: rgba(0,0,0,0.2);
+    border-top: 1px solid rgba(253,72,182,0.1);
+    border-bottom: 1px solid rgba(253,72,182,0.1);
+}
+
+.stat-badge {
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.stat-badge.for {
+    color: #28a745;
+}
+
+.stat-badge.against {
+    color: #dc3545;
+}
+
+.stat-badge.abstain {
+    color: #ffc107;
+}
+
+.btn-view-application {
+    display: block;
+    text-align: center;
+    padding: 12px;
+    background: #FD48B6;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.btn-view-application:hover {
+    background: #ff69b4;
+}
+
+/* Пустое состояние */
+.no-applications {
+    text-align: center;
+    padding: 60px 20px;
+    background: #2D3037;
+    border-radius: 10px;
+}
+
+.no-data-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.no-applications h3 {
+    color: #e0e0e0;
+    margin-bottom: 10px;
+}
+
+.no-applications p {
+    color: #888;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-back {
+    color: #FD48B6;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.btn-back:hover {
+    color: #ff69b4;
+}
+
+@media (max-width: 768px) {
+    .applications-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .application-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .applicant-info {
+        flex-direction: column;
+        text-align: center;
+    }
+}

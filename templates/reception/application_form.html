@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'reception/css/application_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reception-container">
+    <div class="reception-header">
+        <h1>📝 Подача заявки в гильдию</h1>
+        <p>Заполните форму ниже. Все поля обязательны для заполнения, если не указано иное.</p>
+    </div>
+    
+    <div class="profile-info-card">
+        <h3>📊 Информация из вашего профиля</h3>
+        <div class="profile-info-grid">
+            <div class="info-item">
+                <span class="info-label">Класс персонажа:</span>
+                <span class="info-value">{{ profile.get_player_class_display }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Уровень (БУ):</span>
+                <span class="info-value">{{ profile.bu|default:"0" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">❤️ HP / 💧 MP:</span>
+                <span class="info-value">{{ profile.hp }} / {{ profile.mp }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">⚔️ ПА / 🗡️ ФА / 🔮 МА:</span>
+                <span class="info-value">{{ profile.pa }} / {{ profile.fa }} / {{ profile.ma }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🛡️ ПЗ / 💪 БД:</span>
+                <span class="info-value">{{ profile.pz }} / {{ profile.bd }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🛡️ Физ. защита / ✨ Маг. защита:</span>
+                <span class="info-value">{{ profile.physical_defense }} / {{ profile.magic_defense }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">💥 Физ. пробив / 🔮 Маг. пробив:</span>
+                <span class="info-value">{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">💢 Крит. урон / 🎯 Крит. шанс:</span>
+                <span class="info-value">{{ profile.crit_damage }}% / {{ profile.crit_chance }}%</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🎯 Меткость / 💨 Уклонение:</span>
+                <span class="info-value">{{ profile.accuracy }} / {{ profile.dodge }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" enctype="multipart/form-data" class="application-form">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <div class="form-section">
+            <h2>👤 Личная информация</h2>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="{{ form.real_name.id_for_label }}">{{ form.real_name.label }}</label>
+                    {{ form.real_name }}
+                    {% for error in form.real_name.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.age.id_for_label }}">{{ form.age.label }}</label>
+                    {{ form.age }}
+                    {% for error in form.age.errors %}
+                        <span class="error-text">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.timezone.id_for_label }}">{{ form.timezone.label }}</label>
+                {{ form.timezone }}
+                {% for error in form.timezone.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>🎮 Игровая информация</h2>
+            
+            <div class="form-group">
+                <label for="{{ form.previous_nicknames.id_for_label }}">{{ form.previous_nicknames.label }}</label>
+                {{ form.previous_nicknames }}
+                <small class="form-hint">{{ form.previous_nicknames.help_text }}</small>
+                {% for error in form.previous_nicknames.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.other_guilds.id_for_label }}">{{ form.other_guilds.label }}</label>
+                {{ form.other_guilds }}
+                <small class="form-hint">{{ form.other_guilds.help_text }}</small>
+                {% for error in form.other_guilds.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                    {{ form.on_blacklist }}
+                    {{ form.on_blacklist.label }}
+                </label>
+                {% for error in form.on_blacklist.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group" id="blacklist-details-group" style="display: none;">
+                <label for="{{ form.blacklist_details.id_for_label }}">{{ form.blacklist_details.label }}</label>
+                {{ form.blacklist_details }}
+                <small class="form-hint">{{ form.blacklist_details.help_text }}</small>
+                {% for error in form.blacklist_details.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>📈 Планы развития</h2>
+            
+            <div class="form-group">
+                <label for="{{ form.development_plans.id_for_label }}">{{ form.development_plans.label }}</label>
+                {{ form.development_plans }}
+                {% for error in form.development_plans.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.guarantors.id_for_label }}">{{ form.guarantors.label }}</label>
+                {{ form.guarantors }}
+                <small class="form-hint">{{ form.guarantors.help_text }}</small>
+                {% for error in form.guarantors.errors %}
+                    <span class="error-text">{{ error }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-section">
+            <h2>📸 Скриншоты из игры</h2>
+            <p class="section-hint">Загрузите до 5 скриншотов вашего персонажа</p>
+            
+            <div class="screenshots-grid">
+                <div class="screenshot-field">
+                    <label>{{ form.screenshot1.label }}</label>
+                    {{ form.screenshot1 }}
+                    <div class="image-preview" id="preview1"></div>
+                </div>
+                <div class="screenshot-field">
+                    <label>{{ form.screenshot2.label }}</label>
+                    {{ form.screenshot2 }}
+                    <div class="image-preview" id="preview2"></div>
+                </div>
+                <div class="screenshot-field">
+                    <label>{{ form.screenshot3.label }}</label>
+                    {{ form.screenshot3 }}
+                    <div class="image-preview" id="preview3"></div>
+                </div>
+                <div class="screenshot-field">
+                    <label>{{ form.screenshot4.label }}</label>
+                    {{ form.screenshot4 }}
+                    <div class="image-preview" id="preview4"></div>
+                </div>
+                <div class="screenshot-field">
+                    <label>{{ form.screenshot5.label }}</label>
+                    {{ form.screenshot5 }}
+                    <div class="image-preview" id="preview5"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-submit">✉️ Отправить заявку</button>
+            <a href="/" class="btn-cancel">Отмена</a>
+        </div>
+    </form>
+</div>
+
+<script>
+// Превью изображений
+for (let i = 1; i <= 5; i++) {
+    const input = document.querySelector(`input[name="screenshot${i}"]`);
+    const preview = document.getElementById(`preview${i}`);
+    
+    if (input) {
+        input.addEventListener('change', function() {
+            preview.innerHTML = '';
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    }
+}
+
+// ЧС детали
+document.addEventListener('DOMContentLoaded', function() {
+    const blacklistCheckbox = document.querySelector('input[name="on_blacklist"]');
+    const blacklistDetails = document.getElementById('blacklist-details-group');
+    
+    function toggleBlacklistDetails() {
+        if (blacklistCheckbox && blacklistCheckbox.checked) {
+            blacklistDetails.style.display = 'block';
+        } else if (blacklistDetails) {
+            blacklistDetails.style.display = 'none';
+        }
+    }
+    
+    if (blacklistCheckbox) {
+        blacklistCheckbox.addEventListener('change', toggleBlacklistDetails);
+        toggleBlacklistDetails();
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,45 @@
+/* Стили для категории приема заявок - без полосы сверху */
+.reception-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.reception-badge {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: #ffffff !important;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.subcategory-card:hover .reception-badge {
+    background: linear-gradient(135deg, #34ce57, #26e6a5);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Стили для категории просмотра заявок - без полосы сверху */
+.reception-view-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.reception-view-badge {
+    background: linear-gradient(135deg, #17a2b8, #6f42c1);
+    color: #ffffff !important;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.subcategory-card:hover .reception-view-badge {
+    background: linear-gradient(135deg, #1eb9d0, #7b4bc9);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+}

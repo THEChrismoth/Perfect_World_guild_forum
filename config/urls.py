@@ -14,5 +14,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('captcha/', include('captcha.urls')),
     path('auction/', include('auction.urls', namespace='auction')),
+    path('reception/', include('reception.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

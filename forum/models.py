@@ -81,6 +81,20 @@ class SubCategory(models.Model):
         help_text='Отметьте, если эта подкатегория является аукционом'
     )
 
+    # Флаг приема заявок
+    is_reception = models.BooleanField(
+        'Это прием заявок',
+        default=False,
+        help_text='Отметьте, если эта подкатегория предназначена для приема заявок в гильдию'
+    )
+
+    # Флаг просмотра заявок
+    is_reception_view = models.BooleanField(
+        'Это просмотр заявок',
+        default=False,
+        help_text='Отметьте, если эта подкатегория для ПРОСМОТРА и ГОЛОСОВАНИЯ за заявки (доступно только членам гильдии)'
+    )
+
     class Meta:
         verbose_name = 'Подкатегорию'
         verbose_name_plural = 'Подкатегории'

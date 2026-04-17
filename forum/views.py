@@ -19,26 +19,63 @@ def forum_view(request):
             visible_subcategories = []
             for subcategory in category.subcategories.all():
                 if subcategory.is_visible_to_user(request.user):
-                    # Проверяем по флагу is_auction
+                    # Проверка на аукцион
                     if subcategory.is_auction:
-                        # Создаем специальную ссылку для аукциона
+                        from auction.models import AuctionLot
                         visible_subcategories.append({
                             'subcategory': subcategory,
                             'is_auction': True,
+                            'is_reception': False,
+                            'is_reception_view': False,
                             'topics_count': AuctionLot.objects.filter(status='active').count(),
                             'posts_count': AuctionLot.objects.count(),
                             'slug': subcategory.slug,
                             'title': subcategory.title,
                         })
+                    # Проверка на прием заявок (подача) - скрываем для членов гильдии
+                    elif subcategory.is_reception:
+                        from reception.views import check_guild_member
+                        # Члены гильдии не видят подкатегорию подачи заявок
+                        if check_guild_member(request.user):
+                            continue
+                        
+                        from reception.models import Application
+                        visible_subcategories.append({
+                            'subcategory': subcategory,
+                            'is_auction': False,
+                            'is_reception': True,
+                            'is_reception_view': False,
+                            'topics_count': 0,
+                            'posts_count': 0,
+                            'slug': subcategory.slug,
+                            'title': subcategory.title,
+                        })
+                    # Проверка на просмотр заявок (только для членов гильдии)
+                    elif subcategory.is_reception_view:
+                        from reception.views import check_guild_member
+                        if check_guild_member(request.user) or request.user.is_superuser:
+                            from reception.models import Application
+                            applications_voting = Application.objects.filter(status='voting').count()
+                            applications_total = Application.objects.count()
+                            visible_subcategories.append({
+                                'subcategory': subcategory,
+                                'is_auction': False,
+                                'is_reception': False,
+                                'is_reception_view': True,
+                                'topics_count': applications_voting,
+                                'posts_count': applications_total,
+                                'slug': subcategory.slug,
+                                'title': subcategory.title,
+                            })
                     else:
-                        # Для обычных подкатегорий считаем темы и посты
                         topics_count = subcategory.topics.count()
-                        # Считаем все посты во всех темах подкатегории
                         posts_count = Post.objects.filter(topic__subcategory=subcategory).count()
                         
                         visible_subcategories.append({
                             'subcategory': subcategory,
                             'is_auction': False,
+                            'is_reception': False,
+                            'is_reception_view': False,
                             'topics_count': topics_count,
                             'posts_count': posts_count,
                             'slug': subcategory.slug,
@@ -64,6 +101,7 @@ def forum_view(request):
     }
     return render(request, 'forum/forum_index.html', context)
 
+
 def subcategory_detail(request, slug):
     subcategory = get_object_or_404(SubCategory, slug=slug)
     
@@ -71,18 +109,30 @@ def subcategory_detail(request, slug):
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
     
-    # Проверяем по флагу is_auction
+    # Проверка на аукцион
     if subcategory.is_auction:
-        # Дополнительная проверка доступа к аукциону
         from auction.views import check_auction_access
         if not check_auction_access(request.user):
             raise PermissionDenied("У вас нет доступа к аукциону")
-        # Перенаправляем на страницу аукциона
         from django.urls import reverse
         return redirect(reverse('auction:auction_index'))
     
+    # Проверка на прием заявок (подача)
+    if subcategory.is_reception:
+        from django.urls import reverse
+        return redirect(reverse('reception:application_form'))
+    
+    # Проверка на просмотр заявок (голосование)
+    if subcategory.is_reception_view:
+        from reception.views import check_guild_member
+        if not check_guild_member(request.user) and not request.user.is_superuser:
+            raise PermissionDenied("Только члены гильдии могут просматривать заявки")
+        from django.urls import reverse
+        return redirect(reverse('reception:application_list'))
+    
     context = {'subcategory': subcategory}
     return render(request, 'forum/subcategory_detail.html', context)
+
 
 @login_required
 def topic_create(request, slug):
@@ -129,6 +179,7 @@ def topic_create(request, slug):
     }
     return render(request, 'forum/topic_form.html', context)
 
+
 def topic_detail(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
     
@@ -144,6 +195,7 @@ def topic_detail(request, slug):
         'form': form,
     }
     return render(request, 'forum/topic_detail.html', context)
+
 
 @login_required
 def topic_edit(request, slug):
@@ -176,6 +228,7 @@ def topic_edit(request, slug):
     }
     return render(request, 'forum/topic_edit.html', context)
 
+
 @login_required
 def topic_delete(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
@@ -194,6 +247,7 @@ def topic_delete(request, slug):
         'topic': topic,
     }
     return render(request, 'forum/topic_confirm_delete.html', context)
+
 
 @login_required
 def post_create(request, slug):
@@ -231,6 +285,7 @@ def post_create(request, slug):
     # Если GET запрос - редирект на страницу темы
     return redirect('topic_detail', slug=topic.slug)
 
+
 @login_required
 def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -263,6 +318,7 @@ def post_edit(request, post_id):
         messages.success(request, 'Сообщение успешно отредактировано')
     
     return redirect('topic_detail', slug=post.topic.slug)
+
 
 @login_required
 def post_delete(request, post_id):

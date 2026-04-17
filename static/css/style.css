@@ -377,3 +377,249 @@ footer .social-links a:hover {
 .post-author-link:hover {
     text-decoration: underline;
 }
+
+/* Стили для уведомлений */
+.notifications-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.notifications-btn {
+    background: rgba(253, 72, 182, 0.1);
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.notifications-btn:hover {
+    background: rgba(253, 72, 182, 0.2);
+    transform: translateY(-1px);
+}
+
+.notifications-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 2px 5px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+.notifications-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background: #2D3037;
+    min-width: 320px;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 1000;
+    border: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.notifications-menu.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notifications-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    color: #FD48B6;
+}
+
+.mark-all-read {
+    color: #28a745;
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.mark-all-read:hover {
+    text-decoration: underline;
+}
+
+.notifications-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    position: relative;
+    transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+    background: rgba(253, 72, 182, 0.05);
+}
+
+.notification-item.unread {
+    background: rgba(253, 72, 182, 0.1);
+    border-left: 3px solid #FD48B6;
+}
+
+.notification-message {
+    color: #e0e0e0;
+    font-size: 13px;
+    line-height: 1.4;
+    margin-bottom: 5px;
+    padding-right: 25px;
+}
+
+.notification-time {
+    color: #888;
+    font-size: 10px;
+}
+
+.mark-read {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #28a745;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.mark-read:hover {
+    color: #218838;
+}
+
+.no-notifications {
+    padding: 30px;
+    text-align: center;
+    color: #888;
+}
+
+.notifications-footer {
+    padding: 10px 15px;
+    border-top: 1px solid rgba(253, 72, 182, 0.2);
+    text-align: center;
+}
+
+.notifications-footer a {
+    color: #FD48B6;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.notifications-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Сообщения */
+.messages {
+    margin-bottom: 20px;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.2);
+    border-left: 3px solid #28a745;
+    color: #28a745;
+}
+
+.alert-error, .alert-danger {
+    background: rgba(220, 53, 69, 0.2);
+    border-left: 3px solid #dc3545;
+    color: #dc3545;
+}
+
+.alert-warning {
+    background: rgba(255, 193, 7, 0.2);
+    border-left: 3px solid #ffc107;
+    color: #ffc107;
+}
+
+.alert-info {
+    background: rgba(23, 162, 184, 0.2);
+    border-left: 3px solid #17a2b8;
+    color: #17a2b8;
+}
+/* Исправление z-index для уведомлений */
+header {
+    position: relative;
+    z-index: 10000;
+}
+
+.notifications-dropdown {
+    position: relative;
+    z-index: 10001;
+}
+
+.notifications-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 45px;
+    background: #2D3037;
+    min-width: 320px;
+    max-width: 400px;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    z-index: 999999 !important;
+    border: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.notifications-menu.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+}
+
+main {
+    position: relative;
+    z-index: 1;
+}
+
+.forum-layout,
+.categorys,
+.subcategories-block,
+.subcategory-card {
+    position: relative;
+    z-index: 1;
+}

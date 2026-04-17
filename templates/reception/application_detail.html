@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'reception/css/application_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="reception-container">
+    <div class="application-detail">
+        <div class="detail-header">
+            <h1>Заявка от {{ application.user.username }}</h1>
+            <div class="status-badge status-{{ application.status }}">
+                {{ application.get_status_display }}
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h2>👤 Информация о заявителе</h2>
+            <div class="info-grid">
+                <div class="info-row">
+                    <span class="info-label">Имя:</span>
+                    <span class="info-value">{{ application.real_name|default:"Не указано" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Возраст:</span>
+                    <span class="info-value">{{ application.age|default:"Не указан" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Часовой пояс:</span>
+                    <span class="info-value">{{ application.timezone }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Класс персонажа:</span>
+                    <span class="info-value">{{ application.get_player_class_display }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h2>⚔️ Характеристики персонажа</h2>
+            <div class="stats-grid">
+                <div class="stat-row">
+                    <span class="stat-label">❤️ HP / 💧 MP:</span>
+                    <span class="stat-value">{{ character_stats.hp }} / {{ character_stats.mp }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">⚔️ ПА / 🗡️ ФА / 🔮 МА:</span>
+                    <span class="stat-value">{{ character_stats.pa }} / {{ character_stats.fa }} / {{ character_stats.ma }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🛡️ ПЗ / 💪 БД / ⭐ БУ:</span>
+                    <span class="stat-value">{{ character_stats.pz }} / {{ character_stats.bd }} / {{ character_stats.bu }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🛡️ Физ. защита / ✨ Маг. защита:</span>
+                    <span class="stat-value">{{ character_stats.physical_defense }} / {{ character_stats.magic_defense }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💥 Физ. пробив / 🔮 Маг. пробив:</span>
+                    <span class="stat-value">{{ character_stats.physical_pierce }} / {{ character_stats.magic_pierce }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">💢 Крит. урон / 🎯 Крит. шанс:</span>
+                    <span class="stat-value">{{ character_stats.crit_damage }}% / {{ character_stats.crit_chance }}%</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">🎯 Меткость / 💨 Уклонение:</span>
+                    <span class="stat-value">{{ character_stats.accuracy }} / {{ character_stats.dodge }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h2>🎮 Игровая информация</h2>
+            <div class="info-row">
+                <span class="info-label">Прошлые никнеймы:</span>
+                <span class="info-value">{{ application.previous_nicknames|default:"Нет" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Состоит в гильдиях:</span>
+                <span class="info-value">{{ application.other_guilds|default:"Нет" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">В ЧС других гильдий:</span>
+                <span class="info-value {% if application.on_blacklist %}text-danger{% else %}text-success{% endif %}">
+                    {% if application.on_blacklist %}Да{% else %}Нет{% endif %}
+                </span>
+            </div>
+            {% if application.on_blacklist and application.blacklist_details %}
+                <div class="info-row">
+                    <span class="info-label">Пояснение по ЧС:</span>
+                    <span class="info-value">{{ application.blacklist_details }}</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="detail-section">
+            <h2>📈 Планы развития на 2 месяца</h2>
+            <div class="text-content">
+                {{ application.development_plans|linebreaks }}
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h2>👥 Поручители</h2>
+            <div class="text-content">
+                {{ application.guarantors|default:"Не указаны"|linebreaks }}
+            </div>
+        </div>
+        
+        {% if application.screenshot1 or application.screenshot2 or application.screenshot3 or application.screenshot4 or application.screenshot5 %}
+            <div class="detail-section">
+                <h2>📸 Скриншоты</h2>
+                <div class="screenshots-gallery">
+                    {% if application.screenshot1 %}
+                        <a href="{{ application.screenshot1.url }}" target="_blank" class="screenshot-thumb">
+                            <img src="{{ application.screenshot1.url }}" alt="Скриншот 1">
+                        </a>
+                    {% endif %}
+                    {% if application.screenshot2 %}
+                        <a href="{{ application.screenshot2.url }}" target="_blank" class="screenshot-thumb">
+                            <img src="{{ application.screenshot2.url }}" alt="Скриншот 2">
+                        </a>
+                    {% endif %}
+                    {% if application.screenshot3 %}
+                        <a href="{{ application.screenshot3.url }}" target="_blank" class="screenshot-thumb">
+                            <img src="{{ application.screenshot3.url }}" alt="Скриншот 3">
+                        </a>
+                    {% endif %}
+                    {% if application.screenshot4 %}
+                        <a href="{{ application.screenshot4.url }}" target="_blank" class="screenshot-thumb">
+                            <img src="{{ application.screenshot4.url }}" alt="Скриншот 4">
+                        </a>
+                    {% endif %}
+                    {% if application.screenshot5 %}
+                        <a href="{{ application.screenshot5.url }}" target="_blank" class="screenshot-thumb">
+                            <img src="{{ application.screenshot5.url }}" alt="Скриншот 5">
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="detail-section">
+            <h2>🗳️ Результаты голосования</h2>
+            <div class="vote-stats-large">
+                <div class="vote-stat for">
+                    <div class="vote-count">{{ vote_stats.for }}</div>
+                    <div class="vote-label">За</div>
+                </div>
+                <div class="vote-stat against">
+                    <div class="vote-count">{{ vote_stats.against }}</div>
+                    <div class="vote-label">Против</div>
+                </div>
+                <div class="vote-stat abstain">
+                    <div class="vote-count">{{ vote_stats.abstain }}</div>
+                    <div class="vote-label">Воздержались</div>
+                </div>
+                <div class="vote-stat total">
+                    <div class="vote-count">{{ vote_stats.total }}</div>
+                    <div class="vote-label">Всего голосов</div>
+                </div>
+            </div>
+        </div>
+        
+        {% if is_guild_member and application.status == 'voting' and not is_owner %}
+            <div class="detail-section vote-section">
+                <h2>🗳️ Проголосовать</h2>
+                {% if user_voted %}
+                    <div class="alert alert-info">
+                        Вы уже проголосовали по этой заявке. Спасибо за участие!
+                    </div>
+                {% else %}
+                    <form method="post" class="vote-form">
+                        {% csrf_token %}
+                        
+                        <div class="vote-options">
+                            <label class="vote-option">
+                                <input type="radio" name="vote" value="for" required>
+                                <span class="vote-label for">✅ За</span>
+                            </label>
+                            <label class="vote-option">
+                                <input type="radio" name="vote" value="against" required>
+                                <span class="vote-label against">❌ Против</span>
+                            </label>
+                            <label class="vote-option">
+                                <input type="radio" name="vote" value="abstain" required>
+                                <span class="vote-label abstain">⚪ Воздержаться</span>
+                            </label>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="comment">Комментарий (по желанию)</label>
+                            <textarea name="comment" id="comment" rows="3" class="form-control" placeholder="Напишите свой комментарий к голосованию..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-submit-vote">Отправить голос</button>
+                    </form>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        {% if comments %}
+            <div class="detail-section comments-section">
+                <h2>💬 Комментарии игроков</h2>
+                {% for vote in comments %}
+                    <div class="comment-item comment-{{ vote.vote }}">
+                        <div class="comment-header">
+                            <strong>{{ vote.voter.username }}</strong>
+                            <span class="comment-vote">
+                                {% if vote.vote == 'for' %}✅ За
+                                {% elif vote.vote == 'against' %}❌ Против
+                                {% else %}⚪ Воздержался{% endif %}
+                            </span>
+                            <span class="comment-date">{{ vote.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="comment-text">{{ vote.comment|linebreaks }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        {% if application.admin_comment %}
+            <div class="detail-section admin-comment">
+                <h2>📝 Комментарий администратора</h2>
+                <div class="text-content">
+                    {{ application.admin_comment|linebreaks }}
+                </div>
+            </div>
+        {% endif %}
+        
+        <div class="back-links">
+            {% if is_guild_member %}
+                <a href="{% url 'reception:application_list' %}" class="btn-back">← Назад к списку заявок</a>
+            {% endif %}
+            <a href="/" class="btn-back">← Вернуться на форум</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
