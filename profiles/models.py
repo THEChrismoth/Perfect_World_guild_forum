@@ -93,6 +93,50 @@ class Profile(models.Model):
         """Всего начислено очков активности"""
         return self.earned_points
 
+    # ========== МЕТОДЫ ДЛЯ АУКЦИОНА ==========
+    
+    def get_available_points(self):
+        """Возвращает доступные очки (не замороженные)"""
+        from auction.models import AuctionBid
+        
+        # Сумма всех замороженных ставок
+        frozen_amount = AuctionBid.objects.filter(
+            bidder=self.user,
+            is_frozen=True
+        ).aggregate(total=models.Sum('bid_amount'))['total'] or 0
+        
+        return self.activity_points - frozen_amount
+
+    def can_place_bid(self, bid_amount, lot=None):
+        """Проверяет, может ли пользователь сделать ставку"""
+        available = self.get_available_points()
+        if available < bid_amount:
+            return False, f'Недостаточно доступных очков. Доступно: {available} ⭐ (Всего: {self.activity_points} ⭐, Заморожено: {self.activity_points - available} ⭐)'
+        
+        # Если указан лот, проверяем что пользователь не имеет активной ставки на этот лот
+        if lot:
+            has_active_bid = lot.bids.filter(bidder=self.user, status__in=['active', 'frozen']).exists()
+            if has_active_bid:
+                return False, 'Вы уже сделали ставку на этот лот'
+        
+        return True, ''
+
+    def spend_points_auction(self, amount):
+        """Списание очков для аукциона (только доступных, не замороженных)"""
+        if amount <= 0:
+            return False
+        
+        # Проверяем что достаточно доступных очков
+        available = self.get_available_points()
+        if available >= amount and self.activity_points >= amount:
+            self.activity_points -= amount
+            self.spent_points += amount
+            self.save()
+            return True
+        return False
+
+    # ========================================
+
     class Meta:
         verbose_name = 'редактировать профиль'
         verbose_name_plural = 'редактировать профили'

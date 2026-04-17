@@ -4,6 +4,7 @@ from django.utils import timezone
 from django.urls import reverse
 from django.core.validators import MinValueValidator
 from django.templatetags.static import static
+from uuslug import uuslug
 
 class AuctionLot(models.Model):
     STATUS_CHOICES = [
@@ -28,7 +29,7 @@ class AuctionLot(models.Model):
     
     # Основная информация
     name = models.CharField('Название лота', max_length=200)
-    slug = models.SlugField(unique=True, max_length=200)
+    slug = models.SlugField(unique=True, max_length=200, blank=True)
     description = models.TextField('Описание', blank=True)
     
     # Выбор иконки или своей картинки
@@ -54,9 +55,6 @@ class AuctionLot(models.Model):
     current_price = models.IntegerField('Текущая цена', default=0)
     min_step = models.IntegerField('Минимальный шаг ставки', default=1, validators=[MinValueValidator(1)])
     
-    # Количество победителей
-    max_winners = models.IntegerField('Максимум победителей', default=1, validators=[MinValueValidator(1)])
-    
     # Временные параметры
     start_date = models.DateTimeField('Дата начала', default=timezone.now)
     end_date = models.DateTimeField('Дата окончания')
@@ -79,6 +77,11 @@ class AuctionLot(models.Model):
     def save(self, *args, **kwargs):
         if self.current_price == 0:
             self.current_price = self.initial_price
+        
+        # Генерируем слаг с ID если нужно
+        if not self.slug:
+            self.slug = uuslug(self.name, instance=self, max_length=200)
+        
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):
@@ -119,8 +122,8 @@ class AuctionLot(models.Model):
     
     @property
     def winners_count(self):
-        """Количество победителей"""
-        return self.bids.filter(is_winner=True).count()
+        """Количество победителей (всегда 1)"""
+        return 1 if self.bids.filter(is_winner=True).exists() else 0
     
     @property
     def total_bids_count(self):
@@ -131,35 +134,50 @@ class AuctionLot(models.Model):
         """Возвращает ставки победителей"""
         return self.bids.filter(is_winner=True).order_by('-bid_amount')
     
+    def get_current_leader(self):
+        """Возвращает текущего лидера (самую высокую замороженную ставку)"""
+        return self.bids.filter(is_frozen=True).order_by('-bid_amount').first()
+    
     def process_auction_end(self):
         """Обрабатывает завершение аукциона"""
         if self.status != 'active' or timezone.now() < self.end_date:
             return False
         
-        all_bids = self.bids.filter(is_winner=False).order_by('-bid_amount', 'created_at')
+        # Получаем лидера (самую высокую замороженную ставку)
+        leader = self.get_current_leader()
         
-        winners = []
-        seen_users = set()
-        
-        for bid in all_bids:
-            if len(winners) >= self.max_winners:
-                break
+        if leader:
+            # Победитель
+            leader.is_winner = True
+            leader.status = 'won'
+            leader.is_frozen = False
+            leader.save()
             
-            if bid.bidder.id not in seen_users:
-                bid.is_winner = True
+            # Списываем очки
+            profile = leader.bidder.profile
+            if profile.spend_points_auction(leader.bid_amount):
+                PointsTransaction.objects.create(
+                    user=leader.bidder,
+                    lot=self,
+                    amount=leader.bid_amount,
+                    transaction_type='debit',
+                    description=f'Выигрыш в аукционе: {self.name}'
+                )
+            
+            # Все остальные замороженные ставки размораживаем
+            other_bids = self.bids.filter(is_frozen=True).exclude(id=leader.id)
+            for bid in other_bids:
+                bid.is_frozen = False
+                bid.status = 'lost'
                 bid.save()
-                winners.append(bid)
-                seen_users.add(bid.bidder.id)
                 
-                profile = bid.bidder.profile
-                if profile.spend_points(bid.bid_amount):
-                    PointsTransaction.objects.create(
-                        user=bid.bidder,
-                        lot=self,
-                        amount=bid.bid_amount,
-                        transaction_type='debit',
-                        description=f'Выигрыш в аукционе: {self.name}'
-                    )
+                PointsTransaction.objects.create(
+                    user=bid.bidder,
+                    lot=self,
+                    amount=bid.bid_amount,
+                    transaction_type='unfreeze',
+                    description=f'Возврат замороженных очков после аукциона: {self.name}'
+                )
         
         self.status = 'ended'
         self.save()
@@ -169,11 +187,21 @@ class AuctionLot(models.Model):
 
 class AuctionBid(models.Model):
     """Модель ставки"""
+    BID_STATUS = [
+        ('active', 'Активна'),
+        ('frozen', 'Заморожена'),
+        ('won', 'Выиграна'),
+        ('lost', 'Проиграна'),
+        ('outbid', 'Перебита'),
+    ]
+    
     lot = models.ForeignKey(AuctionLot, on_delete=models.CASCADE, related_name='bids')
     bidder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='auction_bids')
     bid_amount = models.IntegerField('Сумма ставки', validators=[MinValueValidator(1)])
     created_at = models.DateTimeField('Время ставки', auto_now_add=True)
     is_winner = models.BooleanField('Победитель', default=False)
+    is_frozen = models.BooleanField('Очки заморожены', default=False)
+    status = models.CharField('Статус ставки', max_length=10, choices=BID_STATUS, default='active')
     
     class Meta:
         verbose_name = 'Ставка'
@@ -189,6 +217,8 @@ class PointsTransaction(models.Model):
     TRANSACTION_TYPES = [
         ('credit', 'Начисление'),
         ('debit', 'Списание'),
+        ('freeze', 'Заморозка'),
+        ('unfreeze', 'Разморозка'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='points_transactions')

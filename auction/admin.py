@@ -5,8 +5,8 @@ from .models import AuctionLot, AuctionBid, PointsTransaction
 class AuctionBidInline(admin.TabularInline):
     model = AuctionBid
     extra = 0
-    readonly_fields = ('bidder', 'bid_amount', 'created_at', 'is_winner')
-    fields = ('bidder', 'bid_amount', 'created_at', 'is_winner')
+    readonly_fields = ('bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
+    fields = ('bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
     can_delete = False
     
     def has_add_permission(self, request, obj=None):
@@ -14,18 +14,17 @@ class AuctionBidInline(admin.TabularInline):
 
 @admin.register(AuctionLot)
 class AuctionLotAdmin(admin.ModelAdmin):
-    list_display = ('name', 'icon_choice', 'initial_price', 'current_price', 'max_winners', 'status', 'end_date')
+    list_display = ('name', 'icon_choice', 'initial_price', 'current_price', 'status', 'end_date')
     list_filter = ('status', 'icon_choice', 'created_at')
     search_fields = ('name', 'slug', 'description')
-    prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ('current_price',)
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('name', 'slug', 'description', 'icon_choice', 'custom_image')
+            'fields': ('name', 'description', 'icon_choice', 'custom_image')
         }),
         ('Аукционные параметры', {
-            'fields': ('initial_price', 'min_step', 'max_winners', 'start_date', 'end_date')
+            'fields': ('initial_price', 'min_step', 'start_date', 'end_date')
         }),
         ('Статус', {
             'fields': ('status', 'current_price')
@@ -47,10 +46,10 @@ class AuctionLotAdmin(admin.ModelAdmin):
 
 @admin.register(AuctionBid)
 class AuctionBidAdmin(admin.ModelAdmin):
-    list_display = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner')
-    list_filter = ('is_winner', 'created_at')
+    list_display = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
+    list_filter = ('is_winner', 'is_frozen', 'status', 'created_at')
     search_fields = ('bidder__username', 'lot__name')
-    readonly_fields = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner')
+    readonly_fields = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
     
     def has_add_permission(self, request):
         return False

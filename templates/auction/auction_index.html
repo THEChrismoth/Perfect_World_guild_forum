@@ -60,7 +60,6 @@
                             </div>
                             <div class="lot-stats">
                                 <span>📊 Ставок: {{ lot.total_bids_count }}</span>
-                                <span>👥 Победителей: {{ lot.winners_count }}/{{ lot.max_winners }}</span>
                             </div>
                             <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="btn-bid">Сделать ставку</a>
                         </div>
@@ -99,7 +98,15 @@
                         <div class="ended-lot-info">
                             <strong>{{ lot.name }}</strong>
                             <span>Финальная цена: {{ lot.current_price }} ⭐</span>
-                            <span>Победителей: {{ lot.winners_count }}/{{ lot.max_winners }}</span>
+                            <span>Победитель: 
+                                {% with winner=lot.get_winner_bids.first %}
+                                    {% if winner %}
+                                        {{ winner.bidder.username }}
+                                    {% else %}
+                                        Не определен
+                                    {% endif %}
+                                {% endwith %}
+                            </span>
                         </div>
                         <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="btn-view">Посмотреть</a>
                     </div>

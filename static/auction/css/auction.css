@@ -127,7 +127,7 @@
     transform: scaleX(1);
 }
 
-/* Изображение лота в карточке - для круглых иконок */
+/* Изображение лота в карточке */
 .lot-image {
     width: 100%;
     height: 150px;
@@ -385,7 +385,409 @@
     margin: 0;
 }
 
-/* Адаптивность */
+/* Стили для детальной страницы лота */
+.lot-detail-container {
+    max-width: 100%;
+    margin: 20px;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+    box-sizing: border-box;
+}
+
+.lot-detail-header {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.lot-detail-image {
+    flex: 0 0 auto;
+    max-width: 300px;
+    min-width: 150px;
+    background: #1a1c20;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.lot-detail-image img {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+.lot-detail-image .no-image {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    color: #FD48B6;
+}
+
+.lot-detail-info {
+    flex: 1;
+    min-width: 250px;
+}
+
+.lot-detail-info h1 {
+    margin: 0 0 20px 0;
+    color: #ffffff;
+    font-size: 28px;
+}
+
+.lot-description {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+.lot-detail-price {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-row:last-child {
+    border-bottom: none;
+}
+
+.price-row .label {
+    color: #888;
+}
+
+.price-row .value {
+    color: #FD48B6;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+/* Стили для баланса пользователя */
+.user-points-info {
+    background: rgba(40, 167, 69, 0.1);
+    padding: 12px 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.user-points-info,
+.user-points-info span,
+.user-points-info div,
+.user-points-info p {
+    color: #ffffff !important;
+}
+
+.user-points-info strong {
+    color: #FD48B6 !important;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* Стили для сообщений */
+.messages {
+    margin: 20px 0;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    animation: fadeInMsg 0.3s ease;
+}
+
+@keyframes fadeInMsg {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.alert-success {
+    background: rgba(40, 167, 69, 0.2);
+    border-left: 3px solid #28a745;
+    color: #28a745;
+}
+
+.alert-error {
+    background: rgba(220, 53, 69, 0.2);
+    border-left: 3px solid #dc3545;
+    color: #dc3545;
+}
+
+.alert-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border-left: 3px solid #ffc107;
+    color: #ffc107;
+}
+
+.alert-info {
+    background: rgba(23, 162, 184, 0.15);
+    border-left: 3px solid #17a2b8;
+    color: #17a2b8;
+}
+
+/* Блок ставки */
+.bid-section {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0 30px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.bid-section h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #ffffff;
+}
+
+.bid-form {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #888;
+    font-size: 12px;
+}
+
+.bid-input {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid #FD48B6;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.bid-input:focus {
+    outline: none;
+    border-color: #ff8c42;
+}
+
+.btn-submit-bid {
+    background: #28a745;
+    color: white;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.btn-submit-bid:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.btn-submit-bid:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Таблица ставок */
+.bids-table {
+    margin-top: 30px;
+    overflow-x: auto;
+}
+
+.bids-table h3 {
+    color: #ffffff;
+    margin-bottom: 15px;
+}
+
+.bids-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.bids-table th,
+.bids-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.bids-table th {
+    background: rgba(253, 72, 182, 0.1);
+    color: #FD48B6;
+    font-weight: 600;
+}
+
+.bids-table td {
+    color: #e0e0e0;
+}
+
+/* Стили для строк таблицы */
+.winner-row {
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.winner-row td {
+    color: #28a745;
+}
+
+.frozen-row {
+    background: rgba(253, 72, 182, 0.08);
+}
+
+.frozen-row td {
+    color: #FD48B6;
+}
+
+/* Статусы */
+.status-winner {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.status-frozen {
+    color: #FD48B6;
+    font-weight: bold;
+}
+
+.status-lost {
+    color: #dc3545;
+}
+
+.status-outbid {
+    color: #888;
+}
+
+.active-bid-warning {
+    background: rgba(253, 72, 182, 0.15);
+    border-left: 3px solid #FD48B6;
+    padding: 10px 15px;
+    margin: 15px 0;
+    border-radius: 6px;
+    color: #FD48B6;
+    font-size: 14px;
+}
+
+.no-bids {
+    text-align: center;
+    color: #888;
+    padding: 30px;
+}
+
+/* Сообщения */
+.warning-message {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+    color: #e0e0e0;
+}
+
+.warning-message a {
+    color: #FD48B6;
+    text-decoration: none;
+}
+
+.warning-message a:hover {
+    text-decoration: underline;
+}
+
+.info-message {
+    background: rgba(40, 167, 69, 0.1);
+    border-left: 3px solid #28a745;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 8px;
+}
+
+.info-message,
+.info-message h3,
+.info-message h4,
+.info-message p {
+    color: #e0e0e0;
+}
+
+.info-message h3,
+.info-message h4 {
+    color: #FD48B6;
+}
+
+.winners-list {
+    margin-top: 15px;
+}
+
+.winners-list h4 {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.winners-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.winners-list li {
+    padding: 8px 12px;
+    margin: 5px 0;
+    background: rgba(40, 167, 69, 0.1);
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #28a745;
+}
+
+.winners-list li::before {
+    content: '🏆';
+    margin-right: 10px;
+}
+
+/* Адаптация для мобильных */
 @media (max-width: 1200px) {
     .lots-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -519,6 +921,51 @@
         padding: 6px 12px;
         font-size: 12px;
     }
+    
+    /* Детальная страница */
+    .lot-detail-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .lot-detail-header {
+        flex-direction: column;
+    }
+    
+    .lot-detail-image {
+        max-width: 100%;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .lot-detail-image img {
+        max-height: 150px;
+    }
+    
+    .bid-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .form-group {
+        width: 100%;
+    }
+    
+    .btn-submit-bid {
+        width: 100%;
+        white-space: normal;
+    }
+    
+    .bids-table th,
+    .bids-table td {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+    
+    .winners-list li {
+        font-size: 13px;
+        padding: 6px 10px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -534,362 +981,84 @@
         flex-direction: column;
         gap: 5px;
     }
+    
+    .bids-table {
+        font-size: 12px;
+    }
+    
+    .active-bid-warning {
+        font-size: 12px;
+    }
 }
 
-/* Стили для детальной страницы лота */
-.lot-detail-container {
-    max-width: 100%;
-    margin: 20px;
-    padding: 30px;
-    background: #2D3037;
-    border-radius: 12px;
-    border-top: 3px solid #FD48B6;
-    box-sizing: border-box;
-}
-
-.lot-detail-header {
-    display: flex;
-    gap: 30px;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-    align-items: flex-start;
-}
-
-.lot-detail-image {
-    flex: 0 0 auto;
-    max-width: 300px;
-    min-width: 150px;
-    background: #1a1c20;
-    border-radius: 8px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-}
-
-.lot-detail-image img {
-    width: auto;
-    max-width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    display: block;
-}
-
-.lot-detail-image .no-image {
-    width: 100%;
-    height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    color: #FD48B6;
-}
-
-.lot-detail-info {
-    flex: 1;
-    min-width: 250px;
-}
-
-.lot-detail-info h1 {
-    margin: 0 0 20px 0;
-    color: #ffffff;
-    font-size: 28px;
-}
-
-.lot-description {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: #e0e0e0;
-    line-height: 1.6;
-}
-
-.lot-detail-price {
-    background: rgba(253, 72, 182, 0.1);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.price-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.price-row:last-child {
-    border-bottom: none;
-}
-
-.price-row .label {
-    color: #888;
-}
-
-.price-row .value {
-    color: #FD48B6;
-    font-weight: bold;
-    font-size: 18px;
-}
-
-/* Стили для баланса пользователя */
+/* Дополнительные стили */
 .user-points-info {
-    background: rgba(40, 167, 69, 0.1);
-    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
-    text-align: center;
+    padding: 12px 15px;
     margin-top: 20px;
 }
 
-.user-points-info,
-.user-points-info span,
-.user-points-info div,
-.user-points-info p {
-    color: #ffffff !important;
+.user-points-info div {
+    margin-bottom: 8px;
+}
+
+.user-points-info div:last-child {
+    margin-bottom: 0;
 }
 
 .user-points-info strong {
-    color: #FD48B6 !important;
-    font-size: 22px;
-    font-weight: bold;
+    color: #FD48B6;
+    font-size: 18px;
 }
 
-/* Стили для сообщений */
-.messages {
-    margin: 20px 0;
+.frozen-points-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border-left: 3px solid #ffc107;
+    padding: 8px 10px;
+    margin-top: 8px;
+    border-radius: 4px;
+    color: #ffc107;
+    font-size: 13px;
 }
 
-.alert {
-    padding: 12px 15px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    animation: fadeIn 0.3s ease;
+.frozen-points-warning strong {
+    color: #ffc107;
+    font-size: 14px;
 }
 
-.alert-success {
-    background: rgba(40, 167, 69, 0.2);
-    border-left: 3px solid #28a745;
-    color: #28a745;
-}
-
-.alert-error {
-    background: rgba(220, 53, 69, 0.2);
-    border-left: 3px solid #dc3545;
-    color: #dc3545;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Блок ставки */
-.bid-section {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 20px;
-    border-radius: 8px;
-    margin: 20px 0 30px 0;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.bid-section h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #ffffff;
-}
-
-.bid-form {
-    display: flex;
-    gap: 15px;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-.form-group {
-    flex: 1;
-    min-width: 200px;
-}
-
-.form-group label {
+.form-hint {
     display: block;
-    margin-bottom: 5px;
+    margin-top: 5px;
+    font-size: 11px;
     color: #888;
-    font-size: 12px;
 }
 
-.bid-input {
-    width: 100%;
-    padding: 12px;
-    background: #1a1c20;
-    border: 1px solid #FD48B6;
-    border-radius: 6px;
-    color: #ffffff;
-    font-size: 16px;
-    box-sizing: border-box;
+.status-outbid {
+    color: #ffc107;
 }
 
-.bid-input:focus {
-    outline: none;
-    border-color: #ff8c42;
+.status-active {
+    color: #17a2b8;
 }
 
-.btn-submit-bid {
-    background: #28a745;
-    color: white;
-    padding: 12px 30px;
-    border: none;
-    border-radius: 6px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-}
-
-.btn-submit-bid:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-}
-
-/* Таблица ставок */
 .bids-table {
-    margin-top: 30px;
-    overflow-x: auto;
-}
-
-.bids-table h3 {
-    color: #ffffff;
-    margin-bottom: 15px;
-}
-
-.bids-table table {
     width: 100%;
     border-collapse: collapse;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.bids-table th,
-.bids-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
 }
 
 .bids-table th {
     background: rgba(253, 72, 182, 0.1);
     color: #FD48B6;
-    font-weight: 600;
+    padding: 12px;
+    text-align: left;
 }
 
 .bids-table td {
-    color: #e0e0e0;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.1);
 }
 
-.winner-row {
-    background: rgba(40, 167, 69, 0.1);
-}
-
-.winner-row td {
-    color: #28a745;
-}
-
-.no-bids {
-    text-align: center;
-    color: #888;
-    padding: 30px;
-}
-
-/* Сообщения */
-.warning-message {
-    background: rgba(255, 193, 7, 0.1);
-    border-left: 3px solid #ffc107;
-    padding: 15px;
-    margin: 20px 0;
-    border-radius: 4px;
-    color: #e0e0e0;
-}
-
-.warning-message a {
-    color: #FD48B6;
-    text-decoration: none;
-}
-
-.warning-message a:hover {
-    text-decoration: underline;
-}
-
-.info-message {
-    background: rgba(40, 167, 69, 0.1);
-    border-left: 3px solid #28a745;
-    padding: 20px;
-    margin: 20px 0;
-    border-radius: 8px;
-}
-
-.info-message,
-.info-message h3,
-.info-message h4,
-.winners-list,
-.winners-list ul,
-.winners-list li {
-    color: #e0e0e0 !important;
-}
-
-.info-message h3,
-.info-message h4 {
-    color: #FD48B6 !important;
-}
-
-.winners-list ul {
-    margin: 10px 0 0 20px;
-}
-
-.winners-list li {
-    margin: 5px 0;
-    color: #e0e0e0 !important;
-}
-
-/* Адаптация для мобильных */
-@media (max-width: 768px) {
-    .bid-form {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    
-    .form-group {
-        width: 100%;
-    }
-    
-    .btn-submit-bid {
-        width: 100%;
-        white-space: normal;
-    }
-    
-    .lot-detail-container {
-        margin: 10px;
-        padding: 15px;
-    }
-    
-    .lot-detail-image {
-        max-width: 100%;
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .lot-detail-image img {
-        max-height: 150px;
-    }
+.table-responsive {
+    overflow-x: auto;
 }

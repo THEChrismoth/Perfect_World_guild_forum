@@ -11,12 +11,14 @@ class Command(BaseCommand):
             end_date__lte=timezone.now()
         )
         
+        count = 0
         for lot in ended_lots:
             lot.process_auction_end()
             self.stdout.write(
                 self.style.SUCCESS(f'Обработан аукцион: {lot.name}')
             )
+            count += 1
         
         self.stdout.write(
-            self.style.SUCCESS(f'Обработано {ended_lots.count()} аукционов')
+            self.style.SUCCESS(f'Обработано {count} аукционов')
         )

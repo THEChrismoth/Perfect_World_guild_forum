@@ -34,12 +34,21 @@ class BidForm(forms.ModelForm):
             raise forms.ValidationError(f'Минимальная ставка: {min_bid}')
         
         # Проверка, что пользователь не делает ставку сам на себя
-        last_bid = self.lot.bids.filter(is_winner=False).first()
+        last_bid = self.lot.bids.filter(status='active').first()
         if last_bid and last_bid.bidder == self.user:
             raise forms.ValidationError('Вы не можете делать ставки подряд')
         
-        # Проверка наличия достаточного количества очков
-        if self.user.profile.activity_points < bid_amount:
-            raise forms.ValidationError(f'Недостаточно очков активности. У вас: {self.user.profile.activity_points}')
+        # Проверка, не делал ли пользователь уже ставку
+        existing_bid = self.lot.bids.filter(bidder=self.user, status__in=['active', 'frozen']).first()
+        if existing_bid:
+            raise forms.ValidationError('Вы уже сделали ставку на этот лот')
+        
+        # Проверка наличия достаточного количества доступных очков
+        available_points = self.user.profile.get_available_points()
+        if available_points < bid_amount:
+            raise forms.ValidationError(
+                f'Недостаточно доступных очков. Доступно: {available_points} ⭐ '
+                f'(Всего: {self.user.profile.activity_points} ⭐)'
+            )
         
         return bid_amount
