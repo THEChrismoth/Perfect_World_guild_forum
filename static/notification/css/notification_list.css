@@ -1,0 +1,125 @@
+.notifications-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.notifications-header {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notifications-header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.mark-all-btn {
+    background: rgba(255,255,255,0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.mark-all-btn:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.notifications-list-page {
+    background: #2D3037;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.notification-item-page {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: background 0.2s ease;
+    text-decoration: none;
+}
+
+.notification-item-page:hover {
+    background: rgba(253,72,182,0.05);
+}
+
+.notification-item-page.unread {
+    background: rgba(253,72,182,0.1);
+    border-left: 3px solid #FD48B6;
+}
+
+.notification-icon-page {
+    font-size: 24px;
+    min-width: 40px;
+    text-align: center;
+}
+
+.notification-content-page {
+    flex: 1;
+}
+
+.notification-title-page {
+    color: #FD48B6;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.notification-message-page {
+    color: #e0e0e0;
+    font-size: 14px;
+    margin-bottom: 5px;
+    line-height: 1.4;
+}
+
+.notification-time-page {
+    color: #888;
+    font-size: 11px;
+}
+
+.notification-delete {
+    color: #dc3545;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 5px;
+}
+
+.notification-delete:hover {
+    color: #ff6b6b;
+}
+
+.empty-notifications {
+    text-align: center;
+    padding: 60px 20px;
+    color: #888;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.btn-back {
+    color: #FD48B6;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    color: #ff69b4;
+}

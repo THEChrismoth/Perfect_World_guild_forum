@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'notification/css/notification_list.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="notifications-page">
+    <div class="notifications-header">
+        <h1>🔔 Все уведомления</h1>
+        {% if notifications %}
+            <a href="{% url 'notifications:mark_all_as_read' %}" class="mark-all-btn">Все прочитаны</a>
+        {% endif %}
+    </div>
+
+    <div class="notifications-list-page">
+        {% if notifications %}
+            {% for notification in notifications %}
+                <div class="notification-item-page {% if not notification.is_read %}unread{% endif %}">
+                    <div class="notification-icon-page">{{ notification.get_icon }}</div>
+                    <div class="notification-content-page">
+                        <div class="notification-title-page">{{ notification.title }}</div>
+                        <div class="notification-message-page">{{ notification.message }}</div>
+                        <div class="notification-time-page">{{ notification.created_at|date:"d.m.Y H:i:s" }}</div>
+                    </div>
+                    <a href="{% url 'notifications:delete_notification' notification.id %}"
+                       class="notification-delete"
+                       onclick="return confirm('Удалить уведомление?')">🗑️</a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-notifications">
+                <div class="empty-icon">📭</div>
+                <p>У вас нет уведомлений</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="back-link">
+        <a href="/" class="btn-back">← Вернуться на главную</a>
+    </div>
+</div>
+{% endblock %}

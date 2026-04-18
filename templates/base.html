@@ -36,22 +36,24 @@
                                 <div class="notifications-header">
                                     <span>Уведомления</span>
                                     {% if unread_notifications_count > 0 %}
-                                        <a href="{% url 'reception:mark_all_notifications_read' %}" class="mark-all-read">Все прочитаны</a>
+                                        <a href="{% url 'notifications:mark_all_as_read_dropdown' %}" class="mark-all-read">Все прочитаны</a>
                                     {% endif %}
                                 </div>
                                 <div class="notifications-list">
                                     {% if notifications %}
                                         {% for notification in notifications %}
-                                            <div class="notification-item {% if not notification.is_read %}unread{% endif %}">
-                                                <div class="notification-message">{{ notification.message }}</div>
-                                                <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
-                                                {% if not notification.is_read %}
-                                                    <a href="{% url 'reception:mark_notification_read' notification.id %}" class="mark-read">✓</a>
-                                                {% endif %}
-                                            </div>
+                                            <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/' }}"
+                                                class="notification-item {% if not notification.is_read %}unread{% endif %} type-{{ notification.notification_type }}">
+                                                <div class="notification-icon">{{ notification.get_icon }}</div>
+                                                <div class="notification-content">
+                                                    <div class="notification-title">{{ notification.title }}</div>
+                                                    <div class="notification-message">{{ notification.message|truncatechars:50 }}</div>
+                                                    <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
+                                                </div>
+                                            </a>
                                         {% endfor %}
                                         <div class="notifications-footer">
-                                            <a href="{% url 'reception:my_applications' %}">Все уведомления →</a>
+                                            <a href="{% url 'notifications:notification_list' %}">Все уведомления →</a>
                                         </div>
                                     {% else %}
                                         <div class="no-notifications">Нет уведомлений</div>
@@ -59,7 +61,6 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Кнопка заявки полностью убрана -->
                         <a href="{% url 'profile_view' username=user.username %}" class="profile-link">{{ user.username }}</a>
                         <form method="post" action="{% url 'logout' %}" class="logout-form">
                             {% csrf_token %}
@@ -87,7 +88,7 @@
                     {% endfor %}
                 </div>
             {% endif %}
-            
+
             {% block content %}
             {% endblock %}
         </div>

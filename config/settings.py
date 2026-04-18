@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django_recaptcha',
     'auction',
     'reception',
+    'notifications',
 ]
 
 MIDDLEWARE = [
@@ -61,7 +62,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'reception.context_processors.notifications_context', 
+                'notifications.context_processors.notifications_context',
             ],
         },
     },

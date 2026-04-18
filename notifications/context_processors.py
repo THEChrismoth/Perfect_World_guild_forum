@@ -1,9 +1,10 @@
-from .models import ApplicationNotification
+from .models import Notification
+from .utils import get_unread_count
 
 def notifications_context(request):
     if request.user.is_authenticated:
-        unread_count = ApplicationNotification.objects.filter(user=request.user, is_read=False).count()
-        notifications = ApplicationNotification.objects.filter(user=request.user)[:10]
+        unread_count = get_unread_count(request.user)
+        notifications = Notification.objects.filter(user=request.user)[:10]
         return {
             'unread_notifications_count': unread_count,
             'notifications': notifications,
