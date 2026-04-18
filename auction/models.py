@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.core.validators import MinValueValidator
 from django.templatetags.static import static
 from uuslug import uuslug
+from notifications.utils import send_notification
 
 class AuctionLot(models.Model):
     STATUS_CHOICES = [
@@ -162,6 +163,13 @@ class AuctionLot(models.Model):
                     amount=leader.bid_amount,
                     transaction_type='debit',
                     description=f'Выигрыш в аукционе: {self.name}'
+                )
+                send_notification(
+                    user=leader.bidder,
+                    title='🏆 ВЫ ВЫИГРАЛИ АУКЦИОН!',
+                    message=f'Поздравляем! Вы выиграли лот "{self.name}" со ставкой {leader.bid_amount} ⭐\n\nОчки списаны с вашего баланса.',
+                    notification_type='auction_win',
+                    link=reverse('auction:lot_detail', args=[self.slug])
                 )
             
             # Все остальные замороженные ставки размораживаем
