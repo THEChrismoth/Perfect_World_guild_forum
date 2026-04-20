@@ -10,6 +10,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.conf import settings
 from .forms import RegistrationForm, ProfileForm, UserForm
 
+
 def send_verification_email(user, request):
     # Генерация токена
     token = default_token_generator.make_token(user)

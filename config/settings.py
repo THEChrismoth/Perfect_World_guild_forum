@@ -48,6 +48,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'forum.middleware.UserActivityMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -117,8 +118,9 @@ USE_TZ = True
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_URL = 'static_src/'
+#STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_src')
 
 # Добавьте в конец файла
 LOGIN_REDIRECT_URL = '/'
@@ -128,7 +130,6 @@ LOGIN_URL = '/login/'
 # Для загрузки файлов (аватаров)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True

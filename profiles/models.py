@@ -4,6 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import date
 from django.templatetags.static import static
+from django.utils import timezone
 
 class Profile(models.Model):
     CLASS_CHOICES = [
@@ -56,7 +57,7 @@ class Profile(models.Model):
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
-    last_activity = models.DateTimeField('Последняя активность', auto_now=True, null=True, blank=True)
+    last_activity = models.DateTimeField('Последняя активность', default=timezone.now, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         # Автоматически поддерживаем консистентность при сохранении
