@@ -252,41 +252,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Sticky блок автора через JavaScript
+// Sticky блок автора с ограничением по высоте поста
 (function() {
     function initStickyAuthors() {
         const authorBlocks = document.querySelectorAll('.post-author');
         
         function updateStickyPositions() {
-            const scrollTop = window.pageYOffset;
-            const viewportHeight = window.innerHeight;
-            
             authorBlocks.forEach(function(authorBlock) {
                 const postItem = authorBlock.closest('.post-item');
                 if (!postItem) return;
                 
                 const postRect = postItem.getBoundingClientRect();
-                const authorRect = authorBlock.getBoundingClientRect();
                 const authorHeight = authorBlock.offsetHeight;
+                const postContentWrapper = postItem.querySelector('.post-content-wrapper');
+                const postContent = postItem.querySelector('.post-content');
+                
+                if (!postContentWrapper || !postContent) return;
+                
+                const contentHeight = postContent.offsetHeight;
+                const scrollTop = window.pageYOffset;
+                const viewportHeight = window.innerHeight;
+                
+                // Получаем позиции элементов относительно документа
                 const postTop = postRect.top + scrollTop;
                 const postBottom = postRect.bottom + scrollTop;
                 
-                // Настройки
+                // Настройки отступов
                 const offsetTop = 20;
                 const offsetBottom = 20;
                 
                 // Проверяем, виден ли пост
                 const isPostVisible = postRect.bottom > 0 && postRect.top < viewportHeight;
                 
-                if (isPostVisible) {
-                    // Если пост виден, делаем блок sticky
+                if (isPostVisible && authorHeight < contentHeight + 40) {
+                    // Если пост виден и блок автора не выше контента, делаем sticky
                     let newTop = scrollTop + offsetTop;
                     
-                    // Не выходим за пределы поста
+                    // Не выходим за пределы поста снизу
                     if (newTop + authorHeight > postBottom - offsetBottom) {
                         newTop = postBottom - authorHeight - offsetBottom;
                     }
                     
+                    // Не выходим за пределы поста сверху
                     if (newTop < postTop + offsetTop) {
                         newTop = postTop + offsetTop;
                     }
@@ -297,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     authorBlock.style.bottom = 'auto';
                     authorBlock.style.width = authorBlock.parentElement.offsetWidth + 'px';
                 } else {
-                    // Если пост не виден, возвращаем обычное позиционирование
+                    // Если пост не виден или блок выше контента, возвращаем обычное позиционирование
                     authorBlock.style.position = '';
                     authorBlock.style.top = '';
                     authorBlock.style.bottom = '';
@@ -320,6 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Первоначальное обновление
         setTimeout(updateStickyPositions, 100);
+        // Обновляем после загрузки изображений
+        window.addEventListener('load', updateStickyPositions);
     }
     
     // Запускаем после загрузки страницы

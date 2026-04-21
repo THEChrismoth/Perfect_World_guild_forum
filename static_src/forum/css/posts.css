@@ -1,4 +1,4 @@
-/* Стили для постов - новая структура с фиксированным блоком автора */
+/* Стили для постов - исправленная версия с фиксированным блоком автора */
 .posts-list {
     list-style: none;
     padding: 0;
@@ -11,6 +11,7 @@
     border-bottom: 1px solid rgba(253, 72, 182, 0.2);
     transition: background 0.3s ease;
     position: relative;
+    min-height: 150px;
 }
 
 .post-item:hover {
@@ -23,6 +24,7 @@
     width: 220px;
     position: relative;
     align-self: flex-start;
+    overflow: visible;
 }
 
 .post-author {
@@ -35,6 +37,12 @@
     margin: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     z-index: 10;
+    /* Важно: ограничиваем максимальную высоту */
+    max-height: 300px;
+    overflow-y: auto;
+    /* Добавляем плавность */
+    transition: all 0.3s ease;
+    word-break: break-word;
 }
 
 /* Убедимся, что sticky работает */
@@ -88,7 +96,7 @@
 /* Блок с содержимым поста */
 .post-content-wrapper {
     flex: 1;
-    min-width: 0; /* Предотвращает переполнение */
+    min-width: 0;
     overflow: hidden;
 }
 
@@ -101,6 +109,11 @@
     line-height: 1.6;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    min-height: 80px;
+}
+
+.post-text:empty {
+    min-height: 40px;
 }
 
 /* Галерея изображений */
@@ -390,8 +403,8 @@
     }
     
     .post-author {
-        position: relative;
-        top: 0;
+        position: relative !important;
+        top: 0 !important;
         display: flex;
         justify-content: center;
         margin: 0;

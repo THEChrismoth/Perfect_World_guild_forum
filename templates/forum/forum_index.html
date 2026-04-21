@@ -54,7 +54,6 @@
                                                     <span class="stat-label">ставок</span>
                                                 </div>
                                             {% elif subcategory.is_reception %}
-                                                <!-- Для подачи заявок - не показываем статистику -->
                                                 <div class="stat-item">
                                                     <span class="stat-value">📋</span>
                                                     <span class="stat-label">Подать заявку</span>
@@ -94,7 +93,7 @@
                                                     🗳️ Активные заявки
                                                 </div>
                                             {% else %}
-                                                {% with last_post=subcategory.subcategory.posts.last %}
+                                                {% with last_post=subcategory.last_post %}
                                                     {% if last_post %}
                                                         {% with profile=last_post.author.profile %}
                                                             {% if profile.avatar %}

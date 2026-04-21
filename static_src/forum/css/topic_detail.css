@@ -136,6 +136,7 @@ main .container {
     position: relative;
     animation: fadeInUp 0.4s ease forwards;
     opacity: 0;
+    min-height: 180px;
 }
 
 .post-item:nth-child(1) { animation-delay: 0.05s; }
@@ -153,6 +154,7 @@ main .container {
     flex-shrink: 0;
     width: 200px;
     position: relative;
+    overflow: visible;
 }
 
 .post-author {
@@ -162,6 +164,7 @@ main .container {
     border-radius: 8px;
     margin: 10px;
     transition: box-shadow 0.3s ease;
+    word-break: break-word;
 }
 
 .post-author-link {
@@ -208,7 +211,7 @@ main .container {
 .post-content-wrapper {
     flex: 1;
     min-width: 0;
-    overflow: visible;
+    overflow: hidden;
 }
 
 .post-content {
@@ -225,6 +228,15 @@ main .container {
     flex: 1;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    min-height: 80px;
+}
+
+.post-text:empty {
+    min-height: 40px;
+}
+
+.post-text p:last-child {
+    margin-bottom: 0;
 }
 
 .post-text p {
@@ -610,6 +622,25 @@ main .container {
     }
 }
 
+/* Дополнительные стили для предотвращения вылезания блока автора */
+.post-item {
+    overflow: visible;
+}
+
+.post-author-wrapper {
+    overflow: visible;
+}
+
+/* Для очень коротких постов (менее 200px) */
+.post-item:has(.post-content .post-text:only-child):has(.post-content .post-text p:only-child:empty),
+.post-item .post-content .post-text:only-child:empty {
+    min-height: auto;
+}
+
+.post-item .post-content .post-text:only-child:empty + .post-meta {
+    margin-top: 0;
+}
+
 /* Адаптивность для мобильных устройств */
 @media (max-width: 768px) {
     .post-item {
@@ -623,6 +654,7 @@ main .container {
     
     .post-author {
         position: relative !important;
+        top: 0 !important;
         display: flex;
         align-items: center;
         gap: 15px;

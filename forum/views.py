@@ -71,6 +71,12 @@ def forum_view(request):
                         topics_count = subcategory.topics.count()
                         posts_count = Post.objects.filter(topic__subcategory=subcategory).count()
                         
+                        # Получаем последний пост для этой подкатегории
+                        last_post = None
+                        last_topic = subcategory.topics.order_by('-updated_at').first()
+                        if last_topic:
+                            last_post = last_topic.posts.order_by('-created_at').first()
+                        
                         visible_subcategories.append({
                             'subcategory': subcategory,
                             'is_auction': False,
@@ -80,6 +86,7 @@ def forum_view(request):
                             'posts_count': posts_count,
                             'slug': subcategory.slug,
                             'title': subcategory.title,
+                            'last_post': last_post,  # Добавляем последний пост
                         })
             # Добавляем категорию только если есть видимые подкатегории
             if visible_subcategories:
