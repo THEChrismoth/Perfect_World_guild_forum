@@ -108,9 +108,9 @@ USE_TZ = True
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
-STATIC_URL = 'static_src/'
+STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static_src')
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Добавьте в конец файла
 LOGIN_REDIRECT_URL = '/'
