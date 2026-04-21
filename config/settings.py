@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 from pathlib import Path
 
@@ -75,24 +76,13 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.db.backends.postgresql',
-#        'NAME': os.getenv('DB_NAME'),
-#        'USER': os.getenv('DB_USER'),
-#        'PASSWORD': os.getenv('DB_PASSWORD'),
-#        'HOST': os.getenv('DB_HOST', 'localhost'),
-#        'PORT': os.getenv('DB_PORT', '5432'),
-#    }
-#}
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
-
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -119,8 +109,8 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 STATIC_URL = 'static_src/'
-#STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_src')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
+#STATIC_ROOT = os.path.join(BASE_DIR, 'static_src')
 
 # Добавьте в конец файла
 LOGIN_REDIRECT_URL = '/'
@@ -130,10 +120,11 @@ LOGIN_URL = '/login/'
 # Для загрузки файлов (аватаров)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
+
+#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+#SECURE_SSL_REDIRECT = True
+#SESSION_COOKIE_SECURE = True
+#CSRF_COOKIE_SECURE = True
 
 #EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 #EMAIL_HOST = 'smtp.gmail.com'  # или ваш SMTP сервер

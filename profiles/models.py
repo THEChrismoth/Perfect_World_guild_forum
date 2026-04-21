@@ -148,22 +148,22 @@ class Profile(models.Model):
     def get_icon_url(self):
         """Возвращает URL иконки для класса персонажа"""
         icons = {
-            'var': 'class_icon/voin.png',
+            'var': 'class_icon/var.png',
             'mag': 'class_icon/mag.png',
             'luk': 'class_icon/luk.png',
-            'zhrec': 'class_icon/zhrec.png',
-            'obor': 'class_icon/obor.png',
+            'zhrec': 'class_icon/priest.png',
+            'obor': 'class_icon/tank.png',
             'dru': 'class_icon/dru.png',
             'sin': 'class_icon/sin.png',
             'sham': 'class_icon/sham.png',
             'mist': 'class_icon/mist.png',
-            'strazh': 'class_icon/strazh.png',
+            'strazh': 'class_icon/sik.png',
             'pal': 'class_icon/pal.png',
-            'strel': 'class_icon/strel.png',
-            'priz': 'class_icon/priz.png',
-            'zhnec': 'class_icon/zhnec.png',
-            'makaka': 'class_icon/makaka.png',
-            'bard': 'class_icon/bard1.png',
+            'strel': 'class_icon/gun.png',
+            'priz': 'class_icon/gost.png',
+            'zhnec': 'class_icon/koas.png',
+            'makaka': 'class_icon/mk.png',
+            'bard': 'class_icon/bard.png',
             'dk': 'class_icon/dk.png',
         }
         icon_path = icons.get(self.player_class, '')
