@@ -23,9 +23,14 @@ class Category(models.Model):
         verbose_name='Группы с доступом',
         help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
     )
+    order = models.IntegerField(
+        'Порядок сортировки',
+        default=0,
+        help_text='Чем меньше число, тем выше категория в списке. 0 = сортировка по алфавиту'
+    )
 
     class Meta:
-        ordering = ['title']
+        ordering = ['order', 'title']
         verbose_name = 'Категорию'
         verbose_name_plural = 'Категории'
 
@@ -96,10 +101,16 @@ class SubCategory(models.Model):
         help_text='Отметьте, если эта подкатегория для ПРОСМОТРА и ГОЛОСОВАНИЯ за заявки (доступно только членам гильдии)'
     )
 
+    order = models.IntegerField(
+        'Порядок сортировки',
+        default=0,
+        help_text='Чем меньше число, тем выше подкатегория в списке. 0 = сортировка по алфавиту'
+    )
+
     class Meta:
         verbose_name = 'Подкатегорию'
         verbose_name_plural = 'Подкатегории'
-        ordering = ['category', 'title']
+        ordering = ['category', 'order', 'title']
 
     def __str__(self):
         return f"{self.title} ({self.category.title})"

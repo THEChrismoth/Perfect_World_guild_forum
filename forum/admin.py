@@ -3,13 +3,17 @@ from .models import Category, SubCategory, Topic, Post
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'require_auth')
+    list_display = ('title', 'order', 'slug', 'require_auth')
+    #list_editable = ('order',)
+    #list_display_links = ('title',)
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'slug', 'category', 'require_auth', 'is_auction')
+    list_display = ('title', 'order', 'slug', 'category', 'require_auth', 'is_auction')
+    #list_editable = ('order',)
+    #list_display_links = ('title',)
     list_filter = ('category', 'require_auth', 'is_auction')
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)

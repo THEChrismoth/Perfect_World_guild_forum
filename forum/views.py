@@ -7,6 +7,7 @@ from django.utils.text import slugify
 from .models import Category, SubCategory, Topic, Post, PostImage, get_online_users, get_forum_stats, get_latest_posts
 from .forms import TopicForm, PostForm
 from auction.models import AuctionLot
+from reception.models import Application
 
 def forum_view(request):
     # Получаем все категории
@@ -17,11 +18,13 @@ def forum_view(request):
         if category.is_visible_to_user(request.user):
             # Для каждой категории фильтруем подкатегории
             visible_subcategories = []
-            for subcategory in category.subcategories.all():
+            subcategories = category.subcategories.all()
+
+            for subcategory in subcategories:
                 if subcategory.is_visible_to_user(request.user):
                     # Проверка на аукцион
                     if subcategory.is_auction:
-                        from auction.models import AuctionLot
+                        
                         visible_subcategories.append({
                             'subcategory': subcategory,
                             'is_auction': True,
@@ -31,6 +34,7 @@ def forum_view(request):
                             'posts_count': AuctionLot.objects.count(),
                             'slug': subcategory.slug,
                             'title': subcategory.title,
+                            'order': subcategory.order,
                         })
                     # Проверка на прием заявок (подача) - скрываем для членов гильдии
                     elif subcategory.is_reception:
@@ -39,7 +43,6 @@ def forum_view(request):
                         if check_guild_member(request.user):
                             continue
                         
-                        from reception.models import Application
                         visible_subcategories.append({
                             'subcategory': subcategory,
                             'is_auction': False,
@@ -49,6 +52,7 @@ def forum_view(request):
                             'posts_count': 0,
                             'slug': subcategory.slug,
                             'title': subcategory.title,
+                            'order': subcategory.order,
                         })
                     # Проверка на просмотр заявок (только для членов гильдии)
                     elif subcategory.is_reception_view:
@@ -66,6 +70,7 @@ def forum_view(request):
                                 'posts_count': applications_total,
                                 'slug': subcategory.slug,
                                 'title': subcategory.title,
+                                'order': subcategory.order,
                             })
                     else:
                         topics_count = subcategory.topics.count()
@@ -86,8 +91,12 @@ def forum_view(request):
                             'posts_count': posts_count,
                             'slug': subcategory.slug,
                             'title': subcategory.title,
-                            'last_post': last_post,  # Добавляем последний пост
+                            'last_post': last_post,
+                            'order': subcategory.order,
                         })
+
+            visible_subcategories.sort(key=lambda x: (x.get('order', 0), x['title']))
+
             # Добавляем категорию только если есть видимые подкатегории
             if visible_subcategories:
                 categories.append({
