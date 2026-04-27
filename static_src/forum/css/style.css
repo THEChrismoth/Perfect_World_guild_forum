@@ -626,16 +626,6 @@ main .container {
     overflow: hidden;
 }
 
-.auction-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #FD48B6, #ff8c42);
-}
-
 .auction-badge {
     background: linear-gradient(135deg, #FD48B6, #ff8c42);
     color: #ffffff !important;
