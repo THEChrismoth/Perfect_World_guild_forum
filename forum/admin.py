@@ -11,10 +11,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ('title', 'order', 'slug', 'category', 'require_auth', 'is_auction')
+    list_display = ('title', 'order', 'slug', 'category', 'require_auth', 'is_auction', 'is_reception', 'is_reception_view')
     #list_editable = ('order',)
     #list_display_links = ('title',)
-    list_filter = ('category', 'require_auth', 'is_auction')
+    list_filter = ('category', 'require_auth', 'is_auction', 'is_reception', 'is_reception_view')
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)
 
