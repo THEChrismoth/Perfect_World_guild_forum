@@ -1,0 +1,19 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools-items %}
+    {{ block.super }}
+    {% if original and original.status == 'active' %}
+        <li>
+            <a href="{% url 'admin:auction_end_auction' original.id %}" 
+               style="background: #28a745; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; display: inline-block;">
+                🏆 Завершить аукцион
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'admin:auction_cancel_auction' original.id %}" 
+               style="background: #dc3545; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; display: inline-block;">
+                ❌ Отменить аукцион
+            </a>
+        </li>
+    {% endif %}
+{% endblock %}

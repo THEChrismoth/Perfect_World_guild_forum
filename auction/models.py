@@ -7,6 +7,7 @@ from django.templatetags.static import static
 from uuslug import uuslug
 from notifications.utils import send_notification
 
+
 class AuctionLot(models.Model):
     STATUS_CHOICES = [
         ('active', 'Активен'),
@@ -42,7 +43,7 @@ class AuctionLot(models.Model):
         help_text='Выберите иконку или "Своя картинка" для загрузки своего изображения'
     )
     
-    # Своя картинка (показывается только если выбрано custom)
+    # Своя картинка
     custom_image = models.ImageField(
         'Своя картинка', 
         upload_to='auction/lots/', 
@@ -58,10 +59,22 @@ class AuctionLot(models.Model):
     
     # Временные параметры
     start_date = models.DateTimeField('Дата начала', default=timezone.now)
-    end_date = models.DateTimeField('Дата окончания')
+    end_date = models.DateTimeField('Дата окончания (план)', null=True, blank=True, 
+                                     help_text='Плановая дата окончания. После этой даты ставки будут запрещены до завершения админом')
     
     # Статус
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='active')
+    
+    # Кто завершил аукцион
+    ended_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='ended_auctions',
+        verbose_name='Завершил'
+    )
+    ended_at = models.DateTimeField('Дата завершения', null=True, blank=True)
     
     # Мета
     created_at = models.DateTimeField('Создан', auto_now_add=True)
@@ -79,7 +92,6 @@ class AuctionLot(models.Model):
         if self.current_price == 0:
             self.current_price = self.initial_price
         
-        # Генерируем слаг с ID если нужно
         if not self.slug:
             self.slug = uuslug(self.name, instance=self, max_length=200)
         
@@ -89,7 +101,7 @@ class AuctionLot(models.Model):
         return reverse('auction:lot_detail', args=[self.slug])
     
     def get_image_url(self):
-        """Возвращает URL изображения (иконку или загруженную картинку)"""
+        """Возвращает URL изображения"""
         if self.icon_choice == 'custom' and self.custom_image:
             return self.custom_image.url
         
@@ -111,41 +123,53 @@ class AuctionLot(models.Model):
     
     @property
     def is_active(self):
-        """Проверяет, активен ли аукцион"""
-        return self.status == 'active' and timezone.now() < self.end_date
+        """Проверяет, активен ли аукцион (только по статусу)"""
+        return self.status == 'active'
     
     @property
-    def time_left(self):
-        """Возвращает оставшееся время в секундах"""
-        if timezone.now() >= self.end_date:
-            return 0
-        return (self.end_date - timezone.now()).total_seconds()
+    def can_bid(self):
+        """Может ли пользователь делать ставки (активен И время не истекло)"""
+        if self.status != 'active':
+            return False
+        if self.end_date and timezone.now() >= self.end_date:
+            return False
+        return True
+    
+    @property
+    def is_time_expired(self):
+        """Проверяет, истекло ли плановое время (но админ еще не завершил)"""
+        return self.status == 'active' and self.end_date and timezone.now() >= self.end_date
     
     @property
     def winners_count(self):
-        """Количество победителей (всегда 1)"""
         return 1 if self.bids.filter(is_winner=True).exists() else 0
     
     @property
     def total_bids_count(self):
-        """Общее количество ставок"""
         return self.bids.count()
     
     def get_winner_bids(self):
-        """Возвращает ставки победителей"""
         return self.bids.filter(is_winner=True).order_by('-bid_amount')
     
     def get_current_leader(self):
-        """Возвращает текущего лидера (самую высокую замороженную ставку)"""
         return self.bids.filter(is_frozen=True).order_by('-bid_amount').first()
     
-    def process_auction_end(self):
-        """Обрабатывает завершение аукциона"""
-        if self.status != 'active' or timezone.now() < self.end_date:
-            return False
+    def process_auction_end(self, ended_by_user=None, force_winner_id=None):
+        """Обрабатывает завершение аукциона администратором"""
+        if self.status != 'active':
+            return False, "Аукцион уже завершен или отменен"
         
-        # Получаем лидера (самую высокую замороженную ставку)
-        leader = self.get_current_leader()
+        leader = None
+        if force_winner_id:
+            try:
+                leader = self.bids.filter(bidder_id=force_winner_id, is_frozen=True).first()
+                if not leader:
+                    leader = self.bids.filter(bidder_id=force_winner_id).order_by('-bid_amount').first()
+            except:
+                pass
+        
+        if not leader:
+            leader = self.get_current_leader()
         
         if leader:
             # Победитель
@@ -156,14 +180,18 @@ class AuctionLot(models.Model):
             
             # Списываем очки
             profile = leader.bidder.profile
-            if profile.spend_points_auction(leader.bid_amount):
-                PointsTransaction.objects.create(
-                    user=leader.bidder,
-                    lot=self,
-                    amount=leader.bid_amount,
-                    transaction_type='debit',
-                    description=f'Выигрыш в аукционе: {self.name}'
-                )
+            if hasattr(profile, 'spend_points_auction'):
+                profile.spend_points_auction(leader.bid_amount)
+            
+            PointsTransaction.objects.create(
+                user=leader.bidder,
+                lot=self,
+                amount=leader.bid_amount,
+                transaction_type='debit',
+                description=f'Выигрыш в аукционе: {self.name}'
+            )
+            
+            try:
                 send_notification(
                     user=leader.bidder,
                     title='🏆 ВЫ ВЫИГРАЛИ АУКЦИОН!',
@@ -171,6 +199,8 @@ class AuctionLot(models.Model):
                     notification_type='auction_win',
                     link=reverse('auction:lot_detail', args=[self.slug])
                 )
+            except:
+                pass
             
             # Все остальные замороженные ставки размораживаем
             other_bids = self.bids.filter(is_frozen=True).exclude(id=leader.id)
@@ -184,13 +214,74 @@ class AuctionLot(models.Model):
                     lot=self,
                     amount=bid.bid_amount,
                     transaction_type='unfreeze',
-                    description=f'Возврат замороженных очков после аукциона: {self.name}'
+                    description=f'Возврат замороженных очков после завершения аукциона: {self.name}'
                 )
+                
+                try:
+                    send_notification(
+                        user=bid.bidder,
+                        title='❌ Аукцион завершен',
+                        message=f'Аукцион "{self.name}" завершен. Ваша ставка {bid.bid_amount} ⭐ была перебита. Очки разморожены.',
+                        notification_type='auction_lost',
+                        link=reverse('auction:lot_detail', args=[self.slug])
+                    )
+                except:
+                    pass
+        else:
+            try:
+                send_notification(
+                    user=ended_by_user,
+                    title='ℹ️ Аукцион завершен без победителя',
+                    message=f'Аукцион "{self.name}" завершен. Не было сделано ни одной ставки.',
+                    notification_type='auction_info',
+                    link=reverse('auction:lot_detail', args=[self.slug])
+                )
+            except:
+                pass
         
         self.status = 'ended'
+        self.ended_by = ended_by_user
+        self.ended_at = timezone.now()
         self.save()
         
-        return True
+        return True, "Аукцион успешно завершен"
+    
+    def cancel_auction(self, cancelled_by_user=None):
+        """Отмена аукциона с возвратом всех очков"""
+        if self.status != 'active':
+            return False, "Можно отменить только активный аукцион"
+        
+        frozen_bids = self.bids.filter(is_frozen=True)
+        for bid in frozen_bids:
+            bid.is_frozen = False
+            bid.status = 'cancelled'
+            bid.save()
+            
+            PointsTransaction.objects.create(
+                user=bid.bidder,
+                lot=self,
+                amount=bid.bid_amount,
+                transaction_type='unfreeze',
+                description=f'Возврат очков при отмене аукциона: {self.name}'
+            )
+            
+            try:
+                send_notification(
+                    user=bid.bidder,
+                    title='⚠️ Аукцион отменен',
+                    message=f'Аукцион "{self.name}" был отменен администратором. Ваша ставка {bid.bid_amount} ⭐ разморожена.',
+                    notification_type='auction_cancelled',
+                    link=reverse('auction:lot_detail', args=[self.slug])
+                )
+            except:
+                pass
+        
+        self.status = 'cancelled'
+        self.ended_by = cancelled_by_user
+        self.ended_at = timezone.now()
+        self.save()
+        
+        return True, "Аукцион отменен, все очки возвращены"
 
 
 class AuctionBid(models.Model):
@@ -201,6 +292,7 @@ class AuctionBid(models.Model):
         ('won', 'Выиграна'),
         ('lost', 'Проиграна'),
         ('outbid', 'Перебита'),
+        ('cancelled', 'Отменена'),
     ]
     
     lot = models.ForeignKey(AuctionLot, on_delete=models.CASCADE, related_name='bids')

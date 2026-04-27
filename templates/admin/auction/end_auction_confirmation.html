@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block content %}
+<div id="content-main">
+    <h1>{{ title }}</h1>
+    
+    <div class="module">
+        <h2>Информация об аукционе</h2>
+        <table>
+            <tr>
+                <th>Название:</th>
+                <td>{{ lot.name }}</td>
+            </tr>
+            <tr>
+                <th>Начальная цена:</th>
+                <td>{{ lot.initial_price }} ⭐</td>
+            </tr>
+            <tr>
+                <th>Текущая цена:</th>
+                <td>{{ lot.current_price }} ⭐</td>
+            </tr>
+            <tr>
+                <th>Всего ставок:</th>
+                <td>{{ lot.total_bids_count }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="module">
+        <h2>Выберите победителя</h2>
+        
+        {% if frozen_bids %}
+            <form method="post">
+                {% csrf_token %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Выбрать</th>
+                            <th>Пользователь</th>
+                            <th>Ставка</th>
+                            <th>Время ставки</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bid in frozen_bids %}
+                        <tr>
+                            <td>
+                                <input type="radio" name="winner_id" value="{{ bid.bidder.id }}" 
+                                       {% if forloop.first %}checked{% endif %}>
+                            </td>
+                            <td>{{ bid.bidder.username }}</td>
+                            <td><strong>{{ bid.bid_amount }} ⭐</strong></td>
+                            <td>{{ bid.created_at|date:"d.m.Y H:i:s" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <div class="submit-row">
+                    <input type="submit" value="Завершить аукцион" class="default" style="background: #28a745;">
+                    <a href="{% url 'admin:auction_auctionlot_change' lot.id %}" class="button cancel-link">Отмена</a>
+                </div>
+            </form>
+        {% else %}
+            <p>⚠️ Нет активных ставок! Аукцион будет завершен без победителя.</p>
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="winner_id" value="">
+                <div class="submit-row">
+                    <input type="submit" value="Завершить аукцион без победителя" class="default">
+                    <a href="{% url 'admin:auction_auctionlot_change' lot.id %}" class="button cancel-link">Отмена</a>
+                </div>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -498,6 +498,51 @@ main .container {
     font-size: 18px;
 }
 
+.price-row .value::after {
+    content: ' ⭐';
+    font-size: 14px;
+}
+
+/* Таймер на детальной странице */
+.lot-timer {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.timer-label {
+    color: #888;
+    font-size: 14px;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+.timer-value {
+    color: #FD48B6;
+    font-weight: bold;
+    font-size: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 15px;
+    border-radius: 6px;
+    display: inline-block;
+    font-family: monospace;
+}
+
+.timer-note {
+    margin-top: 10px;
+}
+
+.timer-note small {
+    color: #ffffff !important;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 11px;
+}
+
 /* Стили для баланса пользователя */
 .user-points-info {
     background: rgba(40, 167, 69, 0.1);
@@ -583,24 +628,31 @@ main .container {
     color: #ffffff;
 }
 
+/* Новая структура формы */
 .bid-form {
-    display: flex;
-    gap: 15px;
-    align-items: flex-end;
-    flex-wrap: wrap;
     width: 100%;
 }
 
-.form-group {
-    flex: 1;
-    min-width: 200px;
+.bid-form-wrapper {
+    width: 100%;
 }
 
-.form-group label {
+.bid-label {
     display: block;
-    margin-bottom: 5px;
-    color: #888;
-    font-size: 12px;
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 13px;
+}
+
+.bid-row {
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.bid-input-wrapper {
+    flex: 3;
 }
 
 .bid-input {
@@ -612,6 +664,7 @@ main .container {
     color: #ffffff;
     font-size: 16px;
     box-sizing: border-box;
+    height: 46px;
 }
 
 .bid-input:focus {
@@ -619,16 +672,26 @@ main .container {
     border-color: #ff8c42;
 }
 
+.form-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 11px;
+    color: #888;
+}
+
 .btn-submit-bid {
+    flex: 1;
     background: #28a745;
     color: white;
-    padding: 12px 30px;
     border: none;
     border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
     white-space: nowrap;
+    min-width: 150px;
+    height: 46px;
+    padding: 0 20px;
 }
 
 .btn-submit-bid:hover {
@@ -956,18 +1019,20 @@ main .container {
         max-height: 150px;
     }
     
-    .bid-form {
+    /* На мобильных форма становится вертикальной */
+    .bid-row {
         flex-direction: column;
-        align-items: stretch;
     }
     
-    .form-group {
+    .bid-input-wrapper {
         width: 100%;
     }
     
     .btn-submit-bid {
         width: 100%;
         white-space: normal;
+        height: auto;
+        padding: 12px;
     }
     
     .bids-table th,
@@ -1039,13 +1104,6 @@ main .container {
 .frozen-points-warning strong {
     color: #ffc107;
     font-size: 14px;
-}
-
-.form-hint {
-    display: block;
-    margin-top: 5px;
-    font-size: 11px;
-    color: #888;
 }
 
 .status-outbid {

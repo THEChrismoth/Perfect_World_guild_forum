@@ -26,8 +26,7 @@ def auction_index(request):
         raise PermissionDenied("У вас нет доступа к аукциону")
     
     active_lots = AuctionLot.objects.filter(
-        status='active',
-        end_date__gt=timezone.now()
+        status='active'
     ).order_by('end_date')
     
     ended_lots = AuctionLot.objects.filter(
@@ -60,13 +59,12 @@ def lot_detail(request, slug):
     
     lot = get_object_or_404(AuctionLot, slug=slug)
     
-    # Проверяем и обновляем статус если нужно
-    if lot.status == 'active' and timezone.now() >= lot.end_date:
-        lot.process_auction_end()
-        lot.refresh_from_db()
+    # Проверяем, разрешены ли ставки (активен И время не истекло)
+    bidding_allowed = lot.can_bid
+    time_expired = lot.is_time_expired
     
-    # Обработка формы ставки (только если аукцион активен)
-    if request.method == 'POST' and lot.is_active:
+    # Обработка формы ставки (только если разрешены ставки)
+    if request.method == 'POST' and bidding_allowed:
         bid_amount = request.POST.get('bid_amount')
         
         if bid_amount:
@@ -153,22 +151,26 @@ def lot_detail(request, slug):
         user_available_points = request.user.profile.get_available_points()
     
     winners = lot.get_winner_bids() if lot.status == 'ended' else []
+    
+    # Для таймера
     end_timestamp = int(lot.end_date.timestamp() * 1000) if lot.end_date and lot.is_active else 0
     
     # Находим текущего лидера
     current_leader = lot.get_current_leader()
     
-    # Может ли пользователь сделать ставку
-    can_bid = lot.is_active and request.user.is_authenticated and not user_frozen_bid
+    # Может ли пользователь сделать ставку (учитываем время)
+    can_bid = bidding_allowed and request.user.is_authenticated and not user_frozen_bid
     
     context = {
         'lot': lot,
         'bids': all_bids,
         'can_bid': can_bid,
+        'bidding_allowed': bidding_allowed,
+        'time_expired': time_expired,
         'winners': winners,
         'user_balance': request.user.profile.activity_points if request.user.is_authenticated else 0,
         'available_points': user_available_points,
-        'min_bid': lot.current_price + lot.min_step if lot.is_active else 0,
+        'min_bid': lot.current_price + lot.min_step if bidding_allowed else 0,
         'end_timestamp': end_timestamp,
         'user_frozen_bid': user_frozen_bid,
         'current_leader': current_leader,
