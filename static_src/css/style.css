@@ -183,7 +183,6 @@ footer .social-links a:hover {
     box-shadow: 0 2px 8px rgba(253, 72, 182, 0.4);
 }
 
-/* User menu styles */
 .user-menu {
     display: flex;
     align-items: center;
@@ -235,7 +234,7 @@ footer .social-links a:hover {
     transform: translateY(-2px);
 }
 
-/* Notifications styles */
+/* ========== НАСТРОЙКИ УВЕДОМЛЕНИЙ ========== */
 .notifications-dropdown {
     position: relative;
     display: inline-flex;
@@ -370,12 +369,18 @@ footer .social-links a:hover {
     margin-bottom: 3px;
 }
 
-.notification-message {
+/* ВАЖНО: Стили для сообщений в выпадающем меню - убираем br */
+.notifications-menu .notification-message {
     color: #e0e0e0;
     font-size: 12px;
     line-height: 1.3;
     margin-bottom: 3px;
     word-break: break-word;
+    white-space: normal;
+}
+
+.notifications-menu .notification-message br {
+    display: none;
 }
 
 .notification-time {
@@ -384,37 +389,14 @@ footer .social-links a:hover {
 }
 
 /* Типы уведомлений */
-.notification-item.type-success {
-    border-left-color: #28a745;
-}
-
-.notification-item.type-warning {
-    border-left-color: #ffc107;
-}
-
-.notification-item.type-error {
-    border-left-color: #dc3545;
-}
-
-.notification-item.type-application {
-    border-left-color: #FD48B6;
-}
-
-.notification-item.type-auction {
-    border-left-color: #ff8c42;
-}
-
-.notification-item.type-forum {
-    border-left-color: #17a2b8;
-}
-
-.notification-item.type-system {
-    border-left-color: #6f42c1;
-}
-
-.notification-item.type-info {
-    border-left-color: #17a2b8;
-}
+.notification-item.type-success { border-left-color: #28a745; }
+.notification-item.type-warning { border-left-color: #ffc107; }
+.notification-item.type-error { border-left-color: #dc3545; }
+.notification-item.type-application { border-left-color: #FD48B6; }
+.notification-item.type-auction { border-left-color: #ff8c42; }
+.notification-item.type-forum { border-left-color: #17a2b8; }
+.notification-item.type-system { border-left-color: #6f42c1; }
+.notification-item.type-info { border-left-color: #17a2b8; }
 
 .no-notifications {
     padding: 30px;
@@ -494,6 +476,585 @@ footer .social-links a:hover {
     z-index: 1;
 }
 
+/* Статистика форума */
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.1);
+}
+
+.stat-icon {
+    font-size: 14px;
+    min-width: 25px;
+}
+
+.stat-label {
+    flex: 1;
+    color: #888;
+    font-size: 12px;
+}
+
+.stat-number {
+    color: #FD48B6;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.stat-value {
+    color: #e0e0e0;
+    font-size: 12px;
+}
+
+.stat-value a {
+    color: #FD48B6;
+    text-decoration: none;
+}
+
+.stat-value a:hover {
+    text-decoration: underline;
+}
+
+.latest-user {
+    background: rgba(253, 72, 182, 0.05);
+    border-radius: 6px;
+    padding: 8px !important;
+}
+
+/* Боковые виджеты */
+.sidebar-widget {
+    background: #2D3037;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.widget-header {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.widget-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #FD48B6;
+    margin: 0;
+}
+
+.online-count {
+    background: #28a745;
+    color: white;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.widget-content {
+    padding: 12px;
+}
+
+/* ========== СТИЛИ ДЛЯ СТРАНИЦЫ ГОЛОСОВАНИЯ ========== */
+.vote-container,
+.vote-results-container,
+.my-votes-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+}
+
+.vote-header h1,
+.vote-results-header h1,
+.my-votes-header h1 {
+    color: #ffffff;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.vote-date {
+    color: #888;
+    font-size: 14px;
+}
+
+.vote-card,
+.results-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.event-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(253, 72, 182, 0.1);
+    border-radius: 8px;
+}
+
+.event-icon {
+    font-size: 48px;
+}
+
+.event-name {
+    font-size: 24px;
+    color: #FD48B6;
+    font-weight: bold;
+}
+
+/* Стили для сообщения в голосовании - тут br нужны */
+.vote-card .notification-message,
+.results-card .notification-message {
+    background: rgba(253, 72, 182, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.vote-card .notification-message br,
+.results-card .notification-message br {
+    display: block;
+    margin: 4px 0;
+    content: "";
+}
+
+.vote-options {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.vote-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.vote-option:hover {
+    background: rgba(253, 72, 182, 0.1);
+    transform: translateY(-2px);
+}
+
+.vote-option input[type="radio"] {
+    display: none;
+}
+
+.vote-option:has(input:checked) {
+    border-color: #FD48B6;
+    background: rgba(253, 72, 182, 0.15);
+}
+
+.vote-emoji {
+    font-size: 28px;
+}
+
+.vote-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.vote-comment-field {
+    margin-bottom: 25px;
+}
+
+.vote-comment-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+}
+
+.vote-comment-field textarea {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid #FD48B6;
+    border-radius: 6px;
+    color: #ffffff;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.vote-comment-field textarea:focus {
+    outline: none;
+    border-color: #ff8c42;
+}
+
+.btn-vote-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-vote-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.your-vote {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.your-vote h3 {
+    margin: 0 0 15px 0;
+    color: #FD48B6;
+    font-size: 18px;
+}
+
+.current-vote {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 30px;
+    margin: 10px 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.current-vote.status-yes {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.current-vote.status-no {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.current-vote.status-maybe {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.vote-comment {
+    margin-top: 10px;
+    color: #888;
+    font-style: italic;
+}
+
+.vote-note {
+    margin-top: 10px;
+    font-size: 12px;
+    color: #888;
+}
+
+.vote-stats-preview {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.vote-stats-preview h4 {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.stats-bars {
+    margin: 20px 0;
+}
+
+.stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-bar .stat-label {
+    min-width: 100px;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.bar {
+    flex: 1;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.bar-yes { background: #28a745; }
+.bar-no { background: #dc3545; }
+.bar-maybe { background: #ffc107; }
+
+.stat-count {
+    min-width: 45px;
+    text-align: right;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.total-votes {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.btn-stats {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-stats:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-back {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+    margin-top: 20px;
+}
+
+.btn-back:hover {
+    background: #FD48B6;
+    color: white;
+}
+
+/* Полная статистика */
+.stats-summary {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-box {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-box.yes {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(40, 167, 69, 0.1));
+    border: 1px solid #28a745;
+}
+
+.stat-box.no {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(220, 53, 69, 0.1));
+    border: 1px solid #dc3545;
+}
+
+.stat-box.maybe {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
+    border: 1px solid #ffc107;
+}
+
+.stat-box.total {
+    background: linear-gradient(135deg, rgba(23, 162, 184, 0.2), rgba(23, 162, 184, 0.1));
+    border: 1px solid #17a2b8;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-box.yes .stat-number { color: #28a745; }
+.stat-box.no .stat-number { color: #dc3545; }
+.stat-box.maybe .stat-number { color: #ffc107; }
+.stat-box.total .stat-number { color: #17a2b8; }
+
+.voters-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.voters-list {
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.voters-list h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+}
+
+.voters-list.yes-list {
+    background: rgba(40, 167, 69, 0.1);
+    border-left: 3px solid #28a745;
+}
+.voters-list.yes-list h3 { color: #28a745; }
+
+.voters-list.maybe-list {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+}
+.voters-list.maybe-list h3 { color: #ffc107; }
+
+.voters-list.no-list {
+    background: rgba(220, 53, 69, 0.1);
+    border-left: 3px solid #dc3545;
+}
+.voters-list.no-list h3 { color: #dc3545; }
+
+.voters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.voter-card {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.voter-avatar {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.voter-avatar img,
+.voter-avatar .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+}
+
+.voter-name a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.voter-name a:hover {
+    color: #FD48B6;
+}
+
+.voter-comment {
+    font-size: 10px;
+    color: #888;
+    margin-top: 3px;
+}
+
+.no-votes {
+    text-align: center;
+    padding: 40px;
+}
+
+.no-votes .empty-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.no-votes p {
+    color: #888;
+}
+
+.back-links {
+    margin-top: 30px;
+    text-align: center;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Кнопка голосования в уведомлениях */
+.btn-vote-notify,
+.notification-message a {
+    display: inline-block;
+    background: #FD48B6;
+    color: white;
+    padding: 6px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 11px;
+    margin-top: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-vote-notify:hover,
+.notification-message a:hover {
+    background: #e03a9e;
+    transform: translateY(-2px);
+}
+
+/* Auth */
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
@@ -608,60 +1169,52 @@ footer .social-links a:hover {
 
 /* Мобильная версия */
 @media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
+    body { padding: 10px; }
+    
     header .container {
         flex-direction: column;
         align-items: stretch;
         gap: 15px;
     }
-
+    
     .header-left {
         flex-direction: column;
         gap: 15px;
     }
-
-    .nav-divider {
-        display: none;
-    }
-
+    
+    .nav-divider { display: none; }
+    
     nav {
         flex-direction: row !important;
         justify-content: center;
         flex-wrap: wrap;
     }
-
-    .header-right {
-        justify-content: center;
-    }
-
-    .user-menu {
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
+    
+    .header-right { justify-content: center; }
+    .user-menu { justify-content: center; flex-wrap: wrap; }
+    
     .profile-link, .logout-btn, .notifications-btn, .login-btn, .register-btn {
         height: 34px;
         font-size: 13px;
     }
-
-    .notifications-btn {
-        width: 38px;
-        padding: 0 10px;
-    }
-
-    .profile-link {
-        padding: 0 10px;
-    }
-
-    .logout-btn {
-        padding: 0 12px;
-    }
-
+    
+    .notifications-btn { width: 38px; padding: 0 10px; }
+    .profile-link { padding: 0 10px; }
+    .logout-btn { padding: 0 12px; }
+    
     footer .container {
         flex-direction: column;
         text-align: center;
     }
+    
+    .vote-options { flex-direction: column; }
+    
+    .vote-container, .vote-results-container, .my-votes-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .vote-option { justify-content: center; }
+    .stat-bar { flex-wrap: wrap; }
+    .stat-bar .stat-label { min-width: 100%; margin-bottom: 5px; }
 }

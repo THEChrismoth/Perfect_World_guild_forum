@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="my-votes-container">
+    <div class="my-votes-header">
+        <h1>🗳️ Мои голосования</h1>
+        <a href="{% url 'events:event_index' %}" class="btn-back">← Назад к ивентам</a>
+    </div>
+    
+    {% if votes %}
+        <div class="votes-list">
+            {% for vote in votes %}
+            <div class="vote-item">
+                <div class="vote-header">
+                    <div class="vote-icon">{{ vote.notification.event_type.icon }}</div>
+                    <div class="vote-title">
+                        <h3>{{ vote.notification.event_type.name }}</h3>
+                        <div class="vote-date">📅 {{ vote.notification.event_date|date:"d.m.Y" }}</div>
+                    </div>
+                    <div class="vote-status status-{{ vote.status }}">
+                        {% if vote.status == 'yes' %}✅ Приду
+                        {% elif vote.status == 'no' %}❌ Не приду
+                        {% else %}🤔 Возможно{% endif %}
+                    </div>
+                </div>
+                {% if vote.comment %}
+                <div class="vote-comment">
+                    💬 {{ vote.comment }}
+                </div>
+                {% endif %}
+                <div class="vote-actions">
+                    <a href="{% url 'events:vote_view' notification_id=vote.notification.id %}" class="btn-change">Изменить ответ</a>
+                    <a href="{% url 'events:vote_results' notification_id=vote.notification.id %}" class="btn-results">Результаты</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">🗳️</div>
+            <p>Вы еще не участвовали ни в одном голосовании</p>
+            <a href="{% url 'events:event_index' %}" class="btn-browse">Посмотреть ивенты</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

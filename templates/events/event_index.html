@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="events-container">
+    <h1>📋 Ивенты гильдии</h1>
+    
+    {% if event_types_data %}
+        <div class="event-types-list">
+            {% for item in event_types_data %}
+            <div class="event-type-card">
+                <div class="event-type-header">
+                    <div class="event-type-icon">{{ item.event_type.icon }}</div>
+                    <h2>{{ item.event_type.name }}</h2>
+                    <a href="{% url 'events:event_detail' event_type_slug=item.event_type.slug %}" class="btn-detail">Подробнее →</a>
+                </div>
+                
+                <div class="event-type-description">
+                    {{ item.event_type.description|truncatewords:30 }}
+                </div>
+                
+                <div class="event-stats">
+                    <div class="stat">
+                        <span class="stat-value">{{ item.event_type.parties_count }}</span>
+                        <span class="stat-label">отрядов</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ item.event_type.party_size }}</span>
+                        <span class="stat-label">чел/отряд</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ item.total_slots }}</span>
+                        <span class="stat-label">всего мест</span>
+                    </div>
+                </div>
+                
+                {% if item.parties %}
+                <div class="parties-preview">
+                    <h4>Состав отрядов:</h4>
+                    <div class="parties-grid">
+                        {% for party in item.parties %}
+                        <div class="party-preview">
+                            <div class="party-number">Отряд {{ party.number }}</div>
+                            <div class="party-members-count">
+                                {{ party.filled_slots }}/{{ party.total_slots }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>Активных ивентов пока нет</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

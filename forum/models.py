@@ -101,6 +101,12 @@ class SubCategory(models.Model):
         help_text='Отметьте, если эта подкатегория для ПРОСМОТРА и ГОЛОСОВАНИЯ за заявки (доступно только членам гильдии)'
     )
 
+    is_events = models.BooleanField(
+        'Это ивентовая подкатегория',
+        default=False,
+        help_text='Отметьте, если эта подкатегория предназначена для отображения ивентов'
+    )
+
     order = models.IntegerField(
         'Порядок сортировки',
         default=0,

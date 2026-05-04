@@ -1,0 +1,91 @@
+{% extends "admin/change_form.html" %}
+{% load i18n admin_urls %}
+
+{% block submit_buttons_bottom %}
+<div class="submit-row">
+    <input type="submit" value="{% trans 'Save' %}" name="_save" class="default">
+    
+    {% if show_send_button %}
+        <input type="submit" value="{% trans '📢 Send Notification' %}" name="_send_notification" style="background: #28a745; color: white; font-weight: bold;">
+    {% endif %}
+    
+    {% if show_delete_link %}
+        <p class="deletelink-box"><a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Delete" %}</a></p>
+    {% endif %}
+    
+    <input type="submit" value="{% trans 'Save and add another' %}" name="_addanother">
+    <input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue">
+</div>
+
+{% if attendance_stats and original %}
+<div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+    <h3 style="margin-top: 0; margin-bottom: 15px;">📊 Статистика голосования</h3>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+        <div style="flex: 1; text-align: center; padding: 10px; background: #d4edda; border-radius: 8px;">
+            <div style="font-size: 28px; font-weight: bold; color: #155724;">{{ attendance_stats.yes_count }}</div>
+            <div style="color: #155724;">✅ Придут</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 10px; background: #f8d7da; border-radius: 8px;">
+            <div style="font-size: 28px; font-weight: bold; color: #721c24;">{{ attendance_stats.no_count }}</div>
+            <div style="color: #721c24;">❌ Не придут</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 10px; background: #fff3cd; border-radius: 8px;">
+            <div style="font-size: 28px; font-weight: bold; color: #856404;">{{ attendance_stats.maybe_count }}</div>
+            <div style="color: #856404;">🤔 Возможно</div>
+        </div>
+        <div style="flex: 1; text-align: center; padding: 10px; background: #e2e3e5; border-radius: 8px;">
+            <div style="font-size: 28px; font-weight: bold; color: #383d41;">{{ attendance_stats.total_count }}</div>
+            <div style="color: #383d41;">📊 Всего ответили</div>
+        </div>
+    </div>
+    
+    {% if attendance_stats.yes_users %}
+    <div style="margin-top: 15px; padding: 10px; background: #d4edda; border-radius: 8px;">
+        <strong style="color: #155724;">✅ Пойдут ({{ attendance_stats.yes_count }}):</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+            {% for att in attendance_stats.yes_users %}
+            <span style="background: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
+                {{ att.user.username }}
+                {% if att.comment %}💬{% endif %}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if attendance_stats.maybe_users %}
+    <div style="margin-top: 15px; padding: 10px; background: #fff3cd; border-radius: 8px;">
+        <strong style="color: #856404;">🤔 Возможно ({{ attendance_stats.maybe_count }}):</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+            {% for att in attendance_stats.maybe_users %}
+            <span style="background: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
+                {{ att.user.username }}
+                {% if att.comment %}💬{% endif %}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if attendance_stats.no_users %}
+    <div style="margin-top: 15px; padding: 10px; background: #f8d7da; border-radius: 8px;">
+        <strong style="color: #721c24;">❌ Не пойдут ({{ attendance_stats.no_count }}):</strong>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+            {% for att in attendance_stats.no_users %}
+            <span style="background: #fff; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
+                {{ att.user.username }}
+                {% if att.comment %}💬{% endif %}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div style="margin-top: 20px; padding-top: 10px; border-top: 1px solid #dee2e6;">
+        <a href="{% url 'admin:events_eventattendance_changelist' %}?notification__id__exact={{ original.id }}" class="button" style="background: #0d6efd; color: white; padding: 6px 12px; text-decoration: none; border-radius: 4px; display: inline-block;">
+            📋 Подробная статистика
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

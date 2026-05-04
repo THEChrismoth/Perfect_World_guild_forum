@@ -47,7 +47,7 @@
                                                 <div class="notification-icon">{{ notification.get_icon }}</div>
                                                 <div class="notification-content">
                                                     <div class="notification-title">{{ notification.title }}</div>
-                                                    <div class="notification-message">{{ notification.message|truncatechars:50 }}</div>
+                                                    <div class="notification-message">{{ notification.message|striptags|truncatechars:80 }}</div>
                                                     <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
                                                 </div>
                                             </a>

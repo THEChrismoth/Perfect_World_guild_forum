@@ -16,5 +16,6 @@ urlpatterns = [
     path('auction/', include('auction.urls', namespace='auction')),
     path('reception/', include('reception.urls')),
     path('notifications/', include('notifications.urls')),
+    path('events/', include('events.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="vote-results-container">
+    <div class="vote-results-header">
+        <h1>📊 Результаты голосования</h1>
+        <a href="{% url 'events:event_index' %}" class="btn-back">← Ко всем ивентам</a>
+    </div>
+    
+    <div class="results-card">
+        <div class="event-info">
+            <div class="event-icon">{{ event_type.icon }}</div>
+            <div class="event-details">
+                <h2>{{ event_type.name }}</h2>
+                <div class="event-date">📅 {{ notification.event_date|date:"l, d.m.Y" }}</div>
+            </div>
+        </div>
+        
+        <div class="stats-summary">
+            <div class="stat-box yes">
+                <div class="stat-number">{{ stats.yes_count }}</div>
+                <div class="stat-label">✅ Придут</div>
+            </div>
+            <div class="stat-box no">
+                <div class="stat-number">{{ stats.no_count }}</div>
+                <div class="stat-label">❌ Не придут</div>
+            </div>
+            <div class="stat-box maybe">
+                <div class="stat-number">{{ stats.maybe_count }}</div>
+                <div class="stat-label">🤔 Возможно</div>
+            </div>
+            <div class="stat-box total">
+                <div class="stat-number">{{ stats.total_count }}</div>
+                <div class="stat-label">📊 Всего ответили</div>
+            </div>
+        </div>
+        
+        {% if stats.yes_users %}
+        <div class="voters-list yes-list">
+            <h3>✅ Пойдут ({{ stats.yes_count }})</h3>
+            <div class="voters-grid">
+                {% for attendance in stats.yes_users %}
+                <div class="voter-card">
+                    <div class="voter-avatar">
+                        {% if attendance.user.profile.avatar %}
+                            <img src="{{ attendance.user.profile.avatar.url }}" alt="{{ attendance.user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                {{ attendance.user.username|make_list|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="voter-name">
+                        <a href="{% url 'profile_view' username=attendance.user.username %}">
+                            {{ attendance.user.username }}
+                        </a>
+                        {% if attendance.comment %}
+                        <div class="voter-comment">💬 {{ attendance.comment|truncatechars:50 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if stats.maybe_users %}
+        <div class="voters-list maybe-list">
+            <h3>🤔 Возможно ({{ stats.maybe_count }})</h3>
+            <div class="voters-grid">
+                {% for attendance in stats.maybe_users %}
+                <div class="voter-card">
+                    <div class="voter-avatar">
+                        {% if attendance.user.profile.avatar %}
+                            <img src="{{ attendance.user.profile.avatar.url }}" alt="{{ attendance.user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                {{ attendance.user.username|make_list|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="voter-name">
+                        <a href="{% url 'profile_view' username=attendance.user.username %}">
+                            {{ attendance.user.username }}
+                        </a>
+                        {% if attendance.comment %}
+                        <div class="voter-comment">💬 {{ attendance.comment|truncatechars:50 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if stats.no_users %}
+        <div class="voters-list no-list">
+            <h3>❌ Не пойдут ({{ stats.no_count }})</h3>
+            <div class="voters-grid">
+                {% for attendance in stats.no_users %}
+                <div class="voter-card">
+                    <div class="voter-avatar">
+                        {% if attendance.user.profile.avatar %}
+                            <img src="{{ attendance.user.profile.avatar.url }}" alt="{{ attendance.user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder">
+                                {{ attendance.user.username|make_list|first|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="voter-name">
+                        <a href="{% url 'profile_view' username=attendance.user.username %}">
+                            {{ attendance.user.username }}
+                        </a>
+                        {% if attendance.comment %}
+                        <div class="voter-comment">💬 {{ attendance.comment|truncatechars:50 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if not stats.yes_users and not stats.maybe_users and not stats.no_users %}
+        <div class="no-votes">
+            <div class="empty-icon">📭</div>
+            <p>Пока никто не проголосовал</p>
+        </div>
+        {% endif %}
+        
+        <div class="back-links">
+            <a href="{% url 'events:vote_view' notification_id=notification.id %}" class="btn-vote-again">✏️ Изменить голос</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

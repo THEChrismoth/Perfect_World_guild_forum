@@ -1,0 +1,1363 @@
+/* ========== ОСНОВНЫЕ СТИЛИ ДЛЯ ИВЕНТОВ ========== */
+
+/* Список ивентов */
+.events-container {
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background: transparent;
+    animation: fadeInEvents 0.4s ease;
+}
+
+@keyframes fadeInEvents {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.events-container h1 {
+    color: #ffffff;
+    font-size: 28px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FD48B6;
+    display: inline-block;
+}
+
+/* Карточка ивента */
+.event-type-card {
+    background: #2D3037;
+    border-radius: 12px;
+    padding: 25px;
+    margin-bottom: 25px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(253, 72, 182, 0.2);
+    position: relative;
+}
+
+.event-type-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #FD48B6, #ff8c42);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.event-type-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(253, 72, 182, 0.5);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.event-type-card:hover::before {
+    transform: scaleX(1);
+}
+
+/* Шапка карточки */
+.event-type-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.event-type-icon {
+    font-size: 36px;
+    width: 60px;
+    height: 60px;
+    background: rgba(253, 72, 182, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.event-type-header h2 {
+    margin: 0;
+    font-size: 24px;
+    color: #ffffff;
+    flex: 1;
+}
+
+.btn-detail {
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+}
+
+.btn-detail:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Описание */
+.event-type-description {
+    color: #e0e0e0;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+}
+
+/* Статистика */
+.event-stats {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.event-stats .stat {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 80px;
+}
+
+.event-stats .stat-value {
+    display: block;
+    font-size: 20px;
+    font-weight: bold;
+    color: #FD48B6;
+}
+
+.event-stats .stat-label {
+    font-size: 11px;
+    color: #888;
+}
+
+/* Превью отрядов */
+.parties-preview {
+    margin-top: 15px;
+}
+
+.parties-preview h4 {
+    color: #e0e0e0;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
+.parties-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.party-preview {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.party-number {
+    color: #FD48B6;
+    font-weight: 500;
+    font-size: 13px;
+}
+
+.party-members-count {
+    color: #888;
+    font-size: 12px;
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: #2D3037;
+    border-radius: 12px;
+}
+
+.empty-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    color: #888;
+    font-size: 16px;
+}
+
+/* ========== ДЕТАЛЬНАЯ СТРАНИЦА ИВЕНТА ========== */
+.event-detail-container {
+    max-width: 100%;
+    margin: 20px;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+    box-sizing: border-box;
+    animation: fadeInEvents 0.4s ease;
+}
+
+/* Шапка ивента */
+.event-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(253, 72, 182, 0.3);
+    flex-wrap: wrap;
+}
+
+.event-type-icon-large {
+    font-size: 48px;
+    background: rgba(253, 72, 182, 0.1);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+}
+
+.event-detail-header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 600;
+    color: #ffffff;
+}
+
+/* Описание ивента */
+.event-description {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    color: #e0e0e0;
+    line-height: 1.6;
+}
+
+/* Статистика ивента */
+.event-stats-detailed {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+}
+
+.event-stats-detailed .stat-card {
+    flex: 1;
+    background: rgba(253, 72, 182, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.event-stats-detailed .stat-card:hover {
+    transform: translateY(-2px);
+    background: rgba(253, 72, 182, 0.15);
+}
+
+.event-stats-detailed .stat-card .stat-value {
+    display: block;
+    font-size: 28px;
+    font-weight: bold;
+    color: #FD48B6;
+    margin-bottom: 5px;
+}
+
+.event-stats-detailed .stat-card .stat-label {
+    font-size: 12px;
+    color: #888;
+}
+
+/* Заголовок отрядов */
+.parties-title {
+    color: #ffffff;
+    font-size: 24px;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #FD48B6;
+    display: inline-block;
+}
+
+/* Сетка отрядов */
+.parties-grid-detailed {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+/* Карточка отряда */
+.party-card-detailed {
+    background: #1a1c20;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.party-card-detailed:hover {
+    transform: translateY(-5px);
+    border-color: rgba(253, 72, 182, 0.5);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Шапка отряда */
+.party-header-detailed {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: rgba(253, 72, 182, 0.1);
+    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.party-header-detailed h3 {
+    margin: 0;
+    color: #FD48B6;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.party-stats-detailed {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.party-stats-detailed .filled {
+    color: #28a745;
+}
+
+.party-stats-detailed .total {
+    color: #888;
+}
+
+/* Список участников */
+.party-members-detailed {
+    padding: 15px;
+}
+
+.members-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Элемент участника */
+.member-item-detailed {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.member-item-detailed:hover {
+    background: rgba(253, 72, 182, 0.1);
+    transform: translateX(5px);
+}
+
+.member-item-detailed.leader-detailed {
+    background: linear-gradient(135deg, rgba(253, 72, 182, 0.15), rgba(255, 140, 66, 0.1));
+    border-left: 3px solid #FD48B6;
+}
+
+/* Аватар участника */
+.member-avatar-detailed {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.member-avatar-detailed img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-placeholder-detailed {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+}
+
+/* Информация об участнике */
+.member-info-detailed {
+    flex: 1;
+}
+
+.member-name-detailed a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.member-name-detailed a:hover {
+    color: #FD48B6;
+}
+
+.member-role-detailed {
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.leader-detailed .member-role-detailed {
+    color: #FD48B6;
+}
+
+/* Пустое состояние */
+.empty-members-detailed {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+}
+
+.empty-members-detailed .empty-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+/* Информационное сообщение */
+.alert-info-detailed {
+    background: rgba(23, 162, 184, 0.1);
+    border-left: 4px solid #17a2b8;
+    padding: 20px;
+    margin: 20px 0 30px;
+    border-radius: 8px;
+    display: flex;
+    gap: 15px;
+    align-items: flex-start;
+}
+
+.alert-info-detailed .alert-icon {
+    font-size: 24px;
+}
+
+.alert-info-detailed .alert-content h3 {
+    margin: 0 0 8px 0;
+    color: #17a2b8;
+    font-size: 18px;
+}
+
+.alert-info-detailed .alert-content p {
+    margin: 0;
+    color: #e0e0e0;
+}
+
+/* Кнопка назад */
+.back-link-detailed {
+    margin-top: 30px;
+    text-align: center;
+}
+
+.btn-back-detailed {
+    display: inline-block;
+    background: #2D3037;
+    color: #e0e0e0;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+}
+
+.btn-back-detailed:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.3);
+}
+
+/* ========== СТРАНИЦА ГОЛОСОВАНИЯ ========== */
+.vote-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+}
+
+.vote-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FD48B6;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.vote-header h1 {
+    color: #ffffff;
+    font-size: 24px;
+    margin: 0;
+}
+
+.vote-date {
+    color: #888;
+    font-size: 14px;
+}
+
+.vote-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.event-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    padding: 15px;
+    background: rgba(253, 72, 182, 0.1);
+    border-radius: 8px;
+}
+
+.event-icon {
+    font-size: 48px;
+}
+
+.event-name {
+    font-size: 24px;
+    color: #FD48B6;
+    font-weight: bold;
+}
+
+.notification-message {
+    background: rgba(253, 72, 182, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    color: #e0e0e0;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.notification-message br {
+    display: block;
+    margin: 4px 0;
+    content: "";
+}
+
+.vote-options {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.vote-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.vote-option:hover {
+    background: rgba(253, 72, 182, 0.1);
+    transform: translateY(-2px);
+}
+
+.vote-option input[type="radio"] {
+    display: none;
+}
+
+.vote-option:has(input:checked) {
+    border-color: #FD48B6;
+    background: rgba(253, 72, 182, 0.15);
+}
+
+.vote-emoji {
+    font-size: 28px;
+}
+
+.vote-label {
+    font-size: 18px;
+    font-weight: 500;
+    color: #e0e0e0;
+}
+
+.vote-comment-field {
+    margin-bottom: 25px;
+}
+
+.vote-comment-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #e0e0e0;
+}
+
+.vote-comment-field textarea {
+    width: 100%;
+    padding: 12px;
+    background: #1a1c20;
+    border: 1px solid #FD48B6;
+    border-radius: 6px;
+    color: #ffffff;
+    resize: vertical;
+    font-family: inherit;
+}
+
+.vote-comment-field textarea:focus {
+    outline: none;
+    border-color: #ff8c42;
+}
+
+.btn-vote-submit {
+    width: 100%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-vote-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+}
+
+.your-vote {
+    background: rgba(253, 72, 182, 0.1);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.your-vote h3 {
+    margin: 0 0 15px 0;
+    color: #FD48B6;
+    font-size: 18px;
+}
+
+.current-vote {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 30px;
+    margin: 10px 0;
+    font-weight: bold;
+    font-size: 18px;
+}
+
+.current-vote.status-yes {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.current-vote.status-no {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.current-vote.status-maybe {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.vote-stats-preview {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(253, 72, 182, 0.2);
+}
+
+.vote-stats-preview h4 {
+    color: #e0e0e0;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.stats-bars {
+    margin: 20px 0;
+}
+
+.stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.stat-bar .stat-label {
+    min-width: 100px;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.bar {
+    flex: 1;
+    height: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s ease;
+}
+
+.bar-yes {
+    background: #28a745;
+}
+
+.bar-no {
+    background: #dc3545;
+}
+
+.bar-maybe {
+    background: #ffc107;
+}
+
+.stat-count {
+    min-width: 45px;
+    text-align: right;
+    color: #e0e0e0;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.total-votes {
+    text-align: center;
+    color: #888;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.btn-stats {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+    margin-top: 15px;
+    text-align: center;
+}
+
+.btn-stats:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-back {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 8px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+}
+
+.btn-back:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ========== СТРАНИЦА РЕЗУЛЬТАТОВ ГОЛОСОВАНИЯ ========== */
+.vote-results-container {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+}
+
+.vote-results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FD48B6;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.vote-results-header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    margin: 0;
+}
+
+.results-card {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 25px;
+}
+
+.results-card .event-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+    background: rgba(253, 72, 182, 0.1);
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.results-card .event-details h2 {
+    color: #ffffff;
+    font-size: 24px;
+    margin: 0 0 8px 0;
+}
+
+.results-card .event-date {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+/* Статистика */
+.stats-summary {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+}
+
+.stat-box {
+    flex: 1;
+    text-align: center;
+    padding: 20px;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.stat-box.yes {
+    background: rgba(40, 167, 69, 0.15);
+    border: 1px solid #28a745;
+}
+
+.stat-box.no {
+    background: rgba(220, 53, 69, 0.15);
+    border: 1px solid #dc3545;
+}
+
+.stat-box.maybe {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid #ffc107;
+}
+
+.stat-box.total {
+    background: rgba(23, 162, 184, 0.15);
+    border: 1px solid #17a2b8;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.stat-box.yes .stat-number {
+    color: #28a745;
+}
+
+.stat-box.no .stat-number {
+    color: #dc3545;
+}
+
+.stat-box.maybe .stat-number {
+    color: #ffc107;
+}
+
+.stat-box.total .stat-number {
+    color: #17a2b8;
+}
+
+.stat-box .stat-label {
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+/* Списки проголосовавших */
+.voters-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.voters-list {
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.voters-list h3 {
+    margin: 0 0 15px 0;
+    font-size: 18px;
+}
+
+.voters-list.yes-list {
+    background: rgba(40, 167, 69, 0.1);
+    border-left: 4px solid #28a745;
+}
+
+.voters-list.yes-list h3 {
+    color: #28a745;
+}
+
+.voters-list.maybe-list {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid #ffc107;
+}
+
+.voters-list.maybe-list h3 {
+    color: #ffc107;
+}
+
+.voters-list.no-list {
+    background: rgba(220, 53, 69, 0.1);
+    border-left: 4px solid #dc3545;
+}
+
+.voters-list.no-list h3 {
+    color: #dc3545;
+}
+
+.voters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+}
+
+.voter-card {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+}
+
+.voter-card:hover {
+    background: rgba(253, 72, 182, 0.1);
+    transform: translateX(5px);
+}
+
+.voter-avatar {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+.voter-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.voter-avatar .avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: bold;
+    color: white;
+}
+
+.voter-name {
+    flex: 1;
+}
+
+.voter-name a {
+    color: #e0e0e0;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.voter-name a:hover {
+    color: #FD48B6;
+}
+
+.voter-comment {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+}
+
+.no-votes {
+    text-align: center;
+    padding: 50px;
+}
+
+.no-votes .empty-icon {
+    font-size: 64px;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.no-votes p {
+    color: #888;
+    font-size: 16px;
+}
+
+.back-links {
+    margin-top: 30px;
+    text-align: center;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn-vote-again {
+    display: inline-block;
+    background: #28a745;
+    color: white;
+    padding: 10px 25px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.btn-vote-again:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+/* ========== МОИ ГОЛОСОВАНИЯ ========== */
+.my-votes-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 30px;
+    background: #2D3037;
+    border-radius: 12px;
+    border-top: 3px solid #FD48B6;
+}
+
+.my-votes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #FD48B6;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.my-votes-header h1 {
+    color: #ffffff;
+    font-size: 28px;
+    margin: 0;
+}
+
+.votes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.vote-item {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.vote-item:hover {
+    transform: translateX(5px);
+    background: rgba(253, 72, 182, 0.05);
+}
+
+.vote-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.vote-icon {
+    font-size: 32px;
+}
+
+.vote-title {
+    flex: 1;
+}
+
+.vote-title h3 {
+    margin: 0 0 5px 0;
+    color: #ffffff;
+    font-size: 18px;
+}
+
+.vote-title .vote-date {
+    margin: 0;
+    font-size: 12px;
+}
+
+.vote-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.vote-status.status-yes {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.vote-status.status-no {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.vote-status.status-maybe {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.vote-comment {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    color: #e0e0e0;
+    font-size: 14px;
+}
+
+.vote-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-change, .btn-results {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 6px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+    font-size: 13px;
+}
+
+.btn-change:hover, .btn-results:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-browse {
+    display: inline-block;
+    background: rgba(253, 72, 182, 0.2);
+    color: #FD48B6;
+    padding: 10px 25px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid #FD48B6;
+    margin-top: 20px;
+}
+
+.btn-browse:hover {
+    background: #FD48B6;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* ========== СТИЛИ ДЛЯ КНОПКИ В УВЕДОМЛЕНИЯХ ========== */
+.btn-vote-notify {
+    display: inline-block;
+    background: #FD48B6;
+    color: white;
+    padding: 6px 15px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 12px;
+    margin-top: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-vote-notify:hover {
+    background: #e03a9e;
+    transform: translateY(-2px);
+}
+
+/* ========== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ ========== */
+@media (max-width: 768px) {
+    .events-container {
+        padding: 10px;
+    }
+    
+    .events-container h1 {
+        font-size: 24px;
+    }
+    
+    .event-type-card {
+        padding: 20px;
+    }
+    
+    .event-type-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .event-type-header h2 {
+        font-size: 20px;
+    }
+    
+    .event-stats {
+        justify-content: center;
+    }
+    
+    .event-detail-container,
+    .vote-container,
+    .vote-results-container,
+    .my-votes-container {
+        margin: 10px;
+        padding: 15px;
+    }
+    
+    .event-detail-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .event-detail-header h1 {
+        font-size: 24px;
+    }
+    
+    .parties-grid-detailed {
+        grid-template-columns: 1fr;
+    }
+    
+    .party-header-detailed {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .vote-options {
+        flex-direction: column;
+    }
+    
+    .vote-header, .vote-results-header, .my-votes-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .stats-summary {
+        flex-direction: column;
+    }
+    
+    .voters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .vote-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .vote-actions {
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .event-stats-detailed {
+        flex-direction: column;
+    }
+    
+    .member-item-detailed {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .member-avatar-detailed {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+/* Стили для скроллбара */
+.members-list::-webkit-scrollbar,
+.voters-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.members-list::-webkit-scrollbar-track,
+.voters-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.members-list::-webkit-scrollbar-thumb,
+.voters-grid::-webkit-scrollbar-thumb {
+    background: #FD48B6;
+    border-radius: 3px;
+}
+
+.members-list::-webkit-scrollbar-thumb:hover,
+.voters-grid::-webkit-scrollbar-thumb:hover {
+    background: #ff8c42;
+}

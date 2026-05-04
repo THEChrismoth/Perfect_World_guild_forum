@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="event-detail-container">
+    <div class="event-detail-header">
+        <div class="event-type-icon-large">{{ event_type.icon }}</div>
+        <h1>{{ event_type.name }}</h1>
+    </div>
+    
+    <div class="event-description">
+        {{ event_type.description|linebreaks }}
+    </div>
+    
+    <div class="event-stats-detailed">
+        <div class="stat-card">
+            <div class="stat-value">{{ event_type.parties_count }}</div>
+            <div class="stat-label">отрядов</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ event_type.party_size }}</div>
+            <div class="stat-label">человек в отряде</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ event_type.total_slots }}</div>
+            <div class="stat-label">всего мест</div>
+        </div>
+    </div>
+    
+    {% if parties %}
+        <h2 class="parties-title">⚔️ Состав отрядов ⚔️</h2>
+        <div class="parties-grid-detailed">
+            {% for party in parties %}
+            <div class="party-card-detailed">
+                <div class="party-header-detailed">
+                    <h3>Отряд {{ party.number }}</h3>
+                    <div class="party-stats-detailed">
+                        <span class="filled">{{ party.filled_slots }}</span>/<span class="total">{{ party.total_slots }}</span>
+                    </div>
+                </div>
+                <div class="party-members-detailed">
+                    <div class="members-list">
+                        {% for member in party.members %}
+                        <div class="member-item-detailed {% if member.role == 'leader' %}leader-detailed{% endif %}">
+                            <div class="member-avatar-detailed">
+                                {% if member.profile.avatar %}
+                                    <img src="{{ member.profile.avatar.url }}" alt="{{ member.user.username }}">
+                                {% else %}
+                                    <div class="avatar-placeholder-detailed">
+                                        {{ member.user.username|make_list|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="member-info-detailed">
+                                <div class="member-name-detailed">
+                                    <a href="{% url 'profile_view' username=member.user.username %}">
+                                        {{ member.user.username }}
+                                    </a>
+                                </div>
+                                <div class="member-role-detailed">{{ member.role_name }}</div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="empty-members-detailed">
+                            <div class="empty-icon">👤</div>
+                            <span>Нет участников</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert-info-detailed">
+            <div class="alert-icon">ℹ️</div>
+            <div class="alert-content">
+                <h3>Отряды еще не сформированы</h3>
+                <p>Администратор скоро заполнит состав. Следите за обновлениями!</p>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="back-link-detailed">
+        <a href="{% url 'events:event_index' %}" class="btn-back-detailed">← Назад к списку ивентов</a>
+    </div>
+</div>
+{% endblock %}

@@ -8,6 +8,8 @@ from .models import Category, SubCategory, Topic, Post, PostImage, get_online_us
 from .forms import TopicForm, PostForm
 from auction.models import AuctionLot
 from reception.models import Application
+from events.models import EventType  # Добавляем импорт модели EventType
+
 
 def forum_view(request):
     # Получаем все категории
@@ -22,11 +24,32 @@ def forum_view(request):
 
             for subcategory in subcategories:
                 if subcategory.is_visible_to_user(request.user):
-                    # Проверка на аукцион
-                    if subcategory.is_auction:
+                    # Проверка на ивентовую подкатегорию
+                    if subcategory.is_events:
+                        # Получаем количество типов ивентов
+                        event_types_count = EventType.objects.filter(
+                            forum_subcategory=subcategory,
+                            is_active=True
+                        ).count()
                         
                         visible_subcategories.append({
                             'subcategory': subcategory,
+                            'is_events': True,
+                            'is_auction': False,
+                            'is_reception': False,
+                            'is_reception_view': False,
+                            'topics_count': event_types_count,
+                            'posts_count': EventType.objects.filter(forum_subcategory=subcategory).count(),
+                            'slug': subcategory.slug,
+                            'title': subcategory.title,
+                            'order': subcategory.order,
+                        })
+                    # Проверка на аукцион
+                    elif subcategory.is_auction:
+                        
+                        visible_subcategories.append({
+                            'subcategory': subcategory,
+                            'is_events': False,
                             'is_auction': True,
                             'is_reception': False,
                             'is_reception_view': False,
@@ -45,6 +68,7 @@ def forum_view(request):
                         
                         visible_subcategories.append({
                             'subcategory': subcategory,
+                            'is_events': False,
                             'is_auction': False,
                             'is_reception': True,
                             'is_reception_view': False,
@@ -63,6 +87,7 @@ def forum_view(request):
                             applications_total = Application.objects.count()
                             visible_subcategories.append({
                                 'subcategory': subcategory,
+                                'is_events': False,
                                 'is_auction': False,
                                 'is_reception': False,
                                 'is_reception_view': True,
@@ -84,6 +109,7 @@ def forum_view(request):
                         
                         visible_subcategories.append({
                             'subcategory': subcategory,
+                            'is_events': False,
                             'is_auction': False,
                             'is_reception': False,
                             'is_reception_view': False,
@@ -125,6 +151,11 @@ def subcategory_detail(request, slug):
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
     
+    # Проверка на ивентовую подкатегорию
+    if subcategory.is_events:
+        from django.urls import reverse
+        return redirect(reverse('events:event_index'))
+    
     # Проверка на аукцион
     if subcategory.is_auction:
         from auction.views import check_auction_access
@@ -158,9 +189,18 @@ def topic_create(request, slug):
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
     
+    # Проверяем по флагу is_events
+    if subcategory.is_events:
+        return redirect('events:event_index')
+    
     # Проверяем по флагу is_auction
     if subcategory.is_auction:
         return redirect('auction:auction_index')
+    
+    # Проверяем по флагам заявок
+    if subcategory.is_reception or subcategory.is_reception_view:
+        messages.warning(request, 'В этой подкатегории нельзя создавать темы')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         form = TopicForm(request.POST)
@@ -203,6 +243,21 @@ def topic_detail(request, slug):
     if not topic.subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой теме")
     
+    # Если это ивентовая подкатегория - редирект
+    if topic.subcategory.is_events:
+        return redirect('events:event_index')
+    
+    # Если это аукцион - редирект
+    if topic.subcategory.is_auction:
+        return redirect('auction:auction_index')
+    
+    # Если это подкатегория заявок - редирект
+    if topic.subcategory.is_reception:
+        return redirect('reception:application_form')
+    
+    if topic.subcategory.is_reception_view:
+        return redirect('reception:application_list')
+    
     posts = topic.posts.all()
     form = PostForm()
     context = {
@@ -217,8 +272,17 @@ def topic_detail(request, slug):
 def topic_edit(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
     
+    # Проверяем доступ к подкатегории
+    if not topic.subcategory.is_visible_to_user(request.user):
+        raise PermissionDenied("У вас нет доступа к этой теме")
+    
     if request.user != topic.author and not request.user.is_superuser:
         raise PermissionDenied("У вас нет прав на редактирование этой темы")
+    
+    # Если это ивентовая подкатегория или аукцион - редирект
+    if topic.subcategory.is_events or topic.subcategory.is_auction:
+        messages.warning(request, 'В этой подкатегории нельзя редактировать темы')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         form = TopicForm(request.POST, instance=topic)
@@ -249,8 +313,17 @@ def topic_edit(request, slug):
 def topic_delete(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
     
+    # Проверяем доступ к подкатегории
+    if not topic.subcategory.is_visible_to_user(request.user):
+        raise PermissionDenied("У вас нет доступа к этой теме")
+    
     if request.user != topic.author and not request.user.is_superuser:
         raise PermissionDenied("У вас нет прав на удаление этой темы")
+    
+    # Если это ивентовая подкатегория или аукцион - редирект
+    if topic.subcategory.is_events or topic.subcategory.is_auction:
+        messages.warning(request, 'В этой подкатегории нельзя удалять темы')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         subcategory_slug = topic.subcategory.slug
@@ -271,6 +344,11 @@ def post_create(request, slug):
     
     if not topic.subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой теме")
+    
+    # Если это ивентовая подкатегория или аукцион - редирект
+    if topic.subcategory.is_events or topic.subcategory.is_auction:
+        messages.warning(request, 'В этой подкатегории нельзя создавать сообщения')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -306,8 +384,17 @@ def post_create(request, slug):
 def post_edit(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     
+    # Проверяем доступ к подкатегории
+    if not post.topic.subcategory.is_visible_to_user(request.user):
+        raise PermissionDenied("У вас нет доступа к этому сообщению")
+    
     if request.user != post.author and not request.user.is_superuser:
         raise PermissionDenied("У вас нет прав на редактирование этого сообщения")
+    
+    # Если это ивентовая подкатегория или аукцион - редирект
+    if post.topic.subcategory.is_events or post.topic.subcategory.is_auction:
+        messages.warning(request, 'В этой подкатегории нельзя редактировать сообщения')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         content = request.POST.get('content')
@@ -340,8 +427,17 @@ def post_edit(request, post_id):
 def post_delete(request, post_id):
     post = get_object_or_404(Post, id=post_id)
     
+    # Проверяем доступ к подкатегории
+    if not post.topic.subcategory.is_visible_to_user(request.user):
+        raise PermissionDenied("У вас нет доступа к этому сообщению")
+    
     if request.user != post.author and not request.user.is_superuser:
         raise PermissionDenied("У вас нет прав на удаление этого сообщения")
+    
+    # Если это ивентовая подкатегория или аукцион - редирект
+    if post.topic.subcategory.is_events or post.topic.subcategory.is_auction:
+        messages.warning(request, 'В этой подкатегории нельзя удалять сообщения')
+        return redirect('forum:forum_view')
     
     if request.method == 'POST':
         topic_slug = post.topic.slug

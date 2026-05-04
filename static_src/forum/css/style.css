@@ -646,3 +646,45 @@ main .container {
 .auction-card:hover .auction-badge {
     color: #ffffff !important;
 }
+
+/* Стили для ивентов в форуме */
+.subcategory-card.events-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.events-badge {
+    background: linear-gradient(135deg, #2d6a4f, #28a745);
+    color: #ffffff !important;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.subcategory-card.events-card:hover {
+    background: rgba(253, 72, 182, 0.1);
+}
+
+.subcategory-card.events-card:hover .events-badge {
+    background: linear-gradient(135deg, #1b5e20, #2d6a4f);
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+}
+
+/* Убираем зеленую полоску и сохраняем розовую при наведении */
+.subcategory-card.events-card:hover {
+    border-left: 3px solid #FD48B6;
+}
+
+/* Статистика остается розовой как у других */
+.subcategory-card.events-card .stat-value {
+    color: #FD48B6;
+}
+
+/* Заголовок при наведении становится розовым как у других */
+.subcategory-card.events-card .subcategory-title:hover {
+    color: #FD48B6;
+}

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'auction',
     'reception',
     'notifications',
+    'events',
 ]
 
 MIDDLEWARE = [

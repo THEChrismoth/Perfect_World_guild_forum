@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="vote-container">
+    <div class="vote-header">
+        <h1>{{ notification.subject }}</h1>
+        <div class="vote-date">
+            📅 {{ notification.event_date|date:"l, d.m.Y" }}
+        </div>
+    </div>
+    
+    <div class="vote-card">
+        <div class="event-info">
+            <div class="event-icon">{{ event_type.icon }}</div>
+            <div class="event-name">{{ event_type.name }}</div>
+        </div>
+        
+        <div class="notification-message">
+            {{ notification.message|linebreaks }}
+        </div>
+        
+        {% if existing_vote %}
+        <div class="your-vote">
+            <h3>Ваш текущий ответ:</h3>
+            <div class="current-vote status-{{ existing_vote.status }}">
+                {% if existing_vote.status == 'yes' %}✅ Приду
+                {% elif existing_vote.status == 'no' %}❌ Не приду
+                {% else %}🤔 Возможно{% endif %}
+            </div>
+            {% if existing_vote.comment %}
+            <div class="vote-comment">Комментарий: {{ existing_vote.comment }}</div>
+            {% endif %}
+            <p class="vote-note">Вы можете изменить свой ответ ниже</p>
+        </div>
+        {% endif %}
+        
+        <form method="post" class="vote-form">
+            {% csrf_token %}
+            
+            <div class="vote-options">
+                <label class="vote-option">
+                    <input type="radio" name="status" value="yes" 
+                           {% if existing_vote and existing_vote.status == 'yes' %}checked{% endif %} required>
+                    <span class="vote-emoji">✅</span>
+                    <span class="vote-label">Приду</span>
+                </label>
+                
+                <label class="vote-option">
+                    <input type="radio" name="status" value="no"
+                           {% if existing_vote and existing_vote.status == 'no' %}checked{% endif %} required>
+                    <span class="vote-emoji">❌</span>
+                    <span class="vote-label">Не приду</span>
+                </label>
+                
+                <label class="vote-option">
+                    <input type="radio" name="status" value="maybe"
+                           {% if existing_vote and existing_vote.status == 'maybe' %}checked{% endif %} required>
+                    <span class="vote-emoji">🤔</span>
+                    <span class="vote-label">Возможно</span>
+                </label>
+            </div>
+            
+            <div class="vote-comment-field">
+                <label for="comment">Комментарий (необязательно):</label>
+                <textarea name="comment" id="comment" rows="3" 
+                          placeholder="Напишите, если есть вопросы или особые пожелания...">{{ existing_vote.comment|default:'' }}</textarea>
+            </div>
+            
+            <button type="submit" class="btn-vote-submit">{% if existing_vote %}Изменить ответ{% else %}Проголосовать{% endif %}</button>
+        </form>
+        
+        <div class="vote-stats-preview">
+            <h4>Текущая статистика:</h4>
+            <div class="stats-bars">
+                <div class="stat-bar">
+                    <div class="stat-label">✅ Придут</div>
+                    <div class="bar">
+                        <div class="bar-fill bar-yes" style="width: {% widthratio stats.yes_count stats.total_count|add:1 100 %}%"></div>
+                    </div>
+                    <div class="stat-count">{{ stats.yes_count }}</div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-label">❌ Не придут</div>
+                    <div class="bar">
+                        <div class="bar-fill bar-no" style="width: {% widthratio stats.no_count stats.total_count|add:1 100 %}%"></div>
+                    </div>
+                    <div class="stat-count">{{ stats.no_count }}</div>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-label">🤔 Возможно</div>
+                    <div class="bar">
+                        <div class="bar-fill bar-maybe" style="width: {% widthratio stats.maybe_count stats.total_count|add:1 100 %}%"></div>
+                    </div>
+                    <div class="stat-count">{{ stats.maybe_count }}</div>
+                </div>
+            </div>
+            <div class="total-votes">Всего ответили: {{ stats.total_count }}</div>
+            <a href="{% url 'events:vote_results' notification_id=notification.id %}" class="btn-stats">Подробная статистика →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
