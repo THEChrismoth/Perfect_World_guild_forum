@@ -1,0 +1,60 @@
+{% extends 'forum_app/base.html' %}
+
+{% block title %}{{ topic.title }} - Forum{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+    <a href="{% url 'forum_detail' topic.forum.id %}" style="color: #35424a; text-decoration: none;">← Back to {{ topic.forum.name }}</a>
+</div>
+
+<div style="background: #f9f9f9; padding: 20px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #e8491d;">
+    <h2 style="margin-bottom: 10px;">
+        {% if topic.is_pinned %}📌 {% endif %}
+        {% if topic.is_closed %}🔒 {% endif %}
+        {{ topic.title }}
+    </h2>
+    <div style="color: #666; font-size: 0.9em; margin-bottom: 15px;">
+        Started by <strong>{{ topic.author.username }}</strong> 
+        on {{ topic.created_at|date:"M d, Y H:i" }} | 
+        {{ topic.posts_count }} posts
+    </div>
+    <div style="background: white; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+        {{ topic.content|linebreaks }}
+    </div>
+</div>
+
+<h3 style="margin-bottom: 15px; border-bottom: 2px solid #e8491d; padding-bottom: 10px;">
+    Posts ({{ topic.posts_count }})
+</h3>
+
+{% for post in posts %}
+<div class="post">
+    <div class="post-header">
+        <span><strong>{{ post.author.username }}</strong></span>
+        <span>{{ post.created_at|date:"M d, Y H:i" }}</span>
+    </div>
+    <div style="padding: 10px 0;">
+        {{ post.content|linebreaks }}
+    </div>
+</div>
+{% empty %}
+<p style="color: #666;">No posts yet. Be the first to reply!</p>
+{% endfor %}
+
+{% if user.is_authenticated and not topic.is_closed %}
+<div style="margin-top: 30px; background: #f9f9f9; padding: 20px; border-radius: 5px;">
+    <h3 style="margin-bottom: 15px;">Reply to Topic</h3>
+    <form method="post" action="{% url 'create_post' topic.id %}">
+        {% csrf_token %}
+        <div class="form-group">
+            <textarea name="content" placeholder="Write your reply..." required></textarea>
+        </div>
+        <button type="submit" class="btn">Post Reply</button>
+    </form>
+</div>
+{% elif topic.is_closed %}
+<p style="color: #666; font-style: italic;">This topic is closed and cannot receive new replies.</p>
+{% else %}
+<p><a href="/admin/login/?next={{ request.path }}">Login</a> to post a reply.</p>
+{% endif %}
+{% endblock %}

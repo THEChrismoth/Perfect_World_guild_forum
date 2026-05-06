@@ -1,0 +1,35 @@
+{% extends 'forum_app/base.html' %}
+
+{% block title %}Home - Forum{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Forum Categories</h2>
+
+{% for category in categories %}
+<div class="category">
+    <h2>{{ category.name }}</h2>
+    {% if category.description %}
+    <p style="padding: 10px; background: #f9f9f9; border-radius: 0 0 5px 5px;">{{ category.description }}</p>
+    {% endif %}
+    <ul class="forum-list" style="background: white; border: 1px solid #ddd; border-radius: 5px;">
+        {% for forum in category.forums.all %}
+        <li>
+            <div>
+                <a href="{% url 'forum_detail' forum.id %}">{{ forum.name }}</a>
+                {% if forum.description %}
+                <p style="color: #666; font-size: 0.9em; margin-top: 5px;">{{ forum.description }}</p>
+                {% endif %}
+            </div>
+            <div style="color: #666; font-size: 0.9em;">
+                {{ forum.topic_count }} topics
+            </div>
+        </li>
+        {% empty %}
+        <li style="color: #666;">No forums in this category yet.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% empty %}
+<p>No categories available. Please add some through the admin panel.</p>
+{% endfor %}
+{% endblock %}

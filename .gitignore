@@ -1,17 +1,55 @@
-# Python-generated files
+```
+# Python
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
 wheels/
-*.egg-info
-.env
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
-.venv
+venv/
+env/
+ENV/
+.venv/
+.env/
 
-# PyCharm files
-.idea/
-
+# Django
+*.log
+local_settings.py
 db.sqlite3
-media/
+db.sqlite3-journal
+
+# Docker
+.dockerenv
+Dockerfile.local
+Dockerfile.prod
+!Dockerfile
+docker-compose.local.yml
+docker-compose.override.yml
+docker-compose.prod.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+```

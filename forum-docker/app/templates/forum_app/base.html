@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Forum{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: #35424a;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+        header h1 {
+            text-align: center;
+        }
+        nav {
+            background: #e8491d;
+            padding: 10px;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: inline-block;
+        }
+        nav a:hover {
+            background: #333;
+        }
+        .content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .category {
+            margin-bottom: 30px;
+        }
+        .category h2 {
+            background: #35424a;
+            color: white;
+            padding: 10px;
+            border-radius: 5px 5px 0 0;
+        }
+        .forum-list {
+            list-style: none;
+        }
+        .forum-list li {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .forum-list li:last-child {
+            border-bottom: none;
+        }
+        .forum-list a {
+            color: #35424a;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .forum-list a:hover {
+            color: #e8491d;
+        }
+        .btn {
+            display: inline-block;
+            background: #e8491d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background: #333;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .form-group textarea {
+            height: 200px;
+            resize: vertical;
+        }
+        .post {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #e8491d;
+        }
+        .post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .topic-list {
+            list-style: none;
+        }
+        .topic-list li {
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+        .topic-list li:last-child {
+            border-bottom: none;
+        }
+        .topic-list a {
+            color: #35424a;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .topic-list a:hover {
+            color: #e8491d;
+        }
+        .topic-meta {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            background: #35424a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>📋 Forum</h1>
+        </div>
+    </header>
+    <nav>
+        <div class="container">
+            <a href="{% url 'index' %}">Home</a>
+            {% if user.is_authenticated %}
+                <span style="color: white; margin-left: 20px;">Welcome, {{ user.username }}</span>
+                <a href="/admin/" style="margin-left: 10px;">Admin</a>
+            {% else %}
+                <a href="/admin/login/" style="margin-left: 20px;">Login</a>
+            {% endif %}
+        </div>
+    </nav>
+    <div class="container">
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2024 Forum. All rights reserved.</p>
+    </footer>
+</body>
+</html>

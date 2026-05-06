@@ -1,0 +1,46 @@
+{% extends 'forum_app/base.html' %}
+
+{% block title %}{{ forum.name }} - Forum{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <h2>{{ forum.name }}</h2>
+        {% if forum.description %}
+        <p style="color: #666;">{{ forum.description }}</p>
+        {% endif %}
+    </div>
+    {% if user.is_authenticated %}
+    <a href="{% url 'create_topic' forum.id %}" class="btn">New Topic</a>
+    {% endif %}
+</div>
+
+<h3 style="margin-bottom: 15px; border-bottom: 2px solid #e8491d; padding-bottom: 10px;">Topics</h3>
+
+<ul class="topic-list" style="background: white; border: 1px solid #ddd; border-radius: 5px;">
+    {% for topic in topics %}
+    <li>
+        <div>
+            {% if topic.is_pinned %}
+            <span style="background: #e8491d; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.8em;">📌 Pinned</span>
+            {% endif %}
+            {% if topic.is_closed %}
+            <span style="background: #666; color: white; padding: 2px 8px; border-radius: 3px; font-size: 0.8em;">🔒 Closed</span>
+            {% endif %}
+            <a href="{% url 'topic_detail' topic.id %}" style="margin-left: 10px;">{{ topic.title }}</a>
+            <div class="topic-meta">
+                Started by <strong>{{ topic.author.username }}</strong> 
+                on {{ topic.created_at|date:"M d, Y H:i" }} | 
+                {{ topic.posts_count }} posts
+            </div>
+        </div>
+    </li>
+    {% empty %}
+    <li style="color: #666;">No topics yet. Be the first to start a discussion!</li>
+    {% endfor %}
+</ul>
+
+<div style="margin-top: 20px;">
+    <a href="{% url 'index' %}" style="color: #35424a; text-decoration: none;">← Back to Home</a>
+</div>
+{% endblock %}
