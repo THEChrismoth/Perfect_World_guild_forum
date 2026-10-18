@@ -82,7 +82,9 @@ class DummyModel(models.Model):
         managed = False
         verbose_name = 'Таблица активности'
         verbose_name_plural = 'Таблица активности'
-        app_label = 'auth'  # Помещаем в раздел "Пользователи и группы"
+        # Модель должна принадлежать нашему приложению: с app_label='auth' makemigrations
+        # создавал миграцию внутри установленного Django (.venv), и она не попадала в репозиторий
+        app_label = 'profiles'
 
 
 # Регистрируем фейковую модель
