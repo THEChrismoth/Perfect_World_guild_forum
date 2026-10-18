@@ -1,0 +1,28 @@
+# Caddy сам получает и продлевает HTTPS-сертификаты Let's Encrypt для доменов из DOMAIN.
+# Для проверки на своем компьютере можно указать DOMAIN=localhost — будет локальный сертификат
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Статика, собранная collectstatic
+	handle_path /static/* {
+		root * /srv/static
+		header Cache-Control "public, max-age=604800"
+		file_server
+	}
+
+	# Загруженные пользователями файлы
+	handle_path /media/* {
+		root * /srv/media
+		header X-Content-Type-Options "nosniff"
+		file_server
+	}
+
+	# Всё остальное — в Django
+	handle {
+		reverse_proxy web:8000
+	}
+
+	request_body {
+		max_size 60MB
+	}
+}

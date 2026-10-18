@@ -1,0 +1,13 @@
+.git
+.gitignore
+.idea
+.venv
+__pycache__
+*.py[oc]
+.env
+.env.*
+!.env.example
+db.sqlite3
+media/
+static/
+docker-compose.yml

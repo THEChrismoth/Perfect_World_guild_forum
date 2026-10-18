@@ -1,0 +1,3 @@
+# Скрипты запускаются в Linux-контейнере: с переносами строк Windows (CRLF) sh их не выполнит
+*.sh text eol=lf
+docker/Caddyfile text eol=lf

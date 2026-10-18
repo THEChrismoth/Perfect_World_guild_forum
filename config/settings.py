@@ -23,7 +23,13 @@ if not SECRET_KEY:
         raise ImproperlyConfigured('Не задана переменная окружения DJANGO_SECRET_KEY')
     SECRET_KEY = 'django-insecure-dev-only-key'
 
-ALLOWED_HOSTS = [host for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host] + ['thechrismoth.ru', 'www.thechrismoth.ru']
+def _env_list(name):
+    """Список из переменной окружения через запятую: 'a.ru, www.a.ru' -> ['a.ru', 'www.a.ru']"""
+    return [item.strip() for item in os.getenv(name, '').split(',') if item.strip()]
+
+
+# Домены сайта. При DEBUG=True и пустом списке Django сам разрешает localhost
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS')
 
 
 # Application definition
@@ -122,7 +128,7 @@ USE_TZ = True
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 # Исходники статики лежат в static_src, collectstatic собирает всё (вместе с admin/jazzmin) в static
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
@@ -147,18 +153,25 @@ SECURE_SSL_REDIRECT = USE_HTTPS
 SESSION_COOKIE_SECURE = USE_HTTPS
 CSRF_COOKIE_SECURE = USE_HTTPS
 
+# За прокси (Caddy) Django проверяет, что формы отправлены с нашего домена.
+# По умолчанию доверяем всем доменам из ALLOWED_HOSTS
+CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS') or [
+    f"{'https' if USE_HTTPS else 'http'}://{host.lstrip('.')}"
+    for host in ALLOWED_HOSTS if host != '*'
+]
+
 # Почта: если EMAIL_HOST не задан, письма печатаются в консоль (удобно для разработки)
 EMAIL_HOST = os.getenv('EMAIL_HOST', '')
 if EMAIL_HOST:
     EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT') or 587)
     EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
     EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
     EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
     EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@thechrismoth.ru')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') or os.getenv('EMAIL_HOST_USER') or 'webmaster@localhost'
 
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
