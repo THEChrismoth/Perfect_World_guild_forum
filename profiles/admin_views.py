@@ -4,8 +4,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
-from django.contrib.admin import AdminSite
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from .models import Profile
 
 @staff_member_required
@@ -54,16 +53,19 @@ def activity_management(request):
     return render(request, 'admin/activity_management.html', context)
 
 @staff_member_required
-@csrf_exempt
+@require_POST
 def update_activity_points(request):
-    """API для обновления очков активности"""
+    """API для обновления очков активности.
+    CSRF-токен передается из JS в заголовке X-CSRFToken."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             profile_id = data.get('profile_id')
             field = data.get('field')
             value = data.get('value')
-            
+            if not isinstance(value, int) or isinstance(value, bool):
+                return JsonResponse({'success': False, 'error': 'Invalid field or value'})
+
             profile = get_object_or_404(Profile, id=profile_id)
             
             if field == 'current':
@@ -122,20 +124,3 @@ def update_activity_points(request):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid method'})
-
-class CustomAdminSite(AdminSite):
-    def get_app_list(self, request):
-        app_list = super().get_app_list(request)
-        # Добавляем кастомный пункт в меню
-        app_list.append({
-            'name': 'Управление гильдией',
-            'app_label': 'guild',
-            'models': [{
-                'name': 'Управление активностью',
-                'object_name': 'ActivityManagement',
-                'admin_url': reverse('admin:activity_management'),
-                'view_only': True,
-                'perms': {'change': True},
-            }]
-        })
-        return app_list

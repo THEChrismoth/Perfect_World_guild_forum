@@ -1,11 +1,36 @@
 from uuslug import uuslug
 from django.db import models
 from django.contrib.auth.models import User, Group
-from django.utils.text import slugify
 from django.utils import timezone
 from datetime import timedelta
-from django.contrib.sessions.models import Session
 from profiles.models import Profile
+
+def _user_group_ids(user):
+    """ID групп пользователя, кешируются на объекте на время запроса"""
+    if not hasattr(user, '_forum_group_ids'):
+        user._forum_group_ids = set(user.groups.values_list('id', flat=True))
+    return user._forum_group_ids
+
+
+def _check_visibility(obj, user):
+    """Общая проверка доступа для категорий и подкатегорий.
+    view_groups читаются через .all(), чтобы работал prefetch_related."""
+    if user.is_superuser:
+        return True
+
+    if obj.require_auth and not user.is_authenticated:
+        return False
+
+    view_group_ids = {group.id for group in obj.view_groups.all()}
+    # Если нет групп с доступом
+    if not view_group_ids:
+        return True
+
+    if not user.is_authenticated:
+        return False
+
+    return bool(view_group_ids & _user_group_ids(user))
+
 
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
@@ -39,24 +64,7 @@ class Category(models.Model):
     
     def is_visible_to_user(self, user):
         """Проверяет, видит ли пользователь эту категорию"""
-        # Суперпользователь видит всё
-        if user.is_superuser:
-            return True
-        
-        # Проверяем require_auth
-        if self.require_auth and not user.is_authenticated:
-            return False
-        
-        # Если нет групп с доступом
-        if not self.view_groups.exists():
-            return True
-        
-        # Проверяем группы
-        if not user.is_authenticated:
-            return False
-        
-        user_groups = user.groups.all()
-        return self.view_groups.filter(id__in=user_groups).exists()
+        return _check_visibility(self, user)
 
 class SubCategory(models.Model):
     title = models.CharField('Название подкатегории', max_length=100)
@@ -126,25 +134,8 @@ class SubCategory(models.Model):
         # Сначала проверяем видимость родительской категории
         if not self.category.is_visible_to_user(user):
             return False
-        
-        # Суперпользователь видит всё
-        if user.is_superuser:
-            return True
-        
-        # Проверяем require_auth
-        if self.require_auth and not user.is_authenticated:
-            return False
-        
-        # Если нет групп с доступом
-        if not self.view_groups.exists():
-            return True
-        
-        # Проверяем группы
-        if not user.is_authenticated:
-            return False
-        
-        user_groups = user.groups.all()
-        return self.view_groups.filter(id__in=user_groups).exists()
+
+        return _check_visibility(self, user)
 
 class Topic(models.Model):
     title = models.CharField('Название темы', max_length=100)
@@ -236,9 +227,6 @@ def get_online_users():
 
 def get_forum_stats():
     """Получить статистику форума"""
-    from .models import Topic, Post
-    from django.contrib.auth.models import User
-    
     topics_count = Topic.objects.count()
     posts_count = Post.objects.count()
     users_count = User.objects.count()

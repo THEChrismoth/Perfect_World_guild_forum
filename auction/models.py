@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
@@ -156,131 +156,135 @@ class AuctionLot(models.Model):
     
     def process_auction_end(self, ended_by_user=None, force_winner_id=None):
         """Обрабатывает завершение аукциона администратором"""
-        if self.status != 'active':
-            return False, "Аукцион уже завершен или отменен"
-        
-        leader = None
-        if force_winner_id:
-            try:
-                leader = self.bids.filter(bidder_id=force_winner_id, is_frozen=True).first()
+        from profiles.models import Profile
+
+        with transaction.atomic():
+            # Перечитываем лот с блокировкой, чтобы аукцион нельзя было
+            # завершить дважды (два админа, двойной клик, cron)
+            lot = AuctionLot.objects.select_for_update().get(pk=self.pk)
+            if lot.status != 'active':
+                return False, "Аукцион уже завершен или отменен"
+
+            leader = None
+            if force_winner_id:
+                leader = lot.bids.filter(bidder_id=force_winner_id, is_frozen=True).first()
                 if not leader:
-                    leader = self.bids.filter(bidder_id=force_winner_id).order_by('-bid_amount').first()
-            except:
-                pass
-        
-        if not leader:
-            leader = self.get_current_leader()
-        
-        if leader:
-            # Победитель
-            leader.is_winner = True
-            leader.status = 'won'
-            leader.is_frozen = False
-            leader.save()
-            
-            # Списываем очки
-            profile = leader.bidder.profile
-            if hasattr(profile, 'spend_points_auction'):
-                profile.spend_points_auction(leader.bid_amount)
-            
-            PointsTransaction.objects.create(
-                user=leader.bidder,
-                lot=self,
-                amount=leader.bid_amount,
-                transaction_type='debit',
-                description=f'Выигрыш в аукционе: {self.name}'
-            )
-            
-            try:
+                    leader = lot.bids.filter(bidder_id=force_winner_id).order_by('-bid_amount').first()
+
+            if not leader:
+                leader = lot.get_current_leader()
+
+            if leader:
+                profile = Profile.objects.select_for_update().get(user=leader.bidder)
+
+                # Снимаем заморозку перед списанием, иначе ставка
+                # не учитывается в доступных очках
+                leader.is_frozen = False
+                leader.save(update_fields=['is_frozen'])
+
+                # Победителем ставка становится только после успешного списания.
+                # Если очков не хватает — откатываем всё, аукцион остается активным
+                if not profile.spend_points_auction(leader.bid_amount):
+                    transaction.set_rollback(True)
+                    return False, (
+                        f'У {leader.bidder.username} недостаточно очков для оплаты ставки '
+                        f'{leader.bid_amount} ⭐. Выберите другого победителя или скорректируйте баланс'
+                    )
+
+                leader.is_winner = True
+                leader.status = 'won'
+                leader.save(update_fields=['is_winner', 'status'])
+
+                PointsTransaction.objects.create(
+                    user=leader.bidder,
+                    lot=lot,
+                    amount=leader.bid_amount,
+                    transaction_type='debit',
+                    description=f'Выигрыш в аукционе: {lot.name}'
+                )
+
                 send_notification(
                     user=leader.bidder,
                     title='🏆 ВЫ ВЫИГРАЛИ АУКЦИОН!',
-                    message=f'Поздравляем! Вы выиграли лот "{self.name}" со ставкой {leader.bid_amount} ⭐\n\nОчки списаны с вашего баланса.',
+                    message=f'Поздравляем! Вы выиграли лот "{lot.name}" со ставкой {leader.bid_amount} ⭐\n\nОчки списаны с вашего баланса.',
                     notification_type='auction_win',
-                    link=reverse('auction:lot_detail', args=[self.slug])
+                    link=reverse('auction:lot_detail', args=[lot.slug])
                 )
-            except:
-                pass
-            
-            # Все остальные замороженные ставки размораживаем
-            other_bids = self.bids.filter(is_frozen=True).exclude(id=leader.id)
-            for bid in other_bids:
-                bid.is_frozen = False
-                bid.status = 'lost'
-                bid.save()
-                
-                PointsTransaction.objects.create(
-                    user=bid.bidder,
-                    lot=self,
-                    amount=bid.bid_amount,
-                    transaction_type='unfreeze',
-                    description=f'Возврат замороженных очков после завершения аукциона: {self.name}'
-                )
-                
-                try:
+
+                # Все остальные замороженные ставки размораживаем
+                other_bids = lot.bids.filter(is_frozen=True).exclude(id=leader.id)
+                for bid in other_bids:
+                    bid.is_frozen = False
+                    bid.status = 'lost'
+                    bid.save()
+
+                    PointsTransaction.objects.create(
+                        user=bid.bidder,
+                        lot=lot,
+                        amount=bid.bid_amount,
+                        transaction_type='unfreeze',
+                        description=f'Возврат замороженных очков после завершения аукциона: {lot.name}'
+                    )
+
                     send_notification(
                         user=bid.bidder,
                         title='❌ Аукцион завершен',
-                        message=f'Аукцион "{self.name}" завершен. Ваша ставка {bid.bid_amount} ⭐ была перебита. Очки разморожены.',
+                        message=f'Аукцион "{lot.name}" завершен. Ваша ставка {bid.bid_amount} ⭐ была перебита. Очки разморожены.',
                         notification_type='auction_lost',
-                        link=reverse('auction:lot_detail', args=[self.slug])
+                        link=reverse('auction:lot_detail', args=[lot.slug])
                     )
-                except:
-                    pass
-        else:
-            try:
+            elif ended_by_user:
                 send_notification(
                     user=ended_by_user,
                     title='ℹ️ Аукцион завершен без победителя',
-                    message=f'Аукцион "{self.name}" завершен. Не было сделано ни одной ставки.',
+                    message=f'Аукцион "{lot.name}" завершен. Не было сделано ни одной ставки.',
                     notification_type='auction_info',
-                    link=reverse('auction:lot_detail', args=[self.slug])
+                    link=reverse('auction:lot_detail', args=[lot.slug])
                 )
-            except:
-                pass
-        
-        self.status = 'ended'
-        self.ended_by = ended_by_user
-        self.ended_at = timezone.now()
-        self.save()
-        
+
+            lot.status = 'ended'
+            lot.ended_by = ended_by_user
+            lot.ended_at = timezone.now()
+            lot.save()
+
+        self.refresh_from_db()
         return True, "Аукцион успешно завершен"
-    
+
     def cancel_auction(self, cancelled_by_user=None):
         """Отмена аукциона с возвратом всех очков"""
-        if self.status != 'active':
-            return False, "Можно отменить только активный аукцион"
-        
-        frozen_bids = self.bids.filter(is_frozen=True)
-        for bid in frozen_bids:
-            bid.is_frozen = False
-            bid.status = 'cancelled'
-            bid.save()
-            
-            PointsTransaction.objects.create(
-                user=bid.bidder,
-                lot=self,
-                amount=bid.bid_amount,
-                transaction_type='unfreeze',
-                description=f'Возврат очков при отмене аукциона: {self.name}'
-            )
-            
-            try:
+        with transaction.atomic():
+            lot = AuctionLot.objects.select_for_update().get(pk=self.pk)
+            if lot.status != 'active':
+                return False, "Можно отменить только активный аукцион"
+
+            frozen_bids = lot.bids.filter(is_frozen=True)
+            for bid in frozen_bids:
+                bid.is_frozen = False
+                bid.status = 'cancelled'
+                bid.save()
+
+                PointsTransaction.objects.create(
+                    user=bid.bidder,
+                    lot=lot,
+                    amount=bid.bid_amount,
+                    transaction_type='unfreeze',
+                    description=f'Возврат очков при отмене аукциона: {lot.name}'
+                )
+
                 send_notification(
                     user=bid.bidder,
                     title='⚠️ Аукцион отменен',
-                    message=f'Аукцион "{self.name}" был отменен администратором. Ваша ставка {bid.bid_amount} ⭐ разморожена.',
+                    message=f'Аукцион "{lot.name}" был отменен администратором. Ваша ставка {bid.bid_amount} ⭐ разморожена.',
                     notification_type='auction_cancelled',
-                    link=reverse('auction:lot_detail', args=[self.slug])
+                    link=reverse('auction:lot_detail', args=[lot.slug])
                 )
-            except:
-                pass
-        
-        self.status = 'cancelled'
-        self.ended_by = cancelled_by_user
-        self.ended_at = timezone.now()
-        self.save()
-        
+
+            lot.status = 'cancelled'
+            lot.ended_by = cancelled_by_user
+            lot.ended_at = timezone.now()
+            lot.save()
+
+        self.refresh_from_db()
         return True, "Аукцион отменен, все очки возвращены"
 
 

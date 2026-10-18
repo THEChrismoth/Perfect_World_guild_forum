@@ -17,7 +17,7 @@
             <h2>🔔 Новые уведомления</h2>
             {% for notification in notifications %}
                 <div class="notification-item">
-                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-message">{{ notification.message|safe }}</div>
                     <div class="notification-date">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
                 </div>
             {% endfor %}

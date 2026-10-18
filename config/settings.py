@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
 
 from pathlib import Path
 
@@ -12,13 +13,17 @@ load_dotenv(BASE_DIR / '.env')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'your-default-secret-key')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',') + ['thechrismoth.ru', 'www.thechrismoth.ru']
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured('Не задана переменная окружения DJANGO_SECRET_KEY')
+    SECRET_KEY = 'django-insecure-dev-only-key'
+
+ALLOWED_HOSTS = [host for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host] + ['thechrismoth.ru', 'www.thechrismoth.ru']
 
 
 # Application definition
@@ -31,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'core',
     'forum',
     'koslist',
     'profiles',
@@ -66,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notifications_context',
+                'core.context_processors.site_settings',
             ],
         },
     },
@@ -84,6 +91,12 @@ DATABASES = {
         conn_health_checks=True,
     )
 }
+
+if DATABASES['default']['ENGINE'] == 'django.db.backends.sqlite3':
+    # Транзакция сразу берет блокировку на запись: параллельные ставки
+    # на аукционе выполняются по очереди, а не перезаписывают друг друга.
+    # В PostgreSQL то же самое обеспечивает select_for_update
+    DATABASES['default'].setdefault('OPTIONS', {})['transaction_mode'] = 'IMMEDIATE'
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -110,10 +123,10 @@ TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 STATIC_URL = 'static/'
+# Исходники статики лежат в static_src, collectstatic собирает всё (вместе с admin/jazzmin) в static
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-# Добавьте в конец файла
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = '/login/'
@@ -122,19 +135,30 @@ LOGIN_URL = '/login/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-#SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-#SECURE_SSL_REDIRECT = True
-#SESSION_COOKIE_SECURE = True
-#CSRF_COOKIE_SECURE = True
+# Ограничения на загрузку файлов
+DATA_UPLOAD_MAX_MEMORY_SIZE = 60 * 1024 * 1024  # общий размер запроса
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # крупнее — пишется во временный файл
 
-#EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-#EMAIL_HOST = 'smtp.gmail.com'  # или ваш SMTP сервер
-#EMAIL_PORT = 587
-#EMAIL_USE_TLS = True
-#EMAIL_HOST_USER = 'your_email@gmail.com'
-#EMAIL_HOST_PASSWORD = 'your_password'  # или пароль приложения
-#DEFAULT_FROM_EMAIL = 'noreply@yoursite.com'
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# HTTPS-настройки включаются переменной USE_HTTPS=True в .env, когда на сервере есть SSL
+USE_HTTPS = os.getenv('USE_HTTPS', 'False') == 'True'
+if USE_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = USE_HTTPS
+SESSION_COOKIE_SECURE = USE_HTTPS
+CSRF_COOKIE_SECURE = USE_HTTPS
+
+# Почта: если EMAIL_HOST не задан, письма печатаются в консоль (удобно для разработки)
+EMAIL_HOST = os.getenv('EMAIL_HOST', '')
+if EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
+    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@thechrismoth.ru')
 
 RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
 RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')

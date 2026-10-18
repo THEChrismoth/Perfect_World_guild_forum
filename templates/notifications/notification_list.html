@@ -10,7 +10,10 @@
     <div class="notifications-header">
         <h1>🔔 Все уведомления</h1>
         {% if notifications %}
-            <a href="{% url 'notifications:mark_all_as_read' %}" class="mark-all-btn">Все прочитаны</a>
+            <form method="post" action="{% url 'notifications:mark_all_as_read' %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="mark-all-btn" style="cursor: pointer; font: inherit;">Все прочитаны</button>
+            </form>
         {% endif %}
     </div>
 
@@ -24,9 +27,11 @@
                         <div class="notification-message-page">{{ notification.message|safe }}</div>
                         <div class="notification-time-page">{{ notification.created_at|date:"d.m.Y H:i:s" }}</div>
                     </div>
-                    <a href="{% url 'notifications:delete_notification' notification.id %}"
-                       class="notification-delete"
-                       onclick="return confirm('Удалить уведомление?')">🗑️</a>
+                    <form method="post" action="{% url 'notifications:delete_notification' notification.id %}"
+                          onsubmit="return confirm('Удалить уведомление?')" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="notification-delete" style="background: none; border: none; cursor: pointer;">🗑️</button>
+                    </form>
                 </div>
             {% endfor %}
         {% else %}

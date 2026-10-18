@@ -108,20 +108,6 @@ class Profile(models.Model):
         
         return self.activity_points - frozen_amount
 
-    def can_place_bid(self, bid_amount, lot=None):
-        """Проверяет, может ли пользователь сделать ставку"""
-        available = self.get_available_points()
-        if available < bid_amount:
-            return False, f'Недостаточно доступных очков. Доступно: {available} ⭐ (Всего: {self.activity_points} ⭐, Заморожено: {self.activity_points - available} ⭐)'
-        
-        # Если указан лот, проверяем что пользователь не имеет активной ставки на этот лот
-        if lot:
-            has_active_bid = lot.bids.filter(bidder=self.user, status__in=['active', 'frozen']).exists()
-            if has_active_bid:
-                return False, 'Вы уже сделали ставку на этот лот'
-        
-        return True, ''
-
     def spend_points_auction(self, amount):
         """Списание очков для аукциона (только доступных, не замороженных)"""
         if amount <= 0:
@@ -183,9 +169,3 @@ def create_user_profile(sender, instance, created, **kwargs):
     """Создает профиль только когда пользователь создается"""
     if created:
         Profile.objects.create(user=instance)
-
-@receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
-    """Сохраняет профиль, только если он существует"""
-    if hasattr(instance, 'profile'):  # Проверяем наличие профиля
-        instance.profile.save()

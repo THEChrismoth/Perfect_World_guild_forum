@@ -1,5 +1,5 @@
 from django.contrib import admin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from .models import Application, ApplicationVote
@@ -59,17 +59,31 @@ class ApplicationAdmin(admin.ModelAdmin):
             return mark_safe('<span style="color: #888;">Нет голосов</span>')
 
         stats = obj.get_vote_stats()
-        html = f'<div style="background:#f8f9fa;padding:10px;margin-bottom:10px;border-radius:5px;"><h4 style="margin:0 0 10px 0;">Статистика:</h4>✅ За: {stats["for"]} | ❌ Против: {stats["against"]} | ⚪ Воздержались: {stats["abstain"]}</div>'
-        html += '<table style="width:100%; border-collapse: collapse;">'
-        html += '<tr style="background: #e9ecef;"><th style="padding: 8px; text-align: left;">Пользователь</th><th style="padding: 8px; text-align: left;">Голос</th><th style="padding: 8px; text-align: left;">Комментарий</th><th style="padding: 8px; text-align: left;">Дата</th><tr>'
-
-        for vote in votes:
-            color = '#28a745' if vote.vote == 'for' else '#dc3545' if vote.vote == 'against' else '#ffc107'
-            vote_display = dict(ApplicationVote.VOTE_CHOICES).get(vote.vote, vote.vote)
-            html += f'<tr style="border-bottom: 1px solid #dee2e6;"><td style="padding: 8px;">{vote.voter.username}</td><td style="padding: 8px; color:{color};"><strong>{vote_display}</strong></td><td style="padding: 8px;">{vote.comment or "-"}</td><td style="padding: 8px;">{vote.created_at.strftime("%d.%m.%Y %H:%M")}</td></tr>'
-
-        html += '</table>'
-        return mark_safe(html)
+        header = format_html(
+            '<div style="background:#f8f9fa;padding:10px;margin-bottom:10px;border-radius:5px;"><h4 style="margin:0 0 10px 0;">Статистика:</h4>✅ За: {} | ❌ Против: {} | ⚪ Воздержались: {}</div>',
+            stats['for'], stats['against'], stats['abstain']
+        )
+        # format_html_join экранирует имя и комментарий — их пишут пользователи
+        rows = format_html_join(
+            '',
+            '<tr style="border-bottom: 1px solid #dee2e6;"><td style="padding: 8px;">{}</td><td style="padding: 8px; color:{};"><strong>{}</strong></td><td style="padding: 8px;">{}</td><td style="padding: 8px;">{}</td></tr>',
+            (
+                (
+                    vote.voter.username,
+                    '#28a745' if vote.vote == 'for' else '#dc3545' if vote.vote == 'against' else '#ffc107',
+                    vote.get_vote_display(),
+                    vote.comment or '-',
+                    vote.created_at.strftime('%d.%m.%Y %H:%M'),
+                )
+                for vote in votes
+            )
+        )
+        return format_html(
+            '{}<table style="width:100%; border-collapse: collapse;">'
+            '<tr style="background: #e9ecef;"><th style="padding: 8px; text-align: left;">Пользователь</th><th style="padding: 8px; text-align: left;">Голос</th><th style="padding: 8px; text-align: left;">Комментарий</th><th style="padding: 8px; text-align: left;">Дата</th></tr>'
+            '{}</table>',
+            header, rows
+        )
 
     votes_detail.short_description = 'Голоса (с именами)'
 

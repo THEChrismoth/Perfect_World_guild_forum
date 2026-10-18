@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="auction-container">
+    <div class="auction-header">
+        <h1>🎯 Мои ставки</h1>
+        <div class="auction-stats">
+            <div class="stat-card">
+                <span class="stat-value">{{ frozen_bids|length }}</span>
+                <span class="stat-label">Лидирую</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ won_bids|length }}</span>
+                <span class="stat-label">Выиграно</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-value">{{ lost_total }}</span>
+                <span class="stat-label">Перебито / проиграно</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auction-content">
+        <div class="ended-lots-section">
+            <h2>🔒 Лидирую (очки заморожены)</h2>
+            <div class="ended-lots-list">
+                {% for bid in frozen_bids %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ bid.lot.name }}</strong>
+                            <span>Ставка: {{ bid.bid_amount }} ⭐</span>
+                            <span>Окончание: {{ bid.lot.end_date|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=bid.lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% empty %}
+                    <div class="no-lots">Нет лидирующих ставок</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="ended-lots-section">
+            <h2>🏆 Выигранные лоты</h2>
+            <div class="ended-lots-list">
+                {% for bid in won_bids %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ bid.lot.name }}</strong>
+                            <span>Ставка: {{ bid.bid_amount }} ⭐</span>
+                            <span>Завершен: {{ bid.lot.end_date|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=bid.lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% empty %}
+                    <div class="no-lots">Пока нет выигранных лотов</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="ended-lots-section">
+            <h2>↩️ Перебитые и проигранные ставки</h2>
+            <div class="ended-lots-list">
+                {% for bid in outbid_bids %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ bid.lot.name }}</strong>
+                            <span>Ставка: {{ bid.bid_amount }} ⭐ — перебита</span>
+                            <span>{{ bid.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=bid.lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% endfor %}
+                {% for bid in lost_bids %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ bid.lot.name }}</strong>
+                            <span>Ставка: {{ bid.bid_amount }} ⭐ — проиграна</span>
+                            <span>{{ bid.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=bid.lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% endfor %}
+                {% if not outbid_bids and not lost_bids %}
+                    <div class="no-lots">Нет перебитых ставок</div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if active_bids %}
+        <div class="ended-lots-section">
+            <h2>Прочие активные ставки</h2>
+            <div class="ended-lots-list">
+                {% for bid in active_bids %}
+                    <div class="ended-lot-item">
+                        <div class="ended-lot-info">
+                            <strong>{{ bid.lot.name }}</strong>
+                            <span>Ставка: {{ bid.bid_amount }} ⭐</span>
+                        </div>
+                        <a href="{% url 'auction:lot_detail' slug=bid.lot.slug %}" class="btn-view">Посмотреть</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <a href="{% url 'auction:auction_index' %}" class="btn-view">← К аукциону</a>
+    </div>
+</div>
+{% endblock %}

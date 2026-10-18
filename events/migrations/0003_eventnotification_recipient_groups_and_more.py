@@ -6,7 +6,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth', '0013_dummymodel'),
+        # Нужна только таблица групп. Раньше здесь была ссылка на auth.0013_dummymodel —
+        # миграцию, которая создавалась внутри установленного Django (.venv) и не попадала в репозиторий
+        ('auth', '0012_alter_user_first_name_max_length'),
         ('events', '0002_alter_eventtype_slug'),
     ]
 

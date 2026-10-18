@@ -21,11 +21,6 @@ def send_verification_email(user, request):
         reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
     )
 
-    print("\n" + "🔗" * 35)
-    print("ССЫЛКА ДЛЯ ПОДТВЕРЖДЕНИЯ РЕГИСТРАЦИИ:")
-    print(verification_url)
-    print("🔗" * 35 + "\n")
-
     # Отправка письма
     subject = 'Подтверждение регистрации'
     message = f'''
@@ -73,7 +68,6 @@ def verify_email(request, uidb64, token):
             messages.error(request, 'Ссылка подтверждения недействительна или истекла.')
             return redirect('register')
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
         messages.error(request, 'Ошибка подтверждения email.')
         return redirect('register')
 
@@ -85,12 +79,12 @@ def profile_view(request, username):
     
     # Проверяем, состоит ли пользователь в группе "Член гильдии"
     is_guild_member = user.groups.filter(name='Член гильдии').exists()
-    
+
     context = {
         'profile_user': user,
         'profile': profile,
         'is_owner': is_owner,
-        'is_guild_member': is_guild_member,  # Добавляем эту переменную
+        'is_guild_member': is_guild_member,
     }
     return render(request, 'profiles/profile_view.html', context)
 

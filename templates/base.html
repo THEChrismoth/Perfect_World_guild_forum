@@ -2,16 +2,20 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Ermitage</title>
+    <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    {% if site_settings.favicon %}
+        <link rel="icon" href="{{ site_settings.favicon.url }}">
+    {% else %}
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    {% endif %}
     {% block extra_css %}{% endblock %}
 </head>
 <body>
     <header>
         <div class="container">
             <div class="header-left">
-                <h1><a href="/">Ermitage</a></h1>
+                <h1><a href="/">{{ site_settings.site_name }}</a></h1>
                 <div class="nav-divider"></div>
                 <nav>
                     <a href="/">Главная</a>
@@ -36,18 +40,21 @@
                                 <div class="notifications-header">
                                     <span>Уведомления</span>
                                     {% if unread_notifications_count > 0 %}
-                                        <a href="{% url 'notifications:mark_all_as_read_dropdown' %}" class="mark-all-read">Все прочитаны</a>
+                                        <form method="post" action="{% url 'notifications:mark_all_as_read_dropdown' %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="mark-all-read" style="background: none; border: none; padding: 0; cursor: pointer; font: inherit;">Все прочитаны</button>
+                                        </form>
                                     {% endif %}
                                 </div>
                                 <div class="notifications-list">
                                     {% if notifications %}
                                         {% for notification in notifications %}
-                                            <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/' }}"
+                                            <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/'|urlencode }}"
                                                 class="notification-item {% if not notification.is_read %}unread{% endif %} type-{{ notification.notification_type }}">
                                                 <div class="notification-icon">{{ notification.get_icon }}</div>
                                                 <div class="notification-content">
                                                     <div class="notification-title">{{ notification.title }}</div>
-                                                    <div class="notification-message">{{ notification.message|striptags|truncatechars:80 }}</div>
+                                                    <div class="notification-message">{{ notification.message|safe|striptags|truncatechars:80 }}</div>
                                                     <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
                                                 </div>
                                             </a>

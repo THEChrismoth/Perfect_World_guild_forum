@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="subcategory-forum-container">
+    <div class="subcategory-header">
+        <h1 class="subcategory-title-main">Удаление темы</h1>
+    </div>
+
+    <div class="topics-block">
+        <div class="topics-container">
+            <form method="post" class="topic-form">
+                {% csrf_token %}
+                <p>Вы действительно хотите удалить тему «{{ topic.title }}» вместе со всеми сообщениями? Это действие нельзя отменить.</p>
+
+                <div class="form-buttons">
+                    <button type="submit" class="btn-create-topic">Удалить</button>
+                    <a href="{% url 'topic_detail' slug=topic.slug %}" class="btn-cancel">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

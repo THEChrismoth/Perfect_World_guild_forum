@@ -1,7 +1,21 @@
 from .models import Notification
 from django.contrib.auth.models import User, Group
 from django.db import models
+from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
+
+
+def build_message_html(message, link=None):
+    """Готовит HTML уведомления: текст экранируется (в нем бывают имена,
+    причины отказа, названия лотов), переносы строк превращаются в <br>,
+    при наличии ссылки добавляется кнопка"""
+    message_html = escape(message).replace('\n', '<br>')
+
+    # Добавляем кнопку, если есть ссылка (без текстовой ссылки)
+    if link:
+        message_html += format_html('<br><br><a href="{}" class="btn-vote-notify">🗳️ Проголосовать</a>', link)
+
+    return mark_safe(message_html)
 
 
 def send_notification(user, title, message, notification_type='info', link=None):
@@ -27,17 +41,10 @@ def send_notification(user, title, message, notification_type='info', link=None)
         except User.DoesNotExist:
             return None
 
-    # Преобразуем переносы строк в HTML
-    message_html = message.replace('\n', '<br>')
-    
-    # Добавляем кнопку, если есть ссылка (без текстовой ссылки)
-    if link:
-        message_html = f'{message_html}<br><br><a href="{link}" class="btn-vote-notify">🗳️ Проголосовать</a>'
-
     notification = Notification.objects.create(
         user=user,
         title=title,
-        message=mark_safe(message_html),
+        message=build_message_html(message, link),
         notification_type=notification_type,
         link=link
     )
@@ -50,16 +57,13 @@ def send_notification_to_group(group_name, title, message, notification_type='in
         group = Group.objects.get(name=group_name)
         users = group.user_set.all()
         notifications = []
-        
-        message_html = message.replace('\n', '<br>')
-        if link:
-            message_html = f'{message_html}<br><br><a href="{link}" class="btn-vote-notify">🗳️ Проголосовать</a>'
+        message_html = build_message_html(message, link)
         
         for user in users:
             notifications.append(Notification(
                 user=user,
                 title=title,
-                message=mark_safe(message_html),
+                message=message_html,
                 notification_type=notification_type,
                 link=link
             ))
@@ -73,16 +77,13 @@ def send_notification_to_all(title, message, notification_type='info', link=None
     """Отправить уведомление всем пользователям"""
     users = User.objects.all()
     notifications = []
-    
-    message_html = message.replace('\n', '<br>')
-    if link:
-        message_html = f'{message_html}<br><br><a href="{link}" class="btn-vote-notify">🗳️ Проголосовать</a>'
+    message_html = build_message_html(message, link)
     
     for user in users:
         notifications.append(Notification(
             user=user,
             title=title,
-            message=mark_safe(message_html),
+            message=message_html,
             notification_type=notification_type,
             link=link
         ))
@@ -94,16 +95,13 @@ def send_notification_to_admins(title, message, notification_type='info', link=N
     """Отправить уведомление всем администраторам"""
     admins = User.objects.filter(is_superuser=True)
     notifications = []
-    
-    message_html = message.replace('\n', '<br>')
-    if link:
-        message_html = f'{message_html}<br><br><a href="{link}" class="btn-vote-notify">🗳️ Проголосовать</a>'
+    message_html = build_message_html(message, link)
     
     for admin in admins:
         notifications.append(Notification(
             user=admin,
             title=title,
-            message=mark_safe(message_html),
+            message=message_html,
             notification_type=notification_type,
             link=link
         ))
