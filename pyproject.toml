@@ -1,7 +1,7 @@
 [project]
-name = "forum"
+name = "perfect-world-guild-forum"
 version = "0.1.0"
-description = "Add your description here"
+description = "Сайт гильдии Perfect World: форум, приём заявок, аукцион, ивенты и кос-лист"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

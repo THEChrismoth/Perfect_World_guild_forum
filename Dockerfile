@@ -11,7 +11,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY . .
+# Структура как в репозитории: код в /app/src, данные (static, media) в /app
+COPY docker/ docker/
+COPY src/ src/
 
 # Работаем не от root. Папки static и media создаем заранее с нужным владельцем —
 # Docker скопирует эти права в тома при первом запуске
@@ -20,6 +22,8 @@ RUN useradd --create-home --uid 1000 app \
     && chown -R app:app /app \
     && chmod +x /app/docker/entrypoint.sh
 USER app
+
+WORKDIR /app/src
 
 EXPOSE 8000
 

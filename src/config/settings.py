@@ -5,9 +5,11 @@ from django.core.exceptions import ImproperlyConfigured
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# BASE_DIR — папка src с кодом сайта (приложения, шаблоны, исходники статики).
+# ROOT_DIR — корень репозитория: там лежат .env и данные (db.sqlite3, media, собранная статика)
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / '.env')
+ROOT_DIR = BASE_DIR.parent
+load_dotenv(ROOT_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -92,7 +94,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
+        default='sqlite:///' + os.path.join(ROOT_DIR, 'db.sqlite3'),
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -131,7 +133,7 @@ USE_I18N = True
 STATIC_URL = '/static/'
 # Исходники статики лежат в static_src, collectstatic собирает всё (вместе с admin/jazzmin) в static
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(ROOT_DIR, 'static')
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -139,7 +141,7 @@ LOGIN_URL = '/login/'
 
 # Для загрузки файлов (аватаров)
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(ROOT_DIR, 'media')
 
 # Ограничения на загрузку файлов
 DATA_UPLOAD_MAX_MEMORY_SIZE = 60 * 1024 * 1024  # общий размер запроса
