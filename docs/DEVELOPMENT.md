@@ -18,6 +18,7 @@ Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально),
 │   ├── events/           ивенты, отряды, приглашения
 │   ├── koslist/          кос-лист
 │   ├── notifications/    уведомления
+│   ├── backups/          резервные копии (сервер + Яндекс Диск)
 │   ├── templates/
 │   └── static_src/       исходники статики (CSS, иконки)
 ├── docker/               Caddyfile и entrypoint.sh
@@ -113,4 +114,17 @@ docker compose cp ./media/. web:/app/media/
 | `Dockerfile` | Образ сайта (Django + gunicorn). Внутри та же структура: код в `/app/src`, данные в `/app/static` и `/app/media` |
 | `docker/entrypoint.sh` | Миграции, `collectstatic` и создание администратора при старте |
 | `docker/Caddyfile` | HTTPS, раздача `/static` и `/media`, проксирование в Django |
-| `docker-compose.yml` | Сервисы `db`, `web`, `caddy` и тома с данными |
+| `docker-compose.yml` | Сервисы `db`, `web`, `scheduler` (резервные копии), `caddy` и тома с данными |
+
+## Резервные копии
+
+Приложение `backups`. Копии создает только контейнер `scheduler` (`manage.py run_backup_scheduler`): раз в 30 секунд он проверяет расписание и очередь. Кнопка в админке лишь ставит копию в очередь — так копирование не блокирует gunicorn и не запускается в нескольких процессах сразу. Без Docker планировщик можно запустить той же командой или делать копии через `manage.py backup_now`.
+
+Архив `backup-ГГГГММДД-ЧЧММСС.tar.gz`: `manifest.json`, дамп базы (`pg_dump --format=custom` для PostgreSQL, копия файла для SQLite) и `media/`. Копии лежат в `BACKUP_DIR` (по умолчанию `backups/` в корне репозитория, в Docker — том `backups`), с правами `600`. Клиент Яндекс Диска (`backups/yandex.py`) написан на стандартной библиотеке.
+
+**Шифрование** (`backups/crypto.py`):
+
+- При заданном `BACKUP_ENCRYPTION_PASSWORD` архив шифруется `gpg --symmetric` (AES-256, S2K SHA-512) в `.tar.gz.gpg`. Открытый архив собирается во временной папке и в `BACKUP_DIR` не попадает. Стандартный формат выбран намеренно: копию можно открыть без сайта.
+- Незашифрованные копии на Яндекс Диск не загружаются (проверка и в форме настроек, и в `run_backup`).
+- Токен Яндекса хранится в поле `yandex_token` как `fernet:...` (ключ — HKDF от `SECRET_KEY`). Читать только через `BackupSettings.get_yandex_token()`; `save()` сам шифрует открытое значение.
+- Тесты подменяют gpg; проверка с настоящим gpg (`RealGpgTests`) пропускается, если он не работает. gpg из Git для Windows для этого не подходит (не запускается gpg-agent), поэтому полный прогон — в контейнере: `docker compose exec web python manage.py test backups`. Путь к другому gpg можно задать в `BACKUP_GPG_BINARY`.

@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'reception',
     'notifications',
     'events',
+    'backups',
 ]
 
 MIDDLEWARE = [
@@ -92,6 +93,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# База берется из переменной окружения DATABASE_URL:
+# - в Docker ее задает docker-compose.yml — сайт работает на PostgreSQL (контейнер db);
+# - без Docker (runserver для разработки) переменной нет — используется SQLite db.sqlite3 в корне репозитория.
+# Строка default ниже — только этот запасной вариант для разработки
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///' + os.path.join(ROOT_DIR, 'db.sqlite3'),
@@ -142,6 +147,13 @@ LOGIN_URL = '/login/'
 # Для загрузки файлов (аватаров)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(ROOT_DIR, 'media')
+
+# Резервные копии на сервере (настройки расписания и Яндекс Диска — в админ-панели)
+BACKUP_DIR = os.getenv('BACKUP_DIR') or os.path.join(ROOT_DIR, 'backups')
+# Пароль шифрования копий (GPG, AES-256). Намеренно только в .env, не в базе
+BACKUP_ENCRYPTION_PASSWORD = os.getenv('BACKUP_ENCRYPTION_PASSWORD', '')
+# Путь к gpg, если его нет в PATH (например, gpg из Git для Windows)
+BACKUP_GPG_BINARY = os.getenv('BACKUP_GPG_BINARY', '')
 
 # Ограничения на загрузку файлов
 DATA_UPLOAD_MAX_MEMORY_SIZE = 60 * 1024 * 1024  # общий размер запроса

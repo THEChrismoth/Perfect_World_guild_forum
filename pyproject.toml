@@ -5,6 +5,7 @@ description = "Сайт гильдии Perfect World: форум, приём з�
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "cryptography>=50.0.2",
     "dj-database-url>=3.1.2",
     "django>=6.0.4",
     "django-jazzmin>=3.0.4",

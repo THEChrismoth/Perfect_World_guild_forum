@@ -2,6 +2,10 @@
 #    uv export --no-dev --no-hashes --output-file requirements.txt
 asgiref==3.11.1
     # via django
+cffi==2.1.1 ; platform_python_implementation != 'PyPy'
+    # via cryptography
+cryptography==50.0.2
+    # via perfect-world-guild-forum
 dj-database-url==3.1.2
     # via perfect-world-guild-forum
 django==6.0.4
@@ -34,6 +38,8 @@ psycopg==3.3.6
     # via perfect-world-guild-forum
 psycopg-binary==3.3.6 ; implementation_name != 'pypy'
     # via psycopg
+pycparser==3.11 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+    # via cffi
 python-dotenv==1.2.2
     # via perfect-world-guild-forum
 python-slugify==8.0.4

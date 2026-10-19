@@ -1,3 +1,11 @@
+# Общие настройки для контейнеров с Django (web и scheduler)
+x-django-env: &django-env
+  DEBUG: "False"
+  USE_HTTPS: "True"
+  ALLOWED_HOSTS: ${DOMAIN:?Укажите DOMAIN в .env}
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Укажите DJANGO_SECRET_KEY в .env}
+  DATABASE_URL: postgres://${POSTGRES_USER:-forum}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-forum}
+
 services:
   db:
     image: postgres:17-alpine
@@ -19,17 +27,34 @@ services:
     restart: unless-stopped
     env_file: .env
     environment:
-      DEBUG: "False"
-      USE_HTTPS: "True"
-      ALLOWED_HOSTS: ${DOMAIN:?Укажите DOMAIN в .env}
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Укажите DJANGO_SECRET_KEY в .env}
-      DATABASE_URL: postgres://${POSTGRES_USER:-forum}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-forum}
+      <<: *django-env
     volumes:
       - static:/app/static
       - media:/app/media
+      - backups:/app/backups
     depends_on:
       db:
         condition: service_healthy
+
+  # Резервные копии по расписанию и по кнопке из админ-панели
+  scheduler:
+    build: .
+    restart: unless-stopped
+    init: true
+    env_file: .env
+    environment:
+      <<: *django-env
+      # Миграции и статику готовит контейнер web
+      SKIP_SETUP: "1"
+    command: python manage.py run_backup_scheduler
+    volumes:
+      - media:/app/media
+      - backups:/app/backups
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
 
   caddy:
     image: caddy:2-alpine
@@ -53,5 +78,6 @@ volumes:
   postgres_data:
   static:
   media:
+  backups:
   caddy_data:
   caddy_config:

@@ -2,6 +2,11 @@
 # Подготовка контейнера web перед запуском gunicorn
 set -e
 
+# Вспомогательные контейнеры (scheduler) запускают команду сразу — подготовкой занимается web
+if [ -n "$SKIP_SETUP" ]; then
+    exec "$@"
+fi
+
 echo "Применяю миграции..."
 python manage.py migrate --noinput
 

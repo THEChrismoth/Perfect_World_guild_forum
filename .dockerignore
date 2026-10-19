@@ -10,5 +10,6 @@
 db.sqlite3
 media/
 static/
+backups/
 docs/
 docker-compose.yml
