@@ -7,7 +7,7 @@
 }
 
 .success-card {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 15px;
     padding: 40px;
     max-width: 500px;
@@ -22,13 +22,13 @@
 }
 
 .success-card h1 {
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 15px;
     font-size: 28px;
 }
 
 .success-card p {
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 25px;
     line-height: 1.6;
 }
@@ -50,7 +50,7 @@
 .info-box ul {
     margin: 0;
     padding-left: 20px;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .info-box li {
@@ -72,13 +72,13 @@
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(253,72,182,0.4);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.4);
 }
 
 .btn-secondary {

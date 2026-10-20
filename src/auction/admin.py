@@ -144,6 +144,8 @@ class AuctionLotAdmin(admin.ModelAdmin):
                 self.message_user(request, 'Пожалуйста, выберите победителя', level=messages.ERROR)
         
         context = {
+            # Шапка, меню и название сайта как на остальных страницах админки
+            **self.admin_site.each_context(request),
             'title': f'Завершение аукциона: {lot.name}',
             'lot': lot,
             'frozen_bids': frozen_bids,
@@ -174,6 +176,8 @@ class AuctionLotAdmin(admin.ModelAdmin):
                 self.message_user(request, message, level=messages.ERROR)
         
         context = {
+            # Шапка, меню и название сайта как на остальных страницах админки
+            **self.admin_site.each_context(request),
             'title': f'Отмена аукциона: {lot.name}',
             'lot': lot,
             'active_bids': lot.bids.filter(is_frozen=True),

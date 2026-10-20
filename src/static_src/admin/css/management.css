@@ -1,9 +1,6 @@
-/* static_src/admin/css/management.css */
-/* Общие стили */
-#content {
-    margin: 0 !important;
-    padding: 15px !important;
-}
+/* Таблица активности (templates/admin/activity_management.html).
+   Цвета — переменные темы админки (admin/css/guild_theme.css), поэтому страница
+   выглядит одинаково аккуратно в светлой и тёмной теме. */
 
 .activity-container {
     padding: 0;
@@ -13,34 +10,35 @@
 
 /* Шапка */
 .table-header {
-    background: linear-gradient(135deg, #417690 0%, #2a5a6e 100%);
-    color: white;
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: var(--ga-header-bg);
+    color: #ffffff;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    border-radius: 16px;
+    box-shadow: var(--ga-card-shadow);
 }
 
 .table-header h1 {
     margin: 0;
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 700;
+    color: #ffffff !important;
 }
 
 /* Секции классов */
 .class-section {
-    margin-bottom: 25px;
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid #e3e3e3;
+    margin-bottom: 18px;
+    background: var(--ga-card-bg);
+    border-radius: 14px;
+    border: 1px solid var(--hairline-color);
     overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: var(--ga-card-shadow);
 }
 
 .class-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%);
+    background: var(--darkened-bg);
     padding: 12px 20px;
-    border-bottom: 2px solid #417690;
+    border-bottom: 2px solid var(--ga-accent);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -53,19 +51,22 @@
 }
 
 .class-title {
-    font-size: 20px;
-    font-weight: bold;
+    font-size: 18px;
+    font-weight: 700;
     margin: 0;
-    color: #333;
+    color: var(--body-loud-color);
+    background: none !important;
+    padding: 0 !important;
+    border: none !important;
 }
 
 .member-count {
-    font-size: 13px;
-    color: #666;
-    background: #fff;
-    padding: 2px 8px;
-    border-radius: 12px;
-    margin-left: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--link-fg);
+    background: var(--ga-soft);
+    padding: 3px 10px;
+    border-radius: 999px;
 }
 
 /* Таблица */
@@ -76,26 +77,21 @@
 }
 
 .members-table th {
-    background: #f8f9fa;
     padding: 12px 15px;
     text-align: left;
-    font-weight: 600;
-    border-bottom: 1px solid #dee2e6;
-    font-size: 13px;
-    color: #495057;
 }
 
 .members-table td {
     padding: 12px 15px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--hairline-color);
     vertical-align: middle;
 }
 
-.members-table tr:hover {
-    background: #f8f9fa;
+.members-table tbody tr:hover {
+    background: var(--ga-soft);
 }
 
-/* Поля ввода */
+/* Поля ввода очков */
 .points-control {
     display: flex;
     align-items: center;
@@ -104,18 +100,8 @@
 
 .points-input {
     width: 100px;
-    padding: 6px 10px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
     text-align: center;
     font-size: 14px;
-    transition: all 0.2s;
-}
-
-.points-input:focus {
-    outline: none;
-    border-color: #417690;
-    box-shadow: 0 0 0 2px rgba(65,118,144,0.1);
 }
 
 .points-buttons {
@@ -125,20 +111,22 @@
 }
 
 .points-btn {
-    background: #fff;
-    border: 1px solid #ced4da;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    border: 1px solid var(--border-color);
     padding: 2px 8px;
     cursor: pointer;
     font-size: 11px;
-    border-radius: 3px;
-    transition: all 0.2s;
+    border-radius: 5px;
+    transition: all 0.15s;
     line-height: 1;
     font-weight: bold;
 }
 
 .points-btn:hover {
-    background: #e9ecef;
-    border-color: #adb5bd;
+    background: var(--ga-soft);
+    border-color: var(--ga-accent);
+    color: var(--link-fg);
 }
 
 .points-btn:active {
@@ -148,32 +136,32 @@
 .save-indicator {
     font-size: 12px;
     margin-left: 8px;
-    color: #28a745;
+    color: var(--ga-success);
     display: none;
     font-weight: bold;
 }
 
-/* Цвета для полей */
+/* Цвета колонок: начислено / потрачено / текущие */
 .earned-points .points-input {
-    border-left: 3px solid #007bff;
+    border-left: 3px solid var(--ga-info);
     font-weight: 600;
-    color: #007bff;
+    color: var(--ga-info);
 }
 
 .spent-points .points-input {
-    border-left: 3px solid #dc3545;
-    color: #dc3545;
+    border-left: 3px solid var(--ga-danger);
+    color: var(--ga-danger);
 }
 
 .current-points .points-input {
-    border-left: 3px solid #28a745;
+    border-left: 3px solid var(--ga-success);
     font-weight: 600;
-    color: #28a745;
+    color: var(--ga-success);
 }
 
 /* Ссылки */
 .username-link {
-    color: #0066cc;
+    color: var(--link-fg);
     text-decoration: none;
     font-weight: 600;
     font-size: 14px;
@@ -183,35 +171,27 @@
     text-decoration: underline;
 }
 
-/* Анимация обновления */
+/* Подсветка строки после сохранения */
 @keyframes flash {
     0%, 100% { background-color: transparent; }
-    50% { background-color: #d4edda; }
+    50% { background-color: rgba(22, 163, 74, 0.18); }
 }
 
 .updated {
     animation: flash 0.5s ease;
 }
 
-/* Алерты */
+/* Предупреждение (нет группы или участников) */
 .alert {
-    padding: 15px 20px;
-    background: #f8d7da;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-    color: #721c24;
+    padding: 14px 18px;
+    background: var(--message-warning-bg);
+    border: 1px solid var(--hairline-color);
+    border-left: 4px solid var(--ga-warning);
+    border-radius: 12px;
+    color: var(--body-fg);
     font-size: 14px;
 }
 
-/* Хлебные крошки */
-.breadcrumbs {
-    padding: 8px 15px !important;
-    font-size: 12px !important;
-    background: #f8f9fa !important;
-    border-bottom: 1px solid #e3e3e3 !important;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
     .points-control {
         flex-wrap: wrap;

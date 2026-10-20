@@ -21,8 +21,9 @@ def application_form(request):
         return redirect('/')
 
     if not request.user.profile.player_class:
-        messages.error(request, 'Сначала заполните профиль и выберите класс персонажа')
-        return redirect('/profile/edit/')
+        messages.error(request, 'Перед подачей заявки заполните профиль: выберите класс персонажа и укажите характеристики. '
+                                'Личные данные и характеристики попадут в заявку автоматически.')
+        return redirect('profile_edit')
 
     existing = Application.objects.filter(
         user=request.user,
@@ -53,8 +54,6 @@ def application_form(request):
             return redirect('reception:application_success')
     else:
         form = ApplicationForm(user=request.user)
-        if request.user.profile.age():
-            form.fields['age'].initial = request.user.profile.age()
 
     return render(request, 'reception/application_form.html', {'form': form, 'profile': request.user.profile})
 

@@ -1,21 +1,40 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from django_recaptcha.fields import ReCaptchaField
+from core.captcha import TOKEN_FIELD, verify_captcha
+from core.models import SiteSettings
 from .models import Profile
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
-    captcha = ReCaptchaField()
-    
+
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
-    
+
+    def __init__(self, *args, **kwargs):
+        self.site_settings = kwargs.pop('site_settings', None) or SiteSettings.load()
+        super().__init__(*args, **kwargs)
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError('Пользователь с такой почтой уже зарегистрирован')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Капча проверяется последней и только для формы без других ошибок:
+        # токен одноразовый, и тратить его на заведомо неверную форму нельзя
+        if self.site_settings.captcha_active and not self.errors:
+            error = verify_captcha(self.data.get(TOKEN_FIELD, ''), self.site_settings)
+            if error:
+                raise forms.ValidationError(error)
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
-        user.is_active = False
         if commit:
             user.save()
         return user
@@ -24,7 +43,7 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = [
-            'avatar', 'ts3_id', 'birth_date', 'city', 'player_class',
+            'avatar', 'ts3_id', 'real_name', 'birth_date', 'city', 'timezone', 'player_class',
             'hp', 'mp', 'bd',
             'pa', 'fa', 'ma','crit_damage', 'crit_chance', 'bu', 'accuracy',
             'pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce',  'dodge'

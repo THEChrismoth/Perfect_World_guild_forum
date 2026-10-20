@@ -4,7 +4,7 @@
 }
 
 .koslist-container h1 {
-    color: #ffffff;
+    color: var(--text-strong);
     text-align: center;
     margin-bottom: 0px;
 }
@@ -21,7 +21,7 @@
 }
 
 .koslist-container p {
-    color: #cccccc !important;
+    color: var(--text-secondary) !important;
     text-align: center;
     font-size: 18px;
     margin-bottom: 5px;
@@ -31,11 +31,11 @@
     margin: 0px 0;
     border: none;
     height: 2px;
-    background: linear-gradient(90deg, transparent, #FD48B6, transparent);
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 
 .koslist-container a {
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .koslist-container .guilds-grid {
@@ -48,7 +48,7 @@
 
 .koslist-container .guilds-grid li {
   padding: 10px;
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .koslist-container .guilds-grid a {

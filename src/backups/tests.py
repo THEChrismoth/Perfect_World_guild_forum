@@ -49,6 +49,8 @@ def gpg_works():
 
 
 ENCRYPTED = override_settings(BACKUP_ENCRYPTION_PASSWORD='test-password')
+# Тесты не должны зависеть от пароля шифрования в .env разработчика
+NOT_ENCRYPTED = override_settings(BACKUP_ENCRYPTION_PASSWORD='')
 
 
 class TempDirsMixin:
@@ -97,6 +99,7 @@ class ScheduleTests(TestCase):
         self.assertFalse(services.is_backup_due(self.make_settings(last_scheduled_run=None)))
 
 
+@NOT_ENCRYPTED
 class CreateBackupTests(TempDirsMixin, TransactionTestCase):
     def test_archive_contains_database_media_and_manifest(self):
         User.objects.create_user('alice')
@@ -345,6 +348,7 @@ class YandexClientTests(TestCase):
         self.assertIn('path=app%3A%2Fbackups%2Fguild', urls[1])
 
 
+@NOT_ENCRYPTED
 class RestoreTests(TempDirsMixin, TestCase):
     def make_archive(self):
         work = self.tmp / 'work'
@@ -390,6 +394,7 @@ class RestoreTests(TempDirsMixin, TestCase):
             services.restore_backup(bad)
 
 
+@NOT_ENCRYPTED
 @override_settings(SECURE_SSL_REDIRECT=False)
 class BackupAdminTests(TempDirsMixin, TransactionTestCase):
     def setUp(self):
@@ -482,6 +487,7 @@ class BackupAdminTests(TempDirsMixin, TransactionTestCase):
         self.assertFalse(BackupSettings.load().yandex_enabled)
 
 
+@NOT_ENCRYPTED
 class BackupNowCommandTests(TempDirsMixin, TransactionTestCase):
     def test_creates_backup(self):
         out = io.StringIO()

@@ -5,7 +5,7 @@
 }
 
 .notifications-header {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 25px;
@@ -35,7 +35,7 @@
 }
 
 .notifications-list-page {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
     overflow: hidden;
 }
@@ -45,18 +45,18 @@
     align-items: flex-start;
     gap: 15px;
     padding: 15px 20px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.1);
     transition: background 0.2s ease;
     text-decoration: none;
 }
 
 .notification-item-page:hover {
-    background: rgba(253,72,182,0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 .notification-item-page.unread {
-    background: rgba(253,72,182,0.1);
-    border-left: 3px solid #FD48B6;
+    background: rgba(var(--accent-rgb), 0.1);
+    border-left: 3px solid var(--accent);
 }
 
 .notification-icon-page {
@@ -70,21 +70,21 @@
 }
 
 .notification-title-page {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 5px;
 }
 
 .notification-message-page {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
     margin-bottom: 5px;
     line-height: 1.4;
 }
 
 .notification-time-page {
-    color: #888;
+    color: var(--text-muted);
     font-size: 11px;
 }
 
@@ -102,7 +102,7 @@
 .empty-notifications {
     text-align: center;
     padding: 60px 20px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .empty-icon {
@@ -116,17 +116,17 @@
 }
 
 .btn-back {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
 }
 
 .btn-back:hover {
-    color: #ff69b4;
+    color: var(--accent-light);
 }
 
 .notification-message-page a {
     display: inline-block;
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     padding: 6px 15px;
     border-radius: 6px;
@@ -137,6 +137,6 @@
 }
 
 .notification-message-page a:hover {
-    background: #e03a9e;
+    background: var(--accent-dark);
     transform: translateY(-2px);
 }

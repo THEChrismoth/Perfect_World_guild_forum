@@ -5,7 +5,7 @@
 }
 
 .reception-header {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 30px;
@@ -32,23 +32,23 @@
 
 /* Карточка заявки */
 .application-card {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
     overflow: hidden;
     transition: all 0.3s ease;
-    border: 1px solid rgba(253,72,182,0.2);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 .application-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    border-color: #FD48B6;
+    border-color: var(--accent);
 }
 
 .application-header {
     padding: 20px;
-    background: rgba(253,72,182,0.1);
-    border-bottom: 1px solid rgba(253,72,182,0.2);
+    background: rgba(var(--accent-rgb), 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -67,7 +67,7 @@
     height: 50px;
     border-radius: 50%;
     overflow: hidden;
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 .applicant-avatar img {
@@ -89,16 +89,16 @@
 
 .applicant-details h3 {
     margin: 0 0 5px 0;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .player-class {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 12px;
 }
 
 .application-date {
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
 }
 
@@ -111,7 +111,7 @@
 }
 
 .preview-item strong {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 13px;
     display: block;
     margin-bottom: 5px;
@@ -119,7 +119,7 @@
 
 .preview-item p {
     margin: 0;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 13px;
     line-height: 1.5;
 }
@@ -128,9 +128,9 @@
     display: flex;
     justify-content: space-around;
     padding: 15px 20px;
-    background: rgba(0,0,0,0.2);
-    border-top: 1px solid rgba(253,72,182,0.1);
-    border-bottom: 1px solid rgba(253,72,182,0.1);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
+    border-top: 1px solid rgba(var(--accent-rgb), 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .stat-badge {
@@ -147,14 +147,14 @@
 }
 
 .stat-badge.abstain {
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .btn-view-application {
     display: block;
     text-align: center;
     padding: 12px;
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     text-decoration: none;
     transition: all 0.3s ease;
@@ -162,14 +162,14 @@
 }
 
 .btn-view-application:hover {
-    background: #ff69b4;
+    background: var(--accent-light);
 }
 
 /* Пустое состояние */
 .no-applications {
     text-align: center;
     padding: 60px 20px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
 }
 
@@ -179,12 +179,12 @@
 }
 
 .no-applications h3 {
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 10px;
 }
 
 .no-applications p {
-    color: #888;
+    color: var(--text-muted);
 }
 
 .back-link {
@@ -193,13 +193,13 @@
 }
 
 .btn-back {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .btn-back:hover {
-    color: #ff69b4;
+    color: var(--accent-light);
 }
 
 @media (max-width: 768px) {

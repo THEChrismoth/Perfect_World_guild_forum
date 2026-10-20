@@ -11,19 +11,7 @@ dj-database-url==3.1.2
 django==6.0.4
     # via
     #   dj-database-url
-    #   django-jazzmin
-    #   django-ranged-response
-    #   django-recaptcha
-    #   django-simple-captcha
     #   perfect-world-guild-forum
-django-jazzmin==3.0.4
-    # via perfect-world-guild-forum
-django-ranged-response==0.2.0
-    # via django-simple-captcha
-django-recaptcha==4.1.0
-    # via perfect-world-guild-forum
-django-simple-captcha==0.6.3
-    # via perfect-world-guild-forum
 django-uuslug==2.0.0
     # via perfect-world-guild-forum
 gunicorn==25.3.0
@@ -31,9 +19,7 @@ gunicorn==25.3.0
 packaging==26.1
     # via gunicorn
 pillow==12.2.0
-    # via
-    #   django-simple-captcha
-    #   perfect-world-guild-forum
+    # via perfect-world-guild-forum
 psycopg==3.3.6
     # via perfect-world-guild-forum
 psycopg-binary==3.3.6 ; implementation_name != 'pypy'

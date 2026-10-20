@@ -6,7 +6,16 @@
 	# Статика, собранная collectstatic
 	handle_path /static/* {
 		root * /srv/static
-		header Cache-Control "public, max-age=604800"
+
+		# Файлы с хэшем содержимого в имени (style.3f2a9c1b7d4e.css) никогда не меняются —
+		# их можно кэшировать на год. Новая версия файла получает новое имя
+		@hashed path_regexp \.[0-9a-f]{12}\.[A-Za-z0-9]+$
+		header @hashed Cache-Control "public, max-age=31536000, immutable"
+
+		# Остальное (файлы без хэша) — ненадолго, чтобы обновления быстро доходили до браузера
+		@plain not path_regexp \.[0-9a-f]{12}\.[A-Za-z0-9]+$
+		header @plain Cache-Control "public, max-age=3600"
+
 		file_server
 	}
 

@@ -1,3 +1,72 @@
+/* ===== Темы =====
+   Все цвета сайта задаются здесь. Тема переключается атрибутом data-theme на <html>
+   (кнопка рядом с колокольчиком, выбор хранится в localStorage).
+   Варианты *-rgb — для полупрозрачных цветов: rgba(var(--accent-rgb), 0.2) */
+
+/* Тёмная тема (по умолчанию): розовый неон */
+:root {
+    color-scheme: dark;
+
+    --bg: #1a1c20;
+    --bg-rgb: 26, 28, 32;
+    --bg-deep: #0f1114;
+    --surface: #2d3037;
+    --surface-rgb: 45, 48, 55;
+
+    --text: #e0e0e0;
+    --text-strong: #ffffff;
+    --text-secondary: #a0a0a0;
+    --text-muted: #888888;
+
+    --accent: #fd48b6;
+    --accent-rgb: 253, 72, 182;
+    --accent-light: #ff69b4;
+    --accent-dark: #e03a9e;
+    --accent-2: #ff8c42;
+    --accent-2-rgb: 255, 140, 66;
+    --accent-2-light: #ffa05e;
+
+    /* Тонкие линии и подсветка поверх фона */
+    --overlay-rgb: 255, 255, 255;
+    /* Затемняющие подложки: цвет и сила */
+    --shade-rgb: 0, 0, 0;
+    --shade-k: 1;
+
+    --warning-text: #ffc107;
+    --gold: #ffd700;
+}
+
+/* Светлая тема: индиго вместо розового */
+[data-theme="light"] {
+    color-scheme: light;
+
+    --bg: #eef0f7;
+    --bg-rgb: 238, 240, 247;
+    --bg-deep: #e2e5f1;
+    --surface: #ffffff;
+    --surface-rgb: 255, 255, 255;
+
+    --text: #2b2f3a;
+    --text-strong: #12141c;
+    --text-secondary: #555b6b;
+    --text-muted: #6b7180;
+
+    --accent: #4f46e5;
+    --accent-rgb: 79, 70, 229;
+    --accent-light: #6366f1;
+    --accent-dark: #4338ca;
+    --accent-2: #0ea5e9;
+    --accent-2-rgb: 14, 165, 233;
+    --accent-2-light: #38bdf8;
+
+    --overlay-rgb: 15, 23, 42;
+    --shade-rgb: 30, 41, 59;
+    --shade-k: 0.25;
+
+    --warning-text: #b45309;
+    --gold: #a16207;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,7 +75,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1a1c20 0%, #0f1114 100%);
+    background: linear-gradient(135deg, var(--bg) 0%, var(--bg-deep) 100%);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -21,12 +90,12 @@ body {
 }
 
 header {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     margin-bottom: 20px;
     padding: 20px 0;
-    border-top: 3px solid #FD48B6;
-    box-shadow: 0 -2px 10px rgba(253, 72, 182, 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
+    border-top: 3px solid var(--accent);
+    box-shadow: 0 -2px 10px rgba(var(--accent-rgb), 0.3), 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: all 0.3s ease;
     width: 100%;
     max-width: 1600px;
@@ -35,7 +104,7 @@ header {
 }
 
 header:hover {
-    box-shadow: 0 -2px 15px rgba(253, 72, 182, 0.5), 0 6px 20px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -2px 15px rgba(var(--accent-rgb), 0.5), 0 6px 20px rgba(0, 0, 0, 0.3);
     transform: translateY(-2px);
 }
 
@@ -48,13 +117,13 @@ header .container {
 }
 
 header h1 {
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 28px;
     letter-spacing: 1px;
 }
 
 header h1 a {
-    color: #ffffff;
+    color: var(--text-strong);
     text-decoration: none;
 }
 
@@ -64,18 +133,18 @@ header nav {
 }
 
 header nav a {
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
 }
 
 header nav a:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 main {
-    background: rgba(45, 48, 55, 0.6);
+    background: rgba(var(--surface-rgb), 0.6);
     border-radius: 8px;
     padding: 30px 0;
     margin-bottom: 20px;
@@ -87,7 +156,7 @@ main {
 }
 
 footer {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     padding: 20px 0;
     width: 100%;
@@ -106,18 +175,18 @@ footer .container {
 }
 
 footer p {
-    color: #a0a0a0;
+    color: var(--text-secondary);
 }
 
 footer .social-links a {
-    color: #a0a0a0;
+    color: var(--text-secondary);
     text-decoration: none;
     margin: 0 8px;
     transition: color 0.3s ease;
 }
 
 footer .social-links a:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .header-left {
@@ -140,6 +209,7 @@ footer .social-links a:hover {
 
 .auth-buttons {
     display: flex;
+    align-items: center;
     gap: 15px;
 }
 
@@ -151,15 +221,15 @@ footer .social-links a:hover {
     font-size: 14px;
     transition: all 0.3s ease;
     background: transparent;
-    color: #e0e0e0;
-    border: 1px solid #FD48B6;
+    color: var(--text);
+    border: 1px solid var(--accent);
     display: inline-flex;
     align-items: center;
     height: 36px;
 }
 
 .login-btn:hover {
-    background: rgba(253, 72, 182, 0.2);
+    background: rgba(var(--accent-rgb), 0.2);
     transform: translateY(-2px);
 }
 
@@ -170,7 +240,7 @@ footer .social-links a:hover {
     font-weight: 500;
     font-size: 14px;
     transition: all 0.3s ease;
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     display: inline-flex;
     align-items: center;
@@ -178,9 +248,9 @@ footer .social-links a:hover {
 }
 
 .register-btn:hover {
-    background: #e03a9e;
+    background: var(--accent-dark);
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.4);
+    box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.4);
 }
 
 .user-menu {
@@ -190,12 +260,12 @@ footer .social-links a:hover {
 }
 
 .profile-link {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: 600;
     font-size: 14px;
     padding: 0 12px;
     border-radius: 6px;
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     text-decoration: none;
     transition: all 0.3s ease;
     white-space: nowrap;
@@ -205,7 +275,7 @@ footer .social-links a:hover {
 }
 
 .profile-link:hover {
-    background: rgba(253, 72, 182, 0.2);
+    background: rgba(var(--accent-rgb), 0.2);
     transform: translateY(-1px);
 }
 
@@ -243,7 +313,7 @@ footer .social-links a:hover {
 }
 
 .notifications-btn {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     border: none;
     font-size: 18px;
     cursor: pointer;
@@ -259,8 +329,53 @@ footer .social-links a:hover {
 }
 
 .notifications-btn:hover {
-    background: rgba(253, 72, 182, 0.2);
+    background: rgba(var(--accent-rgb), 0.2);
     transform: translateY(-1px);
+}
+
+/* Переключатель темы — того же вида, что колокольчик */
+.theme-toggle {
+    background: rgba(var(--accent-rgb), 0.1);
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+    background: rgba(var(--accent-rgb), 0.2);
+    transform: translateY(-1px);
+}
+
+.theme-toggle:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Показываем иконку той темы, на которую переключит кнопка */
+.theme-toggle .icon-light,
+[data-theme="light"] .theme-toggle .icon-dark {
+    display: inline;
+}
+
+.theme-toggle .icon-dark,
+[data-theme="light"] .theme-toggle .icon-light {
+    display: none;
+}
+
+/* Плавная смена цветов при переключении (класс ставится скриптом на время смены) */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
 }
 
 .notifications-badge {
@@ -282,13 +397,13 @@ footer .social-links a:hover {
     position: absolute;
     right: 0;
     top: 45px;
-    background: #2D3037;
+    background: var(--surface);
     min-width: 320px;
     max-width: 400px;
     border-radius: 8px;
     box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     z-index: 999999 !important;
-    border: 1px solid rgba(253, 72, 182, 0.2);
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 .notifications-menu.show {
@@ -309,12 +424,12 @@ footer .social-links a:hover {
 
 .notifications-header {
     padding: 12px 15px;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-weight: bold;
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .mark-all-read {
@@ -337,18 +452,18 @@ footer .social-links a:hover {
     align-items: flex-start;
     gap: 10px;
     padding: 10px 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.1);
     transition: background 0.2s ease;
     text-decoration: none;
 }
 
 .notification-item:hover {
-    background: rgba(253,72,182,0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 .notification-item.unread {
-    background: rgba(253,72,182,0.1);
-    border-left: 3px solid #FD48B6;
+    background: rgba(var(--accent-rgb), 0.1);
+    border-left: 3px solid var(--accent);
 }
 
 .notification-icon {
@@ -363,7 +478,7 @@ footer .social-links a:hover {
 }
 
 .notification-title {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 13px;
     font-weight: bold;
     margin-bottom: 3px;
@@ -371,7 +486,7 @@ footer .social-links a:hover {
 
 /* ВАЖНО: Стили для сообщений в выпадающем меню - убираем br */
 .notifications-menu .notification-message {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 12px;
     line-height: 1.3;
     margin-bottom: 3px;
@@ -384,7 +499,7 @@ footer .social-links a:hover {
 }
 
 .notification-time {
-    color: #888;
+    color: var(--text-muted);
     font-size: 10px;
 }
 
@@ -392,8 +507,8 @@ footer .social-links a:hover {
 .notification-item.type-success { border-left-color: #28a745; }
 .notification-item.type-warning { border-left-color: #ffc107; }
 .notification-item.type-error { border-left-color: #dc3545; }
-.notification-item.type-application { border-left-color: #FD48B6; }
-.notification-item.type-auction { border-left-color: #ff8c42; }
+.notification-item.type-application { border-left-color: var(--accent); }
+.notification-item.type-auction { border-left-color: var(--accent-2); }
 .notification-item.type-forum { border-left-color: #17a2b8; }
 .notification-item.type-system { border-left-color: #6f42c1; }
 .notification-item.type-info { border-left-color: #17a2b8; }
@@ -401,17 +516,17 @@ footer .social-links a:hover {
 .no-notifications {
     padding: 30px;
     text-align: center;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .notifications-footer {
     padding: 10px 15px;
-    border-top: 1px solid rgba(253, 72, 182, 0.2);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.2);
     text-align: center;
 }
 
 .notifications-footer a {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
     font-size: 12px;
 }
@@ -458,7 +573,7 @@ footer .social-links a:hover {
 .alert-warning {
     background: rgba(255, 193, 7, 0.2);
     border-left: 3px solid #ffc107;
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .alert-info {
@@ -488,7 +603,7 @@ footer .social-links a:hover {
     align-items: center;
     gap: 10px;
     padding: 5px 0;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .stat-icon {
@@ -498,23 +613,23 @@ footer .social-links a:hover {
 
 .stat-label {
     flex: 1;
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
 }
 
 .stat-number {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 14px;
 }
 
 .stat-value {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 12px;
 }
 
 .stat-value a {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -523,23 +638,23 @@ footer .social-links a:hover {
 }
 
 .latest-user {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
     border-radius: 6px;
     padding: 8px !important;
 }
 
 /* Боковые виджеты */
 .sidebar-widget {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     margin-bottom: 20px;
     overflow: hidden;
 }
 
 .widget-header {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 10px 15px;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -548,7 +663,7 @@ footer .social-links a:hover {
 .widget-header h3 {
     font-size: 14px;
     font-weight: 600;
-    color: #FD48B6;
+    color: var(--accent);
     margin: 0;
 }
 
@@ -571,27 +686,27 @@ footer .social-links a:hover {
     max-width: 800px;
     margin: 20px auto;
     padding: 30px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 12px;
-    border-top: 3px solid #FD48B6;
+    border-top: 3px solid var(--accent);
 }
 
 .vote-header h1,
 .vote-results-header h1,
 .my-votes-header h1 {
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 24px;
     margin-bottom: 10px;
 }
 
 .vote-date {
-    color: #888;
+    color: var(--text-muted);
     font-size: 14px;
 }
 
 .vote-card,
 .results-card {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
     padding: 25px;
 }
@@ -603,7 +718,7 @@ footer .social-links a:hover {
     gap: 15px;
     margin-bottom: 25px;
     padding: 15px;
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     border-radius: 8px;
 }
 
@@ -613,18 +728,18 @@ footer .social-links a:hover {
 
 .event-name {
     font-size: 24px;
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
 }
 
 /* Стили для сообщения в голосовании - тут br нужны */
 .vote-card .notification-message,
 .results-card .notification-message {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-    color: #e0e0e0;
+    color: var(--text);
     line-height: 1.6;
     white-space: pre-wrap;
 }
@@ -650,7 +765,7 @@ footer .social-links a:hover {
     justify-content: center;
     gap: 10px;
     padding: 15px 20px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -658,7 +773,7 @@ footer .social-links a:hover {
 }
 
 .vote-option:hover {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     transform: translateY(-2px);
 }
 
@@ -667,8 +782,8 @@ footer .social-links a:hover {
 }
 
 .vote-option:has(input:checked) {
-    border-color: #FD48B6;
-    background: rgba(253, 72, 182, 0.15);
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.15);
 }
 
 .vote-emoji {
@@ -678,7 +793,7 @@ footer .social-links a:hover {
 .vote-label {
     font-size: 18px;
     font-weight: 500;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .vote-comment-field {
@@ -688,23 +803,23 @@ footer .social-links a:hover {
 .vote-comment-field label {
     display: block;
     margin-bottom: 8px;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .vote-comment-field textarea {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid #FD48B6;
+    background: var(--bg);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-strong);
     resize: vertical;
     font-family: inherit;
 }
 
 .vote-comment-field textarea:focus {
     outline: none;
-    border-color: #ff8c42;
+    border-color: var(--accent-2);
 }
 
 .btn-vote-submit {
@@ -726,7 +841,7 @@ footer .social-links a:hover {
 }
 
 .your-vote {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 25px;
@@ -735,7 +850,7 @@ footer .social-links a:hover {
 
 .your-vote h3 {
     margin: 0 0 15px 0;
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 18px;
 }
 
@@ -760,29 +875,29 @@ footer .social-links a:hover {
 
 .current-vote.status-maybe {
     background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .vote-comment {
     margin-top: 10px;
-    color: #888;
+    color: var(--text-muted);
     font-style: italic;
 }
 
 .vote-note {
     margin-top: 10px;
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .vote-stats-preview {
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid rgba(253, 72, 182, 0.2);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 .vote-stats-preview h4 {
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 15px;
     font-size: 16px;
 }
@@ -800,14 +915,14 @@ footer .social-links a:hover {
 
 .stat-bar .stat-label {
     min-width: 100px;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
 .bar {
     flex: 1;
     height: 10px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     border-radius: 5px;
     overflow: hidden;
 }
@@ -825,51 +940,51 @@ footer .social-links a:hover {
 .stat-count {
     min-width: 45px;
     text-align: right;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
     font-weight: bold;
 }
 
 .total-votes {
     text-align: center;
-    color: #888;
+    color: var(--text-muted);
     font-size: 14px;
     margin-top: 10px;
 }
 
 .btn-stats {
     display: inline-block;
-    background: rgba(253, 72, 182, 0.2);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.2);
+    color: var(--accent);
     padding: 8px 20px;
     border-radius: 6px;
     text-decoration: none;
     transition: all 0.3s ease;
-    border: 1px solid #FD48B6;
+    border: 1px solid var(--accent);
     margin-top: 15px;
     text-align: center;
 }
 
 .btn-stats:hover {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     transform: translateY(-2px);
 }
 
 .btn-back {
     display: inline-block;
-    background: rgba(253, 72, 182, 0.2);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.2);
+    color: var(--accent);
     padding: 8px 20px;
     border-radius: 6px;
     text-decoration: none;
     transition: all 0.3s ease;
-    border: 1px solid #FD48B6;
+    border: 1px solid var(--accent);
     margin-top: 20px;
 }
 
 .btn-back:hover {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
 }
 
@@ -909,7 +1024,7 @@ footer .social-links a:hover {
     border: 1px solid #17a2b8;
 }
 
-.stat-number {
+.stat-box .stat-number {
     font-size: 36px;
     font-weight: bold;
     margin-bottom: 5px;
@@ -917,7 +1032,7 @@ footer .social-links a:hover {
 
 .stat-box.yes .stat-number { color: #28a745; }
 .stat-box.no .stat-number { color: #dc3545; }
-.stat-box.maybe .stat-number { color: #ffc107; }
+.stat-box.maybe .stat-number { color: var(--warning-text); }
 .stat-box.total .stat-number { color: #17a2b8; }
 
 .voters-lists {
@@ -947,7 +1062,7 @@ footer .social-links a:hover {
     background: rgba(255, 193, 7, 0.1);
     border-left: 3px solid #ffc107;
 }
-.voters-list.maybe-list h3 { color: #ffc107; }
+.voters-list.maybe-list h3 { color: var(--warning-text); }
 
 .voters-list.no-list {
     background: rgba(220, 53, 69, 0.1);
@@ -962,7 +1077,7 @@ footer .social-links a:hover {
 }
 
 .voter-card {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     padding: 10px;
     border-radius: 8px;
     display: flex;
@@ -985,7 +1100,7 @@ footer .social-links a:hover {
 }
 
 .avatar-placeholder {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -995,18 +1110,18 @@ footer .social-links a:hover {
 }
 
 .voter-name a {
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     font-size: 13px;
 }
 
 .voter-name a:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .voter-comment {
     font-size: 10px;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 3px;
 }
 
@@ -1022,7 +1137,7 @@ footer .social-links a:hover {
 }
 
 .no-votes p {
-    color: #888;
+    color: var(--text-muted);
 }
 
 .back-links {
@@ -1038,7 +1153,7 @@ footer .social-links a:hover {
 .btn-vote-notify,
 .notification-message a {
     display: inline-block;
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     padding: 6px 15px;
     border-radius: 6px;
@@ -1050,7 +1165,7 @@ footer .social-links a:hover {
 
 .btn-vote-notify:hover,
 .notification-message a:hover {
-    background: #e03a9e;
+    background: var(--accent-dark);
     transform: translateY(-2px);
 }
 
@@ -1058,14 +1173,14 @@ footer .social-links a:hover {
 .auth-container {
     max-width: 400px;
     margin: 50px auto;
-    background: #2D3037;
+    background: var(--surface);
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .auth-container h2 {
-    color: #ffffff;
+    color: var(--text-strong);
     margin-bottom: 20px;
     text-align: center;
 }
@@ -1076,7 +1191,7 @@ footer .social-links a:hover {
 
 .auth-container .form-group label {
     display: block;
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 5px;
     font-size: 14px;
 }
@@ -1084,22 +1199,22 @@ footer .social-links a:hover {
 .auth-container .form-group input {
     width: 100%;
     padding: 10px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     box-sizing: border-box;
 }
 
 .auth-container .form-group input:focus {
     outline: none;
-    border-color: #FD48B6;
+    border-color: var(--accent);
 }
 
 .auth-container .help-text {
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 5px;
 }
 
@@ -1116,7 +1231,7 @@ footer .social-links a:hover {
 .btn-submit {
     width: 100%;
     padding: 10px;
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     border: none;
     border-radius: 6px;
@@ -1127,18 +1242,18 @@ footer .social-links a:hover {
 }
 
 .btn-submit:hover {
-    background: #e03a9e;
+    background: var(--accent-dark);
     transform: translateY(-2px);
 }
 
 .auth-container p {
     margin-top: 15px;
     text-align: center;
-    color: #a0a0a0;
+    color: var(--text-secondary);
 }
 
 .auth-container a {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -1147,13 +1262,13 @@ footer .social-links a:hover {
 }
 
 .admin-link {
-    color: #ffffff !important;
+    color: var(--text-strong) !important;
     font-weight: 600;
 }
 
 .admin-link:hover {
-    color: #ffffff !important;
-    text-shadow: 0 0 5px rgba(253, 72, 182, 0.5);
+    color: var(--text-strong) !important;
+    text-shadow: 0 0 5px rgba(var(--accent-rgb), 0.5);
 }
 
 .post-author-link {
@@ -1199,6 +1314,7 @@ footer .social-links a:hover {
     }
     
     .notifications-btn { width: 38px; padding: 0 10px; }
+    .theme-toggle { width: 38px; height: 34px; }
     .profile-link { padding: 0 10px; }
     .logout-btn { padding: 0 12px; }
     

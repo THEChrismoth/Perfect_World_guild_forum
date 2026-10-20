@@ -2,12 +2,16 @@ from django import forms
 from .models import Application
 
 class ApplicationForm(forms.ModelForm):
-    """Форма подачи заявки"""
-    
+    """Форма подачи заявки.
+
+    Личные данные (имя, возраст, часовой пояс) и класс персонажа не вводятся заново —
+    они берутся из профиля в момент подачи, как и характеристики персонажа.
+    """
+
     class Meta:
         model = Application
         fields = [
-            'previous_nicknames', 'timezone', 'real_name', 'age',
+            'previous_nicknames',
             'on_blacklist', 'blacklist_details', 'other_guilds',
             'development_plans', 'guarantors',
             'screenshot1', 'screenshot2', 'screenshot3', 'screenshot4', 'screenshot5',
@@ -16,15 +20,6 @@ class ApplicationForm(forms.ModelForm):
             'previous_nicknames': forms.Textarea(attrs={
                 'rows': 2,
                 'placeholder': 'Например: xX_Player_Xx, OldNick',
-                'class': 'form-control'
-            }),
-            'timezone': forms.Select(attrs={'class': 'form-control'}),
-            'real_name': forms.TextInput(attrs={
-                'placeholder': 'Ваше настоящее имя',
-                'class': 'form-control'
-            }),
-            'age': forms.NumberInput(attrs={
-                'placeholder': 'Ваш возраст',
                 'class': 'form-control'
             }),
             'blacklist_details': forms.Textarea(attrs={
@@ -48,31 +43,24 @@ class ApplicationForm(forms.ModelForm):
                 'class': 'form-control'
             }),
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop('user', None)
         super().__init__(*args, **kwargs)
-        
-        timezones = [
-            ('UTC-12', 'UTC-12:00'), ('UTC-11', 'UTC-11:00'), ('UTC-10', 'UTC-10:00'),
-            ('UTC-9', 'UTC-09:00'), ('UTC-8', 'UTC-08:00'), ('UTC-7', 'UTC-07:00'),
-            ('UTC-6', 'UTC-06:00'), ('UTC-5', 'UTC-05:00'), ('UTC-4', 'UTC-04:00'),
-            ('UTC-3', 'UTC-03:00'), ('UTC-2', 'UTC-02:00'), ('UTC-1', 'UTC-01:00'),
-            ('UTC+0', 'UTC±00:00'), ('UTC+1', 'UTC+01:00'), ('UTC+2', 'UTC+02:00'),
-            ('UTC+3', 'UTC+03:00'), ('UTC+4', 'UTC+04:00'), ('UTC+5', 'UTC+05:00'),
-            ('UTC+6', 'UTC+06:00'), ('UTC+7', 'UTC+07:00'), ('UTC+8', 'UTC+08:00'),
-            ('UTC+9', 'UTC+09:00'), ('UTC+10', 'UTC+10:00'), ('UTC+11', 'UTC+11:00'),
-            ('UTC+12', 'UTC+12:00'),
-        ]
-        self.fields['timezone'].widget = forms.Select(choices=timezones)
-    
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         if self.user:
             instance.user = self.user
-            if hasattr(self.user, 'profile') and self.user.profile.player_class:
-                class_display = dict(self.user.profile.CLASS_CHOICES).get(self.user.profile.player_class, '')
-                instance.player_class = class_display or self.user.profile.player_class
+            profile = getattr(self.user, 'profile', None)
+            if profile:
+                # Снимок данных профиля на момент подачи: если профиль потом изменится,
+                # в заявке останется то, что видели проголосовавшие
+                instance.real_name = profile.real_name
+                instance.age = profile.age()
+                instance.timezone = profile.timezone
+                if profile.player_class:
+                    instance.player_class = profile.get_player_class_display()
         if commit:
             instance.save()
         return instance

@@ -2,7 +2,7 @@
 
 ## Стек
 
-Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально), django-jazzmin, django-recaptcha, Pillow, gunicorn, Caddy.
+Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально), Pillow, cryptography, gunicorn, Caddy.
 
 ## Структура репозитория
 
@@ -10,7 +10,7 @@ Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально),
 ├── src/                  весь сайт (Django)
 │   ├── manage.py
 │   ├── config/           настройки и корневые URL
-│   ├── core/             настройки сайта (название, favicon)
+│   ├── core/             настройки сайта: название, favicon, почта, капча, шифрование секретов
 │   ├── forum/            форум, права доступа к разделам
 │   ├── profiles/         профили, регистрация, таблица очков активности
 │   ├── reception/        заявки в гильдию и голосование
@@ -56,7 +56,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Сайт — http://127.0.0.1:8000/, админ-панель — http://127.0.0.1:8000/admin/. Без `DEBUG=True` не будут работать стили и картинки. Письма при пустом `EMAIL_HOST` выводятся в консоль.
+Сайт — http://127.0.0.1:8000/, админ-панель — http://127.0.0.1:8000/admin/. Без `DEBUG=True` не будут работать стили и картинки. Пока почта не настроена в админке (Настройки сайта → Почта), письма выводятся в консоль.
 
 ## Переменные окружения вне Docker
 
@@ -128,3 +128,18 @@ docker compose cp ./media/. web:/app/media/
 - Незашифрованные копии на Яндекс Диск не загружаются (проверка и в форме настроек, и в `run_backup`).
 - Токен Яндекса хранится в поле `yandex_token` как `fernet:...` (ключ — HKDF от `SECRET_KEY`). Читать только через `BackupSettings.get_yandex_token()`; `save()` сам шифрует открытое значение.
 - Тесты подменяют gpg; проверка с настоящим gpg (`RealGpgTests`) пропускается, если он не работает. gpg из Git для Windows для этого не подходит (не запускается gpg-agent), поэтому полный прогон — в контейнере: `docker compose exec web python manage.py test backups`. Путь к другому gpg можно задать в `BACKUP_GPG_BINARY`.
+
+## Почта, капча и секреты
+
+- **Почта** — `core/mail.py`: `send_site_mail()` берёт SMTP из `SiteSettings` (админка). Если почта не настроена, используется консольный бэкенд. `EMAIL_*` в `.env` больше не читаются.
+- **Капча** — `core/captcha.py`, [DDoS-Guard dCAPTCHA](https://ddos-guard.ru/tutorials/captcha/integration): виджет `ddg-captcha-container` добавляет в форму поле `ddg-captcha-token`, сервер проверяет его POST-запросом (JSON) на `https://captcha.ddos-guard.net/siteverify`. Проверка в `RegistrationForm.clean()` выполняется последней — токен одноразовый и не тратится на форму с другими ошибками. При недоступности сервиса регистрация блокируется.
+- **Секреты в базе** — `core/secrets.py` (Fernet, ключ — HKDF от `SECRET_KEY`): пароль SMTP, Private key капчи, токен Яндекс Диска. Модели шифруют значения в `save()`, читать — через `get_*()`. Метку HKDF менять нельзя — сохранённые секреты перестанут расшифровываться.
+
+## Админ-панель
+
+Стандартная админка Django без сторонних тем. `core.apps.GuildAdminConfig` подключает `core/admin_site.py` вместо `django.contrib.admin`, поэтому `@admin.register` и `admin.site` работают как обычно.
+
+- **Дашборд** — `core/dashboard.py` (данные; каждый блок — только при наличии прав) и `templates/admin/index.html`.
+- **Порядок и иконки разделов** — `APP_ORDER` в `core/admin_site.py`.
+- **Тема** — `static_src/admin/css/guild_theme.css`: переопределяет CSS-переменные Django для светлой (индиго) и тёмной (розовый) тем, поэтому работает встроенный переключатель темы. Для своих кнопок в шаблонах — классы `.btn .btn-primary/.btn-success/.btn-danger/.btn-outline-primary/.btn-outline-secondary`.
+- Собственные страницы админки рендерятся с `**admin.site.each_context(request)` — иначе у них не будет шапки с названием сайта и бокового меню.

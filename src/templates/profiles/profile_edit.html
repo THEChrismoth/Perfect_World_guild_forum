@@ -55,12 +55,21 @@
                     {{ profile_form.player_class }}
                 </div>
                 <div class="form-group">
-                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
-                    {{ profile_form.city }}
+                    <label for="{{ profile_form.real_name.id_for_label }}">Имя</label>
+                    {{ profile_form.real_name }}
+                    <small class="help-text">{{ profile_form.real_name.help_text }}</small>
                 </div>
                 <div class="form-group">
                     <label for="{{ profile_form.birth_date.id_for_label }}">Дата рождения</label>
                     {{ profile_form.birth_date }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
+                    {{ profile_form.city }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ profile_form.timezone.id_for_label }}">Часовой пояс</label>
+                    {{ profile_form.timezone }}
                 </div>
                 <div class="form-group">
                     <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>

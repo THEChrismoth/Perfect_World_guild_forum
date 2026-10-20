@@ -7,6 +7,10 @@
     <form method="post" id="register-form">
         {% csrf_token %}
 
+        {% if form.non_field_errors %}
+            <div class="form-error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
         {% for field in form %}
             <div class="form-group">
                 <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -20,8 +24,19 @@
             </div>
         {% endfor %}
 
+        {% if captcha_active %}
+            {# Капча DDoS-Guard: после проверки виджет сам добавит в форму поле ddg-captcha-token #}
+            <div class="form-group captcha-group">
+                <div class="ddg-captcha-container" data-sitekey="{{ captcha_site_key }}"></div>
+            </div>
+        {% endif %}
+
         <button type="submit" class="btn-submit">🚀 Зарегистрироваться</button>
     </form>
     <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
 </div>
+
+{% if captcha_active %}
+    <script src="{{ captcha_script_url }}" defer></script>
+{% endif %}
 {% endblock %}

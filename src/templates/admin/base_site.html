@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin/css/guild_theme.css' %}">
+{% endblock %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {% if site_settings.favicon %}
+        <link rel="icon" href="{{ site_settings.favicon.url }}">
+    {% else %}
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    {% endif %}
+{% endblock %}
+
+{% block branding %}
+    <div id="site-name">
+        <a href="{% url 'admin:index' %}">
+            <span class="brand-mark" aria-hidden="true">🛡️</span>
+            <span class="brand-text">{{ site_header }}</span>
+            <span class="brand-sub">управление</span>
+        </a>
+    </div>
+    {% if user.is_anonymous %}
+        {% include "admin/color_theme_toggle.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

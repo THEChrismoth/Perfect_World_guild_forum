@@ -26,7 +26,7 @@ main .container {
     padding: 20px;
     flex-wrap: wrap;
     gap: 20px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
@@ -35,7 +35,7 @@ main .container {
     margin: 0;
     font-size: 32px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
     letter-spacing: 0.5px;
 }
 
@@ -61,8 +61,8 @@ main .container {
 
 .topics-block {
     width: 100%;
-    border-top: 3px solid #FD48B6;
-    background: #2D3037;
+    border-top: 3px solid var(--accent);
+    background: var(--surface);
     border-radius: 8px;
     transition: all 0.3s ease;
     overflow: hidden;
@@ -93,12 +93,12 @@ main .container {
     align-items: center;
     justify-content: space-between;
     position: relative;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     transition: all 0.3s ease;
 }
 
 .topic-list-item:hover {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 /* Карточка темы с курсором pointer */
@@ -111,12 +111,12 @@ main .container {
 }
 
 .topic-card:hover {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding-left: 25px;
 }
 
 .topic-card:hover .topic-title {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .topic-info {
@@ -126,7 +126,7 @@ main .container {
 }
 
 .topic-title {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 16px;
     font-weight: 500;
     transition: color 0.3s ease;
@@ -136,12 +136,12 @@ main .container {
 .topic-meta {
     display: flex;
     gap: 20px;
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
 }
 
 .topic-author-link {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.3s ease;
     cursor: pointer;
@@ -211,11 +211,11 @@ main .container {
 
 /* Пустые состояния */
 .no-topics {
-    color: #888;
+    color: var(--text-muted);
     text-align: center;
     padding: 30px 20px;
     font-style: italic;
-    background: rgba(26, 28, 32, 0.2);
+    background: rgba(var(--bg-rgb), 0.2);
 }
 
 /* Анимации */

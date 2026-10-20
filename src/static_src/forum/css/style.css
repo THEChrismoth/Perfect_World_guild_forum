@@ -36,15 +36,15 @@ main .container {
     margin: 0 0 10px 0;
     font-size: 28px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
     letter-spacing: 0.5px;
     padding: 0 20px;
 }
 
 .subcategories-block {
     width: 100%;
-    border-top: 3px solid #FD48B6;
-    background: #2D3037;
+    border-top: 3px solid var(--accent);
+    background: var(--surface);
     border-radius: 8px;
     transition: all 0.3s ease;
     overflow: hidden;
@@ -79,7 +79,7 @@ main .container {
     background: transparent;
     text-decoration: none;
     transition: all 0.3s ease;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     position: relative;
     padding: 15px 20px;
     min-height: 80px;
@@ -91,7 +91,7 @@ main .container {
 }
 
 .subcategory-card:hover {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
 }
 
 .subcategory-main {
@@ -100,7 +100,7 @@ main .container {
 }
 
 .subcategory-title {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 16px;
     font-weight: 500;
     display: block;
@@ -109,7 +109,7 @@ main .container {
 }
 
 .subcategory-card:hover .subcategory-title {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .subcategory-stats {
@@ -130,12 +130,12 @@ main .container {
 .stat-value {
     font-size: 18px;
     font-weight: bold;
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .stat-label {
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 4px;
 }
 
@@ -151,7 +151,7 @@ main .container {
 .last-post-avatar {
     width: 40px;
     height: 40px;
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -169,7 +169,7 @@ main .container {
 }
 
 .last-post-topic {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 13px;
     font-weight: 500;
     white-space: nowrap;
@@ -179,27 +179,27 @@ main .container {
 }
 
 .last-post-meta {
-    color: #888;
+    color: var(--text-muted);
     font-size: 11px;
 }
 
 .last-post-meta span {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .no-posts {
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
     font-style: italic;
     text-align: left;
 }
 
 .no-subcategories {
-    color: #888;
+    color: var(--text-muted);
     text-align: center;
     padding: 30px 20px;
     font-style: italic;
-    background: rgba(26, 28, 32, 0.2);
+    background: rgba(var(--bg-rgb), 0.2);
 }
 
 @media (max-width: 1200px) {
@@ -350,21 +350,21 @@ main .container {
 }
 
 .forum-sidebar::-webkit-scrollbar-track {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 4px;
 }
 
 .forum-sidebar::-webkit-scrollbar-thumb {
-    background: #FD48B6;
+    background: var(--accent);
     border-radius: 4px;
 }
 
 .forum-sidebar::-webkit-scrollbar-thumb:hover {
-    background: #ff69b4;
+    background: var(--accent-light);
 }
 
 .sidebar-widget {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     margin-bottom: 18px;
     overflow: hidden;
@@ -372,9 +372,9 @@ main .container {
 }
 
 .widget-header {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 8px 12px;
-    border-bottom: 2px solid #FD48B6;
+    border-bottom: 2px solid var(--accent);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -384,11 +384,11 @@ main .container {
     margin: 0;
     font-size: 14px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
 }
 
 .online-count {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     padding: 1px 6px;
     border-radius: 10px;
@@ -410,7 +410,7 @@ main .container {
     display: flex;
     gap: 8px;
     padding: 6px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.1);
     transition: background 0.2s ease;
 }
 
@@ -419,7 +419,7 @@ main .container {
 }
 
 .latest-post-item:hover {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 .post-author-avatar {
@@ -437,7 +437,7 @@ main .container {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -452,7 +452,7 @@ main .container {
 }
 
 .post-topic-title {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 11px;
     font-weight: 500;
     text-decoration: none;
@@ -463,18 +463,18 @@ main .container {
 }
 
 .post-topic-title:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .post-meta {
     display: flex;
     gap: 6px;
     font-size: 9px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .post-author {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .online-users-list {
@@ -485,7 +485,7 @@ main .container {
 
 .online-user-item {
     padding: 5px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.05);
 }
 
 .online-user-item:last-child {
@@ -493,7 +493,7 @@ main .container {
 }
 
 .user-link {
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -503,7 +503,7 @@ main .container {
 }
 
 .user-link:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .online-indicator {
@@ -542,7 +542,7 @@ main .container {
     gap: 8px;
     font-size: 11px;
     padding: 4px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.05);
 }
 
 .stat-row:last-child {
@@ -555,35 +555,45 @@ main .container {
 }
 
 .stat-label {
-    color: #888;
+    color: var(--text-muted);
     flex: 1;
 }
 
 .stat-number {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 13px;
 }
 
+/* Виджет статистики: не наследуем крупные размеры от счётчиков подкатегорий (.stat-value, .stat-label выше) */
+.stats-list .stat-value {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.stats-list .stat-label {
+    margin-top: 0;
+}
+
 .stat-value a {
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     transition: color 0.2s;
 }
 
 .stat-value a:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .latest-user {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
     border-radius: 5px;
     padding: 4px 6px;
     margin-top: 2px;
 }
 
 .no-data {
-    color: #888;
+    color: var(--text-muted);
     text-align: center;
     padding: 12px;
     font-size: 11px;
@@ -627,7 +637,7 @@ main .container {
 }
 
 .auction-badge {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: #ffffff !important;
     padding: 8px 15px;
     border-radius: 20px;
@@ -638,9 +648,9 @@ main .container {
 }
 
 .subcategory-card:hover .auction-badge {
-    background: linear-gradient(135deg, #ff69b4, #ffa05e);
+    background: linear-gradient(135deg, var(--accent-light), var(--accent-2-light));
     transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
 }
 
 .auction-card:hover .auction-badge {
@@ -665,7 +675,7 @@ main .container {
 }
 
 .subcategory-card.events-card:hover {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
 }
 
 .subcategory-card.events-card:hover .events-badge {
@@ -676,15 +686,15 @@ main .container {
 
 /* Убираем зеленую полоску и сохраняем розовую при наведении */
 .subcategory-card.events-card:hover {
-    border-left: 3px solid #FD48B6;
+    border-left: 3px solid var(--accent);
 }
 
 /* Статистика остается розовой как у других */
 .subcategory-card.events-card .stat-value {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 /* Заголовок при наведении становится розовым как у других */
 .subcategory-card.events-card .subcategory-title:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }

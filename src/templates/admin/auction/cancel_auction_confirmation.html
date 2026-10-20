@@ -1,0 +1,49 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">Главная</a>
+    &rsaquo; <a href="{% url 'admin:auction_auctionlot_changelist' %}">Аукционные лоты</a>
+    &rsaquo; <a href="{% url 'admin:auction_auctionlot_change' lot.id %}">{{ lot.name }}</a>
+    &rsaquo; Отмена
+</div>
+{% endblock %}
+
+{% block content %}
+<div id="content-main">
+    <div class="module">
+        <h2>Аукцион «{{ lot.name }}»</h2>
+        <table>
+            <tr><th>Начальная цена</th><td>{{ lot.initial_price }} ⭐</td></tr>
+            <tr><th>Текущая цена</th><td>{{ lot.current_price }} ⭐</td></tr>
+            <tr><th>Всего ставок</th><td>{{ lot.total_bids_count }}</td></tr>
+        </table>
+    </div>
+
+    <div class="module">
+        <h2>Что произойдёт</h2>
+        <div class="form-row">
+            <p>Аукцион получит статус «Отменён», победителя не будет. Все замороженные ставки разморозятся,
+               очки вернутся участникам, и каждый получит уведомление.</p>
+            {% if active_bids %}
+                <p><strong>Очки вернутся {{ active_bids|length }} участникам:</strong></p>
+                <ul>
+                    {% for bid in active_bids %}
+                        <li>{{ bid.bidder.username }} — {{ bid.bid_amount }} ⭐</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Замороженных ставок нет.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="submit-row">
+            <input type="submit" value="Отменить аукцион" class="deletelink-input" style="background: var(--delete-button-bg);">
+            <a href="{% url 'admin:auction_auctionlot_change' lot.id %}" class="button cancel-link">Назад</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

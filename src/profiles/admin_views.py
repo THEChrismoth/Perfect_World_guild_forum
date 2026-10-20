@@ -1,4 +1,5 @@
 import json
+from django.contrib import admin
 from django.contrib.admin.views.decorators import staff_member_required
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
@@ -47,8 +48,10 @@ def activity_management(request):
     sorted_classes = sorted(class_dict.items(), key=lambda x: x[1]['name'])
 
     context = {
+        # Шапка, меню и название сайта как на остальных страницах админки
+        **admin.site.each_context(request),
         'class_dict': sorted_classes,
-        'title': 'Управление активностью участников',
+        'title': 'Таблица активности участников',
     }
     return render(request, 'admin/activity_management.html', context)
 

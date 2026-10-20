@@ -174,53 +174,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-jazzmin"
-version = "3.0.4"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/70/a652284cd612bcd45da3cc18715db391c6cdeafd1ec9af60f4a3a243c74e/django_jazzmin-3.0.4.tar.gz", hash = "sha256:e8aef8b75edd8792408a69407c22ece924ab7a3d5c9d6f84d7a4eb57e06e7a44", size = 2423027, upload-time = "2026-03-13T11:29:18.821Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d4/1c/42d37c90bec6f6763206b966252dabe019f0c0197a6aaebafa5b213b78f1/django_jazzmin-3.0.4-py3-none-any.whl", hash = "sha256:70935a17604cc530e99be68d3d2b8c576095e1dac4af50464c827d66646f40fa", size = 2495119, upload-time = "2026-03-13T11:29:20.447Z" },
-]
-
-[[package]]
-name = "django-ranged-response"
-version = "0.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/70/e3/9372fcdca8e9c3205e7979528ccd1a14354a9a24d38efff11c1846ff8bf1/django-ranged-response-0.2.0.tar.gz", hash = "sha256:f71fff352a37316b9bead717fc76e4ddd6c9b99c4680cdf4783b9755af1cf985", size = 3021, upload-time = "2017-07-18T09:20:27.603Z" }
-
-[[package]]
-name = "django-recaptcha"
-version = "4.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/a2/480cd2df8031c30afe0d67b0a5e6299ced20f2e65135a3c160c4031d7052/django_recaptcha-4.1.0.tar.gz", hash = "sha256:73097b958733f65b729d4e4630c51fc2bf147aca6f026017d18898dfc25cb4c5", size = 28676, upload-time = "2025-03-28T13:52:26.589Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/8b/e7/0765f98e4953e26573512284995648c439b0eb252877b655683d28c90be2/django_recaptcha-4.1.0-py3-none-any.whl", hash = "sha256:463aa65967e973de466b28ce8e8b6abb2faffb1ce0c7faa1bf0e5b041e0497cb", size = 39473, upload-time = "2025-03-28T13:52:24.92Z" },
-]
-
-[[package]]
-name = "django-simple-captcha"
-version = "0.6.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-    { name = "django-ranged-response" },
-    { name = "pillow" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d3/12/dfcfd76d890c23bde772127647f4d61a6138e5e53453d7aa188e5aee0598/django_simple_captcha-0.6.3.tar.gz", hash = "sha256:6d295dac7213946631b88783b420e58d5d67bf2ff1c9704ac57986323e23bbef", size = 125646, upload-time = "2025-12-07T17:45:11.31Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/10/8c/d0d007820174922fbbaae98074d3a6ffc1b1f53f0c0f68302c5f1b4bb67f/django_simple_captcha-0.6.3-py2.py3-none-any.whl", hash = "sha256:822750ee91ac5bb74c86e785b9539ca22cba2c5d83c0bdf7b4eaaf20c0abff84", size = 94099, upload-time = "2025-12-07T17:45:09.734Z" },
-]
-
-[[package]]
 name = "django-uuslug"
 version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -261,9 +214,6 @@ dependencies = [
     { name = "cryptography" },
     { name = "dj-database-url" },
     { name = "django" },
-    { name = "django-jazzmin" },
-    { name = "django-recaptcha" },
-    { name = "django-simple-captcha" },
     { name = "django-uuslug" },
     { name = "gunicorn" },
     { name = "pillow" },
@@ -276,9 +226,6 @@ requires-dist = [
     { name = "cryptography", specifier = ">=50.0.2" },
     { name = "dj-database-url", specifier = ">=3.1.2" },
     { name = "django", specifier = ">=6.0.4" },
-    { name = "django-jazzmin", specifier = ">=3.0.4" },
-    { name = "django-recaptcha", specifier = "==4.1.0" },
-    { name = "django-simple-captcha", specifier = "==0.6.3" },
     { name = "django-uuslug", specifier = ">=2.0.0" },
     { name = "gunicorn", specifier = "==25.3.0" },
     { name = "pillow", specifier = ">=12.2.0" },

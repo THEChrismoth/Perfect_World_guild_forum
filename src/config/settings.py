@@ -37,8 +37,8 @@ ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS')
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",
-    'django.contrib.admin',
+    # Стандартная админка Django с дашбордом и темой гильдии (core/admin_site.py)
+    'core.apps.GuildAdminConfig',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -48,8 +48,6 @@ INSTALLED_APPS = [
     'forum',
     'koslist',
     'profiles',
-    'captcha',
-    'django_recaptcha',
     'auction',
     'reception',
     'notifications',
@@ -126,19 +124,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-SILENCED_SYSTEM_CHECKS = [
-    'django_recaptcha.recaptcha_test_key_error',
-]
-
 LANGUAGE_CODE = 'ru-ru'
 USE_TZ = True
 TIME_ZONE = 'Europe/Moscow'
 USE_I18N = True
 
 STATIC_URL = '/static/'
-# Исходники статики лежат в static_src, collectstatic собирает всё (вместе с admin/jazzmin) в static
+# Исходники статики лежат в static_src, collectstatic собирает всё (вместе со статикой админки) в static
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static_src')]
 STATIC_ROOT = os.path.join(ROOT_DIR, 'static')
+
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    # Имена файлов статики с хэшем содержимого — браузер не держит старый CSS после обновления.
+    # При DEBUG=True (runserver) ссылки остаются обычными
+    'staticfiles': {'BACKEND': 'core.storage.ForgivingManifestStaticFilesStorage'},
+}
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
@@ -174,18 +175,7 @@ CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS') or [
     for host in ALLOWED_HOSTS if host != '*'
 ]
 
-# Почта: если EMAIL_HOST не задан, письма печатаются в консоль (удобно для разработки)
-EMAIL_HOST = os.getenv('EMAIL_HOST', '')
-if EMAIL_HOST:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_PORT = int(os.getenv('EMAIL_PORT') or 587)
-    EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
-    EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'False') == 'True'
-    EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
-    EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL') or os.getenv('EMAIL_HOST_USER') or 'webmaster@localhost'
-
-RECAPTCHA_PUBLIC_KEY = os.getenv('RECAPTCHA_PUBLIC_KEY')
-RECAPTCHA_PRIVATE_KEY = os.getenv('RECAPTCHA_PRIVATE_KEY')
+# Почта (SMTP), подтверждение email и капча настраиваются в админ-панели: Настройки сайта.
+# Письма сайта отправляет core.mail; пока почта не настроена, они печатаются в консоль
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'webmaster@localhost'

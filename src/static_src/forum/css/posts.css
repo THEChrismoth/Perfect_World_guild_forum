@@ -8,14 +8,14 @@
 .post-item {
     display: flex;
     align-items: flex-start;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
     transition: background 0.3s ease;
     position: relative;
     min-height: 150px;
 }
 
 .post-item:hover {
-    background: rgba(253, 72, 182, 0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 /* Блок автора - фиксированная ширина с прилипанием */
@@ -32,7 +32,7 @@
     top: 20px;
     padding: 20px 15px;
     text-align: center;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     margin: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -60,13 +60,13 @@
     align-items: center;
     gap: 10px;
     text-decoration: none;
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .author-avatar {
     width: 80px;
     height: 80px;
-    background: #FD48B6;
+    background: var(--accent);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -87,7 +87,7 @@
 
 .author-name {
     font-weight: 600;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 16px;
     text-align: center;
     word-break: break-word;
@@ -105,7 +105,7 @@
 }
 
 .post-text {
-    color: #e0e0e0;
+    color: var(--text);
     line-height: 1.6;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -128,7 +128,7 @@
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    background: #1a1c20;
+    background: var(--bg);
 }
 
 .post-image {
@@ -147,9 +147,9 @@
 .post-meta {
     margin-top: 15px;
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     padding-top: 10px;
-    border-top: 1px solid rgba(253, 72, 182, 0.1);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 /* Кнопки действий */
@@ -161,8 +161,8 @@
 
 .btn-post-edit, .btn-post-delete {
     background: transparent;
-    border: 1px solid rgba(253, 72, 182, 0.3);
-    color: #e0e0e0;
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
+    color: var(--text);
     padding: 5px 12px;
     border-radius: 6px;
     cursor: pointer;
@@ -186,10 +186,10 @@
 .edit-textarea {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     resize: vertical;
     font-family: inherit;
@@ -199,7 +199,7 @@
 .edit-image-section {
     margin: 15px 0;
     padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
 }
 
@@ -209,7 +209,7 @@
 
 .current-images p {
     margin: 0 0 10px 0;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
@@ -243,17 +243,17 @@
 .edit-image-label {
     display: block;
     margin-bottom: 8px;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
 .edit-image-input {
     display: block;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
     padding: 8px;
-    color: #fff;
+    color: var(--text-strong);
     width: 100%;
 }
 
@@ -309,7 +309,7 @@
     height: 100px;
     object-fit: cover;
     border-radius: 8px;
-    border: 2px solid #FD48B6;
+    border: 2px solid var(--accent);
 }
 
 .remove-image-btn {
@@ -345,18 +345,18 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(253, 72, 182, 0.2);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.2);
+    color: var(--accent);
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
-    border: 1px dashed #FD48B6;
+    border: 1px dashed var(--accent);
 }
 
 .image-upload-label:hover {
-    background: rgba(253, 72, 182, 0.3);
+    background: rgba(var(--accent-rgb), 0.3);
     transform: translateY(-1px);
 }
 
@@ -378,7 +378,7 @@
 }
 
 .form-text {
-    color: #ffffff !important;
+    color: var(--text-strong) !important;
     font-size: 12px;
     margin-top: 5px;
     display: block;
@@ -409,8 +409,8 @@
         justify-content: center;
         margin: 0;
         border-radius: 0;
-        border-bottom: 1px solid rgba(253, 72, 182, 0.2);
-        background: #2D3037;
+        border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
+        background: var(--surface);
     }
     
     .post-author-link {

@@ -1,11 +1,132 @@
 {% extends "admin/index.html" %}
-{% load static %}
+{% load i18n log %}
 
-{% block extrastyle %}
-{{ block.super }}
-<link rel="stylesheet" type="text/css" href="{% static 'admin/css/index.css' %}">
-{% endblock %}
+{# Главная админ-панели: дашборд. Данные готовит core/dashboard.py #}
+
+{% block coltype %}flex{% endblock %}
+
+{% block content_title %}{% endblock %}
 
 {% block content %}
-{{ block.super }}
+<div id="content-main" class="ga-dashboard">
+
+    <section class="ga-hero">
+        <div>
+            <h1 class="ga-hero-title">Добро пожаловать, {% firstof user.get_short_name user.get_username %}!</h1>
+            <p class="ga-hero-sub">{% now "l, j E Y" %} · {{ site_header }}</p>
+        </div>
+        <a class="ga-btn ga-btn-ghost" href="/" target="_blank" rel="noopener">🌐 Открыть сайт</a>
+    </section>
+
+    {% if dashboard.alerts %}
+        <section class="ga-alerts" aria-label="Требует внимания">
+            <h2 class="ga-section-title">Требует внимания</h2>
+            <ul>
+                {% for alert in dashboard.alerts %}
+                    <li class="ga-alert ga-alert-{{ alert.level }}">
+                        <span class="ga-alert-text">{{ alert.text }}</span>
+                        {% if alert.url %}<a class="ga-alert-action" href="{{ alert.url }}">{{ alert.action|default:"Открыть" }} →</a>{% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    {% endif %}
+
+    <section class="ga-stats" aria-label="Ключевые показатели">
+        {% for stat in dashboard.stats %}
+            {% if stat.url %}<a class="ga-stat ga-tone-{{ stat.tone }}" href="{{ stat.url }}">{% else %}<div class="ga-stat ga-tone-{{ stat.tone }}">{% endif %}
+                <span class="ga-stat-icon" aria-hidden="true">{{ stat.icon }}</span>
+                <span class="ga-stat-value">{{ stat.value }}</span>
+                <span class="ga-stat-label">{{ stat.label }}</span>
+                {% if stat.hint %}<span class="ga-stat-hint">{{ stat.hint }}</span>{% endif %}
+            {% if stat.url %}</a>{% else %}</div>{% endif %}
+        {% endfor %}
+    </section>
+
+    <div class="ga-columns">
+        <section class="ga-card">
+            <h2 class="ga-section-title">Быстрые действия</h2>
+            <div class="ga-actions">
+                {% for action in dashboard.actions %}
+                    {% if action.post %}
+                        <form method="post" action="{{ action.url }}">
+                            {% csrf_token %}
+                            <button type="submit" class="ga-action"><span aria-hidden="true">{{ action.icon }}</span>{{ action.label }}</button>
+                        </form>
+                    {% else %}
+                        <a class="ga-action" href="{{ action.url }}"{% if action.external %} target="_blank" rel="noopener"{% endif %}><span aria-hidden="true">{{ action.icon }}</span>{{ action.label }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if dashboard.backup %}
+                {% with b=dashboard.backup %}
+                    <h2 class="ga-section-title ga-mt">Резервные копии</h2>
+                    <ul class="ga-facts">
+                        <li><span>Расписание</span><strong>{% if b.enabled %}✅ включено{% else %}⚠️ выключено{% endif %}</strong></li>
+                        <li><span>Шифрование</span><strong>{% if b.encrypted %}🔒 включено{% else %}⚠️ выключено{% endif %}</strong></li>
+                        <li><span>Яндекс Диск</span><strong>{% if b.yandex %}☁️ подключён{% else %}не подключён{% endif %}</strong></li>
+                        <li><span>Последняя удачная</span><strong>{% if b.last_ok %}{{ b.last_ok.created_at|date:"d.m.Y H:i" }}{% else %}ещё не было{% endif %}</strong></li>
+                    </ul>
+                    <p class="ga-links"><a href="{{ b.journal_url }}">Журнал копий</a> · <a href="{{ b.settings_url }}">Настройки</a></p>
+                {% endwith %}
+            {% endif %}
+        </section>
+
+        {% if dashboard.recent_applications %}
+            <section class="ga-card">
+                <h2 class="ga-section-title">Последние заявки</h2>
+                <ul class="ga-list">
+                    {% for application in dashboard.recent_applications %}
+                        <li>
+                            <a href="{% url 'admin:reception_application_change' application.pk %}">{{ application.user.username }}</a>
+                            <span class="ga-pill ga-pill-{{ application.status }}">{{ application.get_status_display }}</span>
+                            <span class="ga-muted">{{ application.created_at|date:"d.m H:i" }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        {% if dashboard.new_users %}
+            <section class="ga-card">
+                <h2 class="ga-section-title">Новые пользователи</h2>
+                <ul class="ga-list">
+                    {% for new_user in dashboard.new_users %}
+                        <li>
+                            <a href="{% url 'admin:auth_user_change' new_user.pk %}">{{ new_user.username }}</a>
+                            {% if not new_user.is_active %}<span class="ga-pill ga-pill-pending">не подтверждён</span>{% endif %}
+                            <span class="ga-muted">{{ new_user.date_joined|date:"d.m H:i" }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+
+        <section class="ga-card">
+            <h2 class="ga-section-title">Мои последние действия</h2>
+            {% get_admin_log 6 as admin_log for_user user %}
+            {% if admin_log %}
+                <ul class="ga-list">
+                    {% for entry in admin_log %}
+                        <li>
+                            <span class="ga-log-mark ga-log-{% if entry.is_addition %}add{% elif entry.is_change %}change{% else %}delete{% endif %}" aria-hidden="true"></span>
+                            {% if entry.is_deletion or not entry.get_admin_url %}{{ entry.object_repr }}{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}
+                            <span class="ga-muted">{% if entry.content_type %}{{ entry.content_type.name|capfirst }}{% endif %}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="ga-muted">Пока нет</p>
+            {% endif %}
+        </section>
+    </div>
+
+    <h2 class="ga-section-title ga-mt">Все разделы</h2>
+    <div class="app-list ga-app-grid">
+        {% include "admin/app_list.html" with app_list=app_list show_changelinks=True %}
+    </div>
+</div>
 {% endblock %}
+
+{% block sidebar %}{% endblock %}

@@ -5,13 +5,13 @@
 }
 
 .application-detail {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
     overflow: hidden;
 }
 
 .detail-header {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     padding: 25px;
     display: flex;
     justify-content: space-between;
@@ -54,15 +54,15 @@
 
 .detail-section {
     padding: 25px;
-    border-bottom: 1px solid rgba(253,72,182,0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .detail-section h2 {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 18px;
     margin: 0 0 20px 0;
     padding-bottom: 10px;
-    border-bottom: 2px solid rgba(253,72,182,0.3);
+    border-bottom: 2px solid rgba(var(--accent-rgb), 0.3);
 }
 
 .info-grid {
@@ -74,23 +74,23 @@
 .info-row {
     display: flex;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.05);
 }
 
 .info-label {
     width: 180px;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 500;
 }
 
 .info-value {
     flex: 1;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 /* Характеристики */
 .stats-grid {
-    background: rgba(0,0,0,0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
     padding: 15px;
 }
@@ -100,7 +100,7 @@
     flex-wrap: wrap;
     gap: 15px;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.05);
 }
 
 .stat-row:last-child {
@@ -108,13 +108,13 @@
 }
 
 .stat-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 13px;
     min-width: 100px;
 }
 
 .stat-value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 14px;
     margin-right: 20px;
@@ -122,10 +122,10 @@
 
 /* Текст */
 .text-content {
-    background: rgba(0,0,0,0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     padding: 15px;
     border-radius: 8px;
-    color: #e0e0e0;
+    color: var(--text);
     line-height: 1.6;
 }
 
@@ -164,7 +164,7 @@
 .vote-stat {
     text-align: center;
     padding: 15px 25px;
-    background: rgba(0,0,0,0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 10px;
     min-width: 100px;
 }
@@ -184,21 +184,21 @@
 }
 
 .vote-stat.abstain .vote-count {
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .vote-stat.total .vote-count {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .vote-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 14px;
 }
 
 /* Форма голосования */
 .vote-section {
-    background: rgba(253,72,182,0.05);
+    background: rgba(var(--accent-rgb), 0.05);
 }
 
 .vote-options {
@@ -214,13 +214,13 @@
     gap: 8px;
     cursor: pointer;
     padding: 10px 20px;
-    background: rgba(0,0,0,0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     border-radius: 8px;
     transition: all 0.3s ease;
 }
 
 .vote-option:hover {
-    background: rgba(253,72,182,0.2);
+    background: rgba(var(--accent-rgb), 0.2);
     transform: translateY(-2px);
 }
 
@@ -240,12 +240,12 @@
 }
 
 .vote-label.abstain {
-    color: #ffc107;
+    color: var(--warning-text);
     font-weight: bold;
 }
 
 .btn-submit-vote {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
     padding: 12px 30px;
     border: none;
@@ -258,16 +258,16 @@
 
 .btn-submit-vote:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(253,72,182,0.4);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.4);
 }
 
 /* Комментарии */
 .comments-section {
-    background: rgba(0,0,0,0.1);
+    background: rgba(var(--shade-rgb), calc(0.1 * var(--shade-k)));
 }
 
 .comment-item {
-    background: rgba(0,0,0,0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 10px;
@@ -292,11 +292,11 @@
     gap: 10px;
     margin-bottom: 8px;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.1);
 }
 
 .comment-header strong {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .comment-vote {
@@ -304,13 +304,13 @@
 }
 
 .comment-date {
-    color: #888;
+    color: var(--text-muted);
     font-size: 11px;
     margin-left: auto;
 }
 
 .comment-text {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 13px;
     line-height: 1.5;
 }
@@ -326,17 +326,17 @@
     gap: 20px;
     justify-content: center;
     flex-wrap: wrap;
-    border-top: 1px solid rgba(253,72,182,0.1);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .btn-back {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .btn-back:hover {
-    color: #ff69b4;
+    color: var(--accent-light);
 }
 
 .alert-info {

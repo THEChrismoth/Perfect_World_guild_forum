@@ -7,22 +7,19 @@
 Пароль шифрования задается в .env (BACKUP_ENCRYPTION_PASSWORD) и намеренно не хранится в базе:
 иначе он попадал бы внутрь каждой копии и был бы доступен всем, у кого есть доступ к базе.
 
-Токен Яндекс Диска хранится в базе зашифрованным ключом, производным от SECRET_KEY:
-утечка базы или копии не раскрывает токен.
+Токен Яндекс Диска хранится в базе зашифрованным — см. core/secrets.py.
 """
-import base64
 import os
 import shutil
 import subprocess
 import tempfile
 
-from cryptography.fernet import Fernet, InvalidToken
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from django.conf import settings
 
+# Шифрование секретов в базе — общее для всего сайта
+from core.secrets import SECRET_PREFIX, decrypt_secret, encrypt_secret  # noqa: F401
+
 ENCRYPTED_SUFFIX = '.gpg'
-SECRET_PREFIX = 'fernet:'
 
 
 class EncryptionError(Exception):
@@ -88,35 +85,3 @@ def decrypt_file(source, target, password=None):
                 'Неверный пароль шифрования. Копия создавалась с другим BACKUP_ENCRYPTION_PASSWORD'
             )
         raise EncryptionError(f'Не удалось расшифровать копию: {result.stderr.strip()}')
-
-
-# ---------- Секреты в базе (Fernet) ----------
-
-def _fernet():
-    key = HKDF(
-        algorithm=hashes.SHA256(),
-        length=32,
-        salt=None,
-        info=b'backups.secret-field',
-    ).derive(settings.SECRET_KEY.encode())
-    return Fernet(base64.urlsafe_b64encode(key))
-
-
-def encrypt_secret(value):
-    if not value:
-        return ''
-    return SECRET_PREFIX + _fernet().encrypt(value.encode()).decode()
-
-
-def decrypt_secret(value):
-    """Возвращает расшифрованное значение или None, если расшифровать не удалось
-    (например, сменился SECRET_KEY)"""
-    if not value:
-        return ''
-    if not value.startswith(SECRET_PREFIX):
-        # Значение, сохраненное до появления шифрования
-        return value
-    try:
-        return _fernet().decrypt(value[len(SECRET_PREFIX):].encode()).decode()
-    except InvalidToken:
-        return None

@@ -7,7 +7,7 @@
 
 /* Заголовок */
 .reception-header {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 25px;
@@ -26,17 +26,47 @@
 
 /* Карточка профиля */
 .profile-info-card {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 25px;
-    border-left: 4px solid #FD48B6;
+    border-left: 4px solid var(--accent);
 }
 
 .profile-info-card h3 {
-    margin: 0 0 15px 0;
-    color: #FD48B6;
+    margin: 0;
+    color: var(--accent);
     font-size: 18px;
+}
+
+.profile-info-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.profile-edit-link {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    background: rgba(var(--accent-rgb), 0.1);
+    transition: background 0.2s ease;
+}
+
+.profile-edit-link:hover {
+    background: rgba(var(--accent-rgb), 0.2);
+}
+
+.profile-info-hint {
+    margin: 0 0 15px 0;
+    color: var(--text-muted);
+    font-size: 13px;
 }
 
 /* Сетка характеристик */
@@ -51,25 +81,25 @@
     justify-content: space-between;
     align-items: center;
     padding: 8px 12px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 6px;
     border-bottom: none;
 }
 
 .info-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 13px;
 }
 
 .info-value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 14px;
 }
 
 /* Форма */
 .application-form {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 10px;
     padding: 25px;
 }
@@ -77,11 +107,11 @@
 .form-section {
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(253,72,182,0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 .form-section h2 {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 20px;
     margin-bottom: 20px;
 }
@@ -92,7 +122,7 @@
 
 .form-group label {
     display: block;
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 8px;
     font-weight: 500;
 }
@@ -100,18 +130,18 @@
 .form-control, .form-group input, .form-group select, .form-group textarea {
     width: 100%;
     padding: 10px 12px;
-    background: #1a1c20;
-    border: 1px solid #FD48B6;
+    background: var(--bg);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     transition: all 0.3s ease;
 }
 
 .form-control:focus, .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
     outline: none;
-    border-color: #ff8c42;
-    box-shadow: 0 0 5px rgba(253,72,182,0.3);
+    border-color: var(--accent-2);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.3);
 }
 
 .form-row {
@@ -141,11 +171,11 @@
     display: block;
     margin-top: 5px;
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .section-hint {
-    color: #888;
+    color: var(--text-muted);
     font-size: 13px;
     margin-bottom: 15px;
 }
@@ -158,7 +188,7 @@
 }
 
 .screenshot-field {
-    background: #1a1c20;
+    background: var(--bg);
     padding: 15px;
     border-radius: 6px;
     text-align: center;
@@ -168,7 +198,7 @@
     font-size: 12px;
     margin-bottom: 10px;
     display: block;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 /* Стили для загрузки файлов */
@@ -176,16 +206,16 @@
     display: block;
     width: 100%;
     padding: 8px;
-    background: #1a1c20;
-    border: 1px solid #FD48B6;
+    background: var(--bg);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 12px;
     cursor: pointer;
 }
 
 .screenshot-field input[type="file"]::-webkit-file-upload-button {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     padding: 6px 12px;
     border: none;
@@ -195,7 +225,7 @@
 }
 
 .screenshot-field input[type="file"]::-webkit-file-upload-button:hover {
-    background: #ff69b4;
+    background: var(--accent-light);
 }
 
 /* Превью изображений */
@@ -208,7 +238,7 @@
     max-width: 100%;
     max-height: 100px;
     border-radius: 4px;
-    border: 1px solid #FD48B6;
+    border: 1px solid var(--accent);
 }
 
 /* Кнопки */
@@ -220,7 +250,7 @@
 }
 
 .btn-submit {
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
     padding: 12px 30px;
     border: none;
@@ -233,7 +263,7 @@
 
 .btn-submit:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(253,72,182,0.4);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.4);
 }
 
 .btn-cancel {

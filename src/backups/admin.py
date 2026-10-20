@@ -29,7 +29,14 @@ class BackupSettingsForm(forms.ModelForm):
         label='OAuth-токен Яндекса',
         required=False,
         widget=forms.PasswordInput(render_value=False, attrs={'autocomplete': 'new-password', 'size': 60}),
-        help_text=BackupSettings._meta.get_field('yandex_token').help_text,
+        help_text=format_html(
+            'Как получить: создайте приложение на <a href="{}" target="_blank" rel="noopener">oauth.yandex.ru</a> '
+            '(платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, права '
+            '«Доступ к папке приложения на Диске» и «Доступ к информации о Диске»), затем откройте '
+            '<code>https://oauth.yandex.ru/authorize?response_type=token&amp;client_id=ВАШ_CLIENT_ID</code> и нажмите '
+            '«Разрешить». Подробно — в README, раздел «Резервные копии». Оставьте поле пустым, чтобы не менять сохранённый токен',
+            'https://oauth.yandex.ru/client/new',
+        ),
     )
     clear_yandex_token = forms.BooleanField(label='Удалить сохраненный токен', required=False)
 
@@ -126,18 +133,25 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
             messages.error(request, 'Сначала сохраните токен Яндекса')
         else:
             disk = YandexDisk(token)
+            # Сведения о Диске (место, аккаунт) — только при праве «Доступ к информации о Диске».
+            # Для самих копий оно не нужно, поэтому без него проверка не считается неудачной
             try:
                 info = disk.check()
+            except YandexDiskError:
+                info = None
+            try:
                 disk.ensure_folder(backup_settings.yandex_folder)
             except YandexDiskError as error:
                 messages.error(request, f'Не удалось подключиться: {error}')
             else:
-                free = (info.get('total_space') or 0) - (info.get('used_space') or 0)
-                owner = (info.get('user') or {}).get('login', '')
+                details = ''
+                if info:
+                    free = (info.get('total_space') or 0) - (info.get('used_space') or 0)
+                    owner = (info.get('user') or {}).get('login', '')
+                    details = f'{f" Аккаунт {owner}," if owner else ""} свободно {filesizeformat(free)}.'
                 messages.success(
                     request,
-                    f'Подключение работает{f" (аккаунт {owner})" if owner else ""}. '
-                    f'Папка {backup_settings.yandex_folder} готова, свободно {filesizeformat(free)}'
+                    f'Подключение работает: папка {backup_settings.yandex_folder} готова.{details}'
                 )
         return redirect(reverse('admin:backups_backupsettings_change', args=[backup_settings.pk]))
 

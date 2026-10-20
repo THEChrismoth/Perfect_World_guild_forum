@@ -19,7 +19,7 @@ main .container {
 }
 
 .topic-header {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 30px;
@@ -41,7 +41,7 @@ main .container {
     margin: 0;
     font-size: 28px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
 }
 
 .topic-header-buttons {
@@ -91,13 +91,13 @@ main .container {
 .topic-meta-info {
     display: flex;
     gap: 20px;
-    color: #a0a0a0;
+    color: var(--text-secondary);
     font-size: 14px;
     flex-wrap: wrap;
 }
 
 .topic-author-link {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -128,7 +128,7 @@ main .container {
 }
 
 .post-item {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     overflow: visible;
     transition: all 0.3s ease;
@@ -159,7 +159,7 @@ main .container {
 
 .post-author {
     padding: 20px;
-    background: rgba(26, 28, 32, 0.5);
+    background: rgba(var(--bg-rgb), 0.5);
     text-align: center;
     border-radius: 8px;
     margin: 10px;
@@ -177,7 +177,7 @@ main .container {
 .author-avatar {
     width: 60px;
     height: 60px;
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -198,7 +198,7 @@ main .container {
 
 .author-name {
     font-weight: 600;
-    color: #FD48B6;
+    color: var(--accent);
     margin-bottom: 5px;
     font-size: 14px;
     text-align: center;
@@ -222,7 +222,7 @@ main .container {
 }
 
 .post-text {
-    color: #e0e0e0;
+    color: var(--text);
     line-height: 1.6;
     font-size: 14px;
     flex: 1;
@@ -246,18 +246,18 @@ main .container {
 .post-meta {
     margin-top: 15px;
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
     padding-top: 10px;
-    border-top: 1px solid rgba(253, 72, 182, 0.1);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .post-created {
-    color: #888;
+    color: var(--text-muted);
     font-style: italic;
 }
 
 .post-edited {
-    color: #ff8c42;
+    color: var(--accent-2);
     font-style: italic;
 }
 
@@ -266,14 +266,14 @@ main .container {
     gap: 15px;
     margin-top: 15px;
     padding-top: 10px;
-    border-top: 1px solid rgba(253, 72, 182, 0.2);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.2);
     justify-content: flex-end;
 }
 
 .btn-post-edit,
 .btn-post-delete {
     background: transparent;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     padding: 5px 12px;
     cursor: pointer;
     font-size: 12px;
@@ -311,10 +311,10 @@ main .container {
 .edit-textarea {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
@@ -323,14 +323,14 @@ main .container {
 
 .edit-textarea:focus {
     outline: none;
-    border-color: #FD48B6;
-    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.3);
 }
 
 .edit-image-section {
     margin: 15px 0;
     padding: 15px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
 }
 
@@ -340,7 +340,7 @@ main .container {
 
 .current-images p {
     margin: 0 0 10px 0;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
@@ -374,17 +374,17 @@ main .container {
 .edit-image-label {
     display: block;
     margin-bottom: 8px;
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
 .edit-image-input {
     display: block;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
     padding: 8px;
-    color: #fff;
+    color: var(--text-strong);
     width: 100%;
 }
 
@@ -430,7 +430,7 @@ main .container {
 
 .reply-form-block {
     margin-top: 30px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
@@ -440,12 +440,12 @@ main .container {
 }
 
 .reply-title {
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 15px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #FD48B6;
+    border-bottom: 2px solid var(--accent);
     display: inline-block;
 }
 
@@ -460,10 +460,10 @@ main .container {
 .reply-form .form-group textarea {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     font-family: inherit;
     resize: vertical;
@@ -473,8 +473,8 @@ main .container {
 
 .reply-form .form-group textarea:focus {
     outline: none;
-    border-color: #FD48B6;
-    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.3);
 }
 
 .form-buttons-wrapper {
@@ -492,18 +492,18 @@ main .container {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: rgba(253, 72, 182, 0.2);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.2);
+    color: var(--accent);
     padding: 10px 20px;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 14px;
-    border: 1px dashed #FD48B6;
+    border: 1px dashed var(--accent);
 }
 
 .image-upload-label:hover {
-    background: rgba(253, 72, 182, 0.3);
+    background: rgba(var(--accent-rgb), 0.3);
     transform: translateY(-1px);
 }
 
@@ -528,17 +528,17 @@ main .container {
 .login-to-reply {
     text-align: center;
     padding: 20px;
-    background: rgba(26, 28, 32, 0.5);
+    background: rgba(var(--bg-rgb), 0.5);
     border-radius: 8px;
 }
 
 .login-to-reply p {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 14px;
 }
 
 .login-to-reply a {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
     font-weight: 600;
 }
@@ -554,7 +554,7 @@ main .container {
 }
 
 .form-text {
-    color: #ffffff !important;
+    color: var(--text-strong) !important;
     font-size: 12px;
     margin-top: 5px;
     display: block;
@@ -578,7 +578,7 @@ main .container {
     height: 100px;
     object-fit: cover;
     border-radius: 8px;
-    border: 2px solid #FD48B6;
+    border: 2px solid var(--accent);
 }
 
 .remove-image-btn {
@@ -605,9 +605,9 @@ main .container {
 .no-posts {
     text-align: center;
     padding: 40px;
-    color: #888;
+    color: var(--text-muted);
     font-style: italic;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
 }
 
@@ -660,7 +660,7 @@ main .container {
         gap: 15px;
         padding: 15px;
         text-align: left;
-        border-bottom: 1px solid rgba(253, 72, 182, 0.1);
+        border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
         margin: 0;
         border-radius: 0;
     }

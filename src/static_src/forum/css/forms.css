@@ -8,7 +8,7 @@
 
 .form-group label {
     display: block;
-    color: #e0e0e0;
+    color: var(--text);
     margin-bottom: 10px;
     font-weight: 500;
     font-size: 14px;
@@ -18,10 +18,10 @@
 .form-group textarea {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid rgba(253, 72, 182, 0.3);
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.3);
     border-radius: 8px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 14px;
     transition: all 0.3s ease;
     box-sizing: border-box;
@@ -30,8 +30,8 @@
 .form-group input[type="text"]:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #FD48B6;
-    box-shadow: 0 0 5px rgba(253, 72, 182, 0.3);
+    border-color: var(--accent);
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), 0.3);
 }
 
 .form-group textarea {

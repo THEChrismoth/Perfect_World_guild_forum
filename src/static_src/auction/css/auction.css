@@ -34,19 +34,19 @@ main .container {
 
 /* Шапка аукциона */
 .auction-header {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     padding: 25px;
     margin-bottom: 30px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    border-top: 3px solid #FD48B6;
+    border-top: 3px solid var(--accent);
 }
 
 .auction-header h1 {
     margin: 0 0 20px 0;
     font-size: 32px;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--text-strong);
     letter-spacing: 0.5px;
 }
 
@@ -60,7 +60,7 @@ main .container {
 .stat-card {
     flex: 1;
     min-width: 120px;
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     border-radius: 8px;
     padding: 15px;
     text-align: center;
@@ -69,20 +69,20 @@ main .container {
 
 .stat-card:hover {
     transform: translateY(-2px);
-    background: rgba(253, 72, 182, 0.15);
+    background: rgba(var(--accent-rgb), 0.15);
 }
 
 .stat-card .stat-value {
     display: block;
     font-size: 28px;
     font-weight: bold;
-    color: #FD48B6;
+    color: var(--accent);
     margin-bottom: 5px;
 }
 
 .stat-card .stat-label {
     font-size: 12px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 /* Секции */
@@ -94,11 +94,11 @@ main .container {
 
 .active-lots-section h2,
 .ended-lots-section h2 {
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 24px;
     margin-bottom: 20px;
     padding-bottom: 10px;
-    border-bottom: 2px solid #FD48B6;
+    border-bottom: 2px solid var(--accent);
     display: inline-block;
 }
 
@@ -112,7 +112,7 @@ main .container {
 
 /* Карточка лота */
 .lot-card {
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -127,7 +127,7 @@ main .container {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #FD48B6, #ff8c42);
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
     transform: scaleX(0);
     transition: transform 0.3s ease;
 }
@@ -145,7 +145,7 @@ main .container {
 .lot-image {
     width: 100%;
     height: 150px;
-    background: linear-gradient(135deg, #1a1c20, #2D3037);
+    background: linear-gradient(135deg, var(--bg), var(--surface));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -164,7 +164,7 @@ main .container {
 
 .no-image {
     font-size: 64px;
-    color: #FD48B6;
+    color: var(--accent);
     text-align: center;
 }
 
@@ -180,20 +180,20 @@ main .container {
 }
 
 .lot-info h3 a {
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     transition: color 0.3s ease;
 }
 
 .lot-info h3 a:hover {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 /* Цена */
 .lot-price {
     margin-bottom: 15px;
     padding: 10px;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 6px;
 }
 
@@ -208,12 +208,12 @@ main .container {
 }
 
 .price-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
 }
 
 .price-value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 16px;
 }
@@ -225,7 +225,7 @@ main .container {
 
 /* Таймер */
 .lot-timer {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 10px;
     border-radius: 6px;
     margin-bottom: 15px;
@@ -234,16 +234,16 @@ main .container {
 }
 
 .timer-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 12px;
     margin-right: 10px;
 }
 
 .timer-value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 18px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     padding: 5px 10px;
     border-radius: 4px;
     display: inline-block;
@@ -256,16 +256,16 @@ main .container {
     margin-bottom: 20px;
     padding: 8px 0;
     font-size: 12px;
-    color: #888;
-    border-top: 1px solid rgba(253, 72, 182, 0.1);
-    border-bottom: 1px solid rgba(253, 72, 182, 0.1);
+    color: var(--text-muted);
+    border-top: 1px solid rgba(var(--accent-rgb), 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 /* Кнопка ставки */
 .btn-bid {
     display: block;
     width: 100%;
-    background: linear-gradient(135deg, #FD48B6, #ff8c42);
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
     color: white;
     text-align: center;
     padding: 12px;
@@ -279,7 +279,7 @@ main .container {
 
 .btn-bid:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(253, 72, 182, 0.4);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.4);
 }
 
 .btn-bid:active {
@@ -301,17 +301,17 @@ main .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #2D3037;
+    background: var(--surface);
     padding: 15px 20px;
     border-radius: 8px;
     transition: all 0.3s ease;
-    border-left: 3px solid #888;
+    border-left: 3px solid var(--text-muted);
 }
 
 .ended-lot-item:hover {
     transform: translateX(5px);
-    background: rgba(45, 48, 55, 0.9);
-    border-left-color: #FD48B6;
+    background: rgba(var(--surface-rgb), 0.9);
+    border-left-color: var(--accent);
 }
 
 .ended-lot-info {
@@ -322,36 +322,36 @@ main .container {
 }
 
 .ended-lot-info strong {
-    color: #e0e0e0;
+    color: var(--text);
     font-size: 16px;
     min-width: 200px;
 }
 
 .ended-lot-info span {
-    color: #888;
+    color: var(--text-muted);
     font-size: 14px;
 }
 
 .ended-lot-info span:first-of-type {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
 }
 
 .btn-view {
-    background: rgba(253, 72, 182, 0.2);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.2);
+    color: var(--accent);
     padding: 8px 20px;
     border-radius: 6px;
     text-decoration: none;
     transition: all 0.3s ease;
-    border: 1px solid #FD48B6;
+    border: 1px solid var(--accent);
 }
 
 .btn-view:hover {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(253, 72, 182, 0.3);
+    box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.3);
 }
 
 /* Пагинация */
@@ -366,21 +366,21 @@ main .container {
 .pagination a,
 .pagination .current-page {
     padding: 8px 15px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 6px;
-    color: #e0e0e0;
+    color: var(--text);
     text-decoration: none;
     transition: all 0.3s ease;
 }
 
 .pagination a:hover {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     transform: translateY(-2px);
 }
 
 .pagination .current-page {
-    background: #FD48B6;
+    background: var(--accent);
     color: white;
     cursor: default;
 }
@@ -389,9 +389,9 @@ main .container {
 .no-lots {
     text-align: center;
     padding: 60px 20px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 8px;
-    color: #888;
+    color: var(--text-muted);
     font-size: 16px;
 }
 
@@ -404,9 +404,9 @@ main .container {
     max-width: 100%;
     margin: 20px;
     padding: 30px;
-    background: #2D3037;
+    background: var(--surface);
     border-radius: 12px;
-    border-top: 3px solid #FD48B6;
+    border-top: 3px solid var(--accent);
     box-sizing: border-box;
 }
 
@@ -422,7 +422,7 @@ main .container {
     flex: 0 0 auto;
     max-width: 300px;
     min-width: 150px;
-    background: #1a1c20;
+    background: var(--bg);
     border-radius: 8px;
     overflow: hidden;
     display: flex;
@@ -447,7 +447,7 @@ main .container {
     align-items: center;
     justify-content: center;
     font-size: 48px;
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .lot-detail-info {
@@ -457,21 +457,21 @@ main .container {
 
 .lot-detail-info h1 {
     margin: 0 0 20px 0;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 28px;
 }
 
 .lot-description {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-    color: #e0e0e0;
+    color: var(--text);
     line-height: 1.6;
 }
 
 .lot-detail-price {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 15px;
     border-radius: 8px;
     margin-bottom: 20px;
@@ -481,7 +481,7 @@ main .container {
     display: flex;
     justify-content: space-between;
     padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(var(--overlay-rgb), 0.1);
 }
 
 .price-row:last-child {
@@ -489,11 +489,11 @@ main .container {
 }
 
 .price-row .label {
-    color: #888;
+    color: var(--text-muted);
 }
 
 .price-row .value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 18px;
 }
@@ -505,7 +505,7 @@ main .container {
 
 /* Таймер на детальной странице */
 .lot-timer {
-    background: rgba(253, 72, 182, 0.1);
+    background: rgba(var(--accent-rgb), 0.1);
     padding: 15px;
     border-radius: 8px;
     margin: 15px 0;
@@ -513,17 +513,17 @@ main .container {
 }
 
 .timer-label {
-    color: #888;
+    color: var(--text-muted);
     font-size: 14px;
     margin-right: 10px;
     display: inline-block;
 }
 
 .timer-value {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
     font-size: 20px;
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     padding: 8px 15px;
     border-radius: 6px;
     display: inline-block;
@@ -556,11 +556,11 @@ main .container {
 .user-points-info span,
 .user-points-info div,
 .user-points-info p {
-    color: #ffffff !important;
+    color: var(--text-strong) !important;
 }
 
 .user-points-info strong {
-    color: #FD48B6 !important;
+    color: var(--accent) !important;
     font-size: 22px;
     font-weight: bold;
 }
@@ -603,7 +603,7 @@ main .container {
 .alert-warning {
     background: rgba(255, 193, 7, 0.15);
     border-left: 3px solid #ffc107;
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .alert-info {
@@ -614,7 +614,7 @@ main .container {
 
 /* Блок ставки */
 .bid-section {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     padding: 20px;
     border-radius: 8px;
     margin: 20px 0 30px 0;
@@ -625,7 +625,7 @@ main .container {
 .bid-section h3 {
     margin-top: 0;
     margin-bottom: 15px;
-    color: #ffffff;
+    color: var(--text-strong);
 }
 
 /* Новая структура формы */
@@ -658,10 +658,10 @@ main .container {
 .bid-input {
     width: 100%;
     padding: 12px;
-    background: #1a1c20;
-    border: 1px solid #FD48B6;
+    background: var(--bg);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    color: #ffffff;
+    color: var(--text-strong);
     font-size: 16px;
     box-sizing: border-box;
     height: 46px;
@@ -669,14 +669,14 @@ main .container {
 
 .bid-input:focus {
     outline: none;
-    border-color: #ff8c42;
+    border-color: var(--accent-2);
 }
 
 .form-hint {
     display: block;
     margin-top: 5px;
     font-size: 11px;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .btn-submit-bid {
@@ -713,14 +713,14 @@ main .container {
 }
 
 .bids-table h3 {
-    color: #ffffff;
+    color: var(--text-strong);
     margin-bottom: 15px;
 }
 
 .bids-table table {
     width: 100%;
     border-collapse: collapse;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(var(--shade-rgb), calc(0.2 * var(--shade-k)));
     border-radius: 8px;
     overflow: hidden;
 }
@@ -729,17 +729,17 @@ main .container {
 .bids-table td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.2);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.2);
 }
 
 .bids-table th {
-    background: rgba(253, 72, 182, 0.1);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent);
     font-weight: 600;
 }
 
 .bids-table td {
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 /* Стили для строк таблицы */
@@ -752,11 +752,11 @@ main .container {
 }
 
 .frozen-row {
-    background: rgba(253, 72, 182, 0.08);
+    background: rgba(var(--accent-rgb), 0.08);
 }
 
 .frozen-row td {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 /* Статусы */
@@ -766,7 +766,7 @@ main .container {
 }
 
 .status-frozen {
-    color: #FD48B6;
+    color: var(--accent);
     font-weight: bold;
 }
 
@@ -775,22 +775,22 @@ main .container {
 }
 
 .status-outbid {
-    color: #888;
+    color: var(--text-muted);
 }
 
 .active-bid-warning {
-    background: rgba(253, 72, 182, 0.15);
-    border-left: 3px solid #FD48B6;
+    background: rgba(var(--accent-rgb), 0.15);
+    border-left: 3px solid var(--accent);
     padding: 10px 15px;
     margin: 15px 0;
     border-radius: 6px;
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 14px;
 }
 
 .no-bids {
     text-align: center;
-    color: #888;
+    color: var(--text-muted);
     padding: 30px;
 }
 
@@ -801,11 +801,11 @@ main .container {
     padding: 15px;
     margin: 20px 0;
     border-radius: 4px;
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .warning-message a {
-    color: #FD48B6;
+    color: var(--accent);
     text-decoration: none;
 }
 
@@ -825,12 +825,12 @@ main .container {
 .info-message h3,
 .info-message h4,
 .info-message p {
-    color: #e0e0e0;
+    color: var(--text);
 }
 
 .info-message h3,
 .info-message h4 {
-    color: #FD48B6;
+    color: var(--accent);
 }
 
 .winners-list {
@@ -1072,7 +1072,7 @@ main .container {
 
 /* Дополнительные стили */
 .user-points-info {
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(var(--shade-rgb), calc(0.3 * var(--shade-k)));
     border-radius: 8px;
     padding: 12px 15px;
     margin-top: 20px;
@@ -1087,7 +1087,7 @@ main .container {
 }
 
 .user-points-info strong {
-    color: #FD48B6;
+    color: var(--accent);
     font-size: 18px;
 }
 
@@ -1097,17 +1097,17 @@ main .container {
     padding: 8px 10px;
     margin-top: 8px;
     border-radius: 4px;
-    color: #ffc107;
+    color: var(--warning-text);
     font-size: 13px;
 }
 
 .frozen-points-warning strong {
-    color: #ffc107;
+    color: var(--warning-text);
     font-size: 14px;
 }
 
 .status-outbid {
-    color: #ffc107;
+    color: var(--warning-text);
 }
 
 .status-active {
@@ -1120,15 +1120,15 @@ main .container {
 }
 
 .bids-table th {
-    background: rgba(253, 72, 182, 0.1);
-    color: #FD48B6;
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent);
     padding: 12px;
     text-align: left;
 }
 
 .bids-table td {
     padding: 10px 12px;
-    border-bottom: 1px solid rgba(253, 72, 182, 0.1);
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.1);
 }
 
 .table-responsive {

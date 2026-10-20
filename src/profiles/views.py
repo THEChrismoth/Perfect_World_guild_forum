@@ -1,17 +1,24 @@
+import logging
+
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from django.db import transaction
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.tokens import default_token_generator
-from django.conf import settings
+from core import captcha
+from core.mail import send_site_mail
+from core.models import SiteSettings
 from .forms import RegistrationForm, ProfileForm, UserForm
 
+logger = logging.getLogger(__name__)
 
-def send_verification_email(user, request):
+
+def send_verification_email(user, request, site_settings):
     # Генерация токена
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
@@ -21,37 +28,61 @@ def send_verification_email(user, request):
         reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
     )
 
-    # Отправка письма
-    subject = 'Подтверждение регистрации'
-    message = f'''
-    Здравствуйте, {user.username}!
-
-    Для завершения регистрации перейдите по ссылке:
-    {verification_url}
-
-    Ссылка действительна в течение 24 часов.
-    '''
-
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    subject = f'Подтверждение регистрации — {site_settings.site_name}'
+    message = (
+        f'Здравствуйте, {user.username}!\n\n'
+        f'Для завершения регистрации на сайте «{site_settings.site_name}» перейдите по ссылке:\n'
+        f'{verification_url}\n\n'
+        'Если вы не регистрировались, просто проигнорируйте это письмо.'
+    )
+    send_site_mail(subject, message, [user.email], site_settings)
 
 
 def register(request):
+    site_settings = SiteSettings.load()
     if request.method == 'POST':
-        form = RegistrationForm(request.POST)
+        form = RegistrationForm(request.POST, site_settings=site_settings)
         if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False  # Пользователь неактивен до подтверждения
-            user.save()
+            if not site_settings.email_verification:
+                # Подтверждение почты выключено — аккаунт активен сразу, входим автоматически
+                user = form.save()
+                login(request, user)
+                messages.success(request, f'Добро пожаловать, {user.username}! Регистрация завершена.')
+                return redirect('/')
 
-            # Отправка письма с подтверждением
-            send_verification_email(user, request)
-
-            messages.success(request,
-                             'Регистрация успешна! На вашу почту отправлено письмо с подтверждением.')
-            return redirect('login')
+            try:
+                # Если письмо не ушло, аккаунт не создаётся: иначе он остался бы
+                # неактивным, а повторить регистрацию с тем же именем было бы нельзя
+                with transaction.atomic():
+                    user = form.save(commit=False)
+                    user.is_active = False  # Пользователь неактивен до подтверждения
+                    user.save()
+                    send_verification_email(user, request, site_settings)
+            except Exception:
+                logger.exception('Не удалось отправить письмо подтверждения регистрации')
+                from notifications.utils import send_notification_to_admins
+                send_notification_to_admins(
+                    title='⚠️ Не отправляются письма регистрации',
+                    message='Не удалось отправить письмо подтверждения регистрации. '
+                            'Проверьте настройки почты: Настройки сайта → Почта (SMTP) → «Отправить тестовое письмо».',
+                    notification_type='error',
+                    link=reverse('admin:core_sitesettings_change', args=[site_settings.pk]),
+                )
+                form.add_error(None, 'Не удалось отправить письмо с подтверждением. '
+                                     'Попробуйте позже — администраторы уже получили уведомление.')
+            else:
+                messages.success(request,
+                                 'Регистрация почти завершена! Перейдите по ссылке из письма, '
+                                 'которое мы отправили на вашу почту (проверьте и папку «Спам»).')
+                return redirect('login')
     else:
-        form = RegistrationForm()
-    return render(request, 'registration/register.html', {'form': form})
+        form = RegistrationForm(site_settings=site_settings)
+    return render(request, 'registration/register.html', {
+        'form': form,
+        'captcha_active': site_settings.captcha_active,
+        'captcha_site_key': site_settings.captcha_site_key,
+        'captcha_script_url': captcha.SCRIPT_URL,
+    })
 
 
 def verify_email(request, uidb64, token):

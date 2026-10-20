@@ -1,8 +1,18 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
+    <script>
+        // Тема применяется до загрузки стилей, чтобы страница не мигала тёмной темой
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem('theme'); } catch (e) {}
+            if (theme === 'light' || theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% if site_settings.favicon %}
         <link rel="icon" href="{{ site_settings.favicon.url }}">
@@ -29,6 +39,7 @@
             <div class="header-right">
                 {% if user.is_authenticated %}
                     <div class="user-menu">
+                        {% include 'includes/theme_toggle.html' %}
                         <div class="notifications-dropdown">
                             <button class="notifications-btn" onclick="toggleNotifications()">
                                 🔔
@@ -76,6 +87,7 @@
                     </div>
                 {% else %}
                     <div class="auth-buttons">
+                        {% include 'includes/theme_toggle.html' %}
                         <a href="{% url 'register' %}" class="register-btn">Регистрация</a>
                         <a href="{% url 'login' %}" class="login-btn">Вход</a>
                     </div>
@@ -113,6 +125,30 @@
     </footer>
 
     <script>
+        function currentTheme() {
+            return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        }
+
+        function updateThemeButtons() {
+            const label = currentTheme() === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему';
+            document.querySelectorAll('.theme-toggle').forEach(function (button) {
+                button.setAttribute('aria-label', label);
+                button.setAttribute('title', label);
+            });
+        }
+
+        function toggleTheme() {
+            const root = document.documentElement;
+            const next = currentTheme() === 'light' ? 'dark' : 'light';
+            root.classList.add('theme-transition');
+            root.setAttribute('data-theme', next);
+            try { localStorage.setItem('theme', next); } catch (e) {}
+            updateThemeButtons();
+            setTimeout(function () { root.classList.remove('theme-transition'); }, 350);
+        }
+
+        updateThemeButtons();
+
         function toggleNotifications() {
             const menu = document.getElementById('notificationsMenu');
             menu.classList.toggle('show');

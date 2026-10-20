@@ -8,18 +8,14 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-    <a href="{% url 'admin:index' %}">Главная</a>
+    <a href="{% url 'admin:index' %}">Начало</a>
  &rsaquo;
-    Управление активностью
+    Таблица активности
 </div>
 {% endblock %}
 
 {% block content %}
 <div class="activity-container">
-    <div class="table-header">
-        <h1>📊 Управление активностью участников гильдии</h1>
-    </div>
-
     {% if class_dict %}
         {% for class_key, class_data in class_dict %}
         <div class="class-section" data-class="{{ class_key }}">

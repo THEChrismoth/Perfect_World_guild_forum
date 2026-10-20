@@ -13,8 +13,28 @@
     </div>
     
     <div class="profile-info-card">
-        <h3>📊 Информация из вашего профиля</h3>
+        <div class="profile-info-head">
+            <h3>📊 Информация из вашего профиля</h3>
+            <a href="{% url 'profile_edit' %}" class="profile-edit-link">✏️ Изменить в профиле</a>
+        </div>
+        <p class="profile-info-hint">Эти данные попадут в заявку автоматически — если что-то не так, исправьте профиль перед отправкой.</p>
         <div class="profile-info-grid">
+            <div class="info-item">
+                <span class="info-label">👤 Имя:</span>
+                <span class="info-value">{{ profile.real_name|default:"не указано" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🎂 Возраст:</span>
+                <span class="info-value">{% if profile.age %}{{ profile.age }}{% else %}не указан{% endif %}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">📍 Город:</span>
+                <span class="info-value">{{ profile.city|default:"не указан" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">🕒 Часовой пояс:</span>
+                <span class="info-value">{{ profile.get_timezone_display }}</span>
+            </div>
             <div class="info-item">
                 <span class="info-label">Класс персонажа:</span>
                 <span class="info-value">{{ profile.get_player_class_display }}</span>
@@ -62,36 +82,6 @@
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
-        
-        <div class="form-section">
-            <h2>👤 Личная информация</h2>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="{{ form.real_name.id_for_label }}">{{ form.real_name.label }}</label>
-                    {{ form.real_name }}
-                    {% for error in form.real_name.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
-                </div>
-                
-                <div class="form-group">
-                    <label for="{{ form.age.id_for_label }}">{{ form.age.label }}</label>
-                    {{ form.age }}
-                    {% for error in form.age.errors %}
-                        <span class="error-text">{{ error }}</span>
-                    {% endfor %}
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.timezone.id_for_label }}">{{ form.timezone.label }}</label>
-                {{ form.timezone }}
-                {% for error in form.timezone.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-        </div>
         
         <div class="form-section">
             <h2>🎮 Игровая информация</h2>
