@@ -1,3 +1,4 @@
+import re
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
@@ -39,7 +40,22 @@ class RegistrationForm(UserCreationForm):
             user.save()
         return user
 
+TS3_UID_RE = re.compile(r'^[A-Za-z0-9+/]{27}=$')
+
+
 class ProfileForm(forms.ModelForm):
+    def clean_ts3_id(self):
+        """Уникальный ID клиента TeamSpeak: 28 символов, заканчивается на «=».
+        Бот ищет игрока по нему, поэтому опечатка сломает выдачу доступа и учёт ивентов"""
+        value = (self.cleaned_data.get('ts3_id') or '').strip()
+        if value and not TS3_UID_RE.match(value):
+            raise forms.ValidationError(
+                'Это не похоже на TS3 ID. В клиенте TeamSpeak откройте Инструменты → Идентификаторы, выберите '
+                'локальный идентификатор (не синхронизированный с myTeamSpeak) и скопируйте «Уникальный ID» — '
+                '28 символов, в конце знак «=»'
+            )
+        return value or None
+
     class Meta:
         model = Profile
         fields = [

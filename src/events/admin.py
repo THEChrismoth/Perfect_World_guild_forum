@@ -87,6 +87,12 @@ class EventTypeAdmin(admin.ModelAdmin):
         ('Связь с форумом', {
             'fields': ('forum_subcategory',),
         }),
+        ('Очки активности за посещение', {
+            'fields': ('ts_channels', 'points_present', 'points_absent', 'min_presence_minutes', 'penalty_scope'),
+            'description': 'Бот TeamSpeak отмечает, кто находится в этих каналах во время ивента (время задаётся '
+                           'в приглашении на ивент). После окончания очки начисляются и списываются автоматически. '
+                           'Учитываются только игроки, подтвердившие свой TS3 ID на сайте.',
+        }),
     )
     readonly_fields = ['slug']
     
@@ -166,19 +172,19 @@ class EventNotificationAdmin(admin.ModelAdmin):
     list_display = ['event_type', 'event_date', 'subject', 'send_status', 'recipient_groups_display', 'sent_at']
     list_filter = ['event_type', 'event_date', 'recipient_groups']
     search_fields = ['subject', 'message']
-    readonly_fields = ['sent_at', 'responses_count']
+    readonly_fields = ['sent_at', 'responses_count', 'points_processed_at']
     filter_horizontal = ['recipient_groups']  # Убрали sent_to_users отсюда
     
     fieldsets = (
         ('Основная информация', {
-            'fields': ('event_type', 'event_date', 'subject', 'message')
+            'fields': ('event_type', 'event_date', 'start_time', 'duration_minutes', 'subject', 'message')
         }),
         ('Получатели', {
             'fields': ('recipient_groups',),
             'description': 'Выберите группы пользователей, которые получат уведомление. Если не выбрано - отправляется всем членам гильдии'
         }),
         ('Статистика', {
-            'fields': ('sent_at', 'responses_count'),
+            'fields': ('sent_at', 'responses_count', 'points_processed_at'),
             'classes': ('collapse',)
         }),
     )

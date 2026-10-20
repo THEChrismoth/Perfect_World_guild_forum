@@ -14,6 +14,7 @@ APP_ORDER = [
     ('forum', '💬'),
     ('koslist', '☠️'),
     ('notifications', '🔔'),
+    ('teamspeak', '🎧'),
     ('auth', '👥'),
     ('core', '⚙️'),
     ('backups', '💾'),

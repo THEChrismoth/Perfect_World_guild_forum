@@ -41,7 +41,28 @@ class EventType(models.Model):
         related_name='event_types',
         verbose_name='Подкатегория форума'
     )
-    
+
+    # ===== Очки активности за посещение (учёт ведёт бот TeamSpeak) =====
+    PENALTY_SCOPE_CHOICES = [
+        ('promised', 'Ответившим «Приду», но не пришедшим'),
+        ('not_declined', 'Всем приглашённым, кроме ответивших «Не приду»'),
+        ('all', 'Всем приглашённым, кто не пришёл'),
+    ]
+    ts_channels = models.TextField(
+        'Каналы TeamSpeak',
+        blank=True,
+        help_text='Где засчитывается присутствие — по одному каналу в строке, путь через « / », '
+                  'например: Гильдия / МТВ / ГВГ. Подканалы (пати) учитываются автоматически. '
+                  'Пусто — посещение этого ивента не учитывается'
+    )
+    points_present = models.PositiveIntegerField('Очков за участие', default=0)
+    points_absent = models.PositiveIntegerField('Штраф за отсутствие', default=0, help_text='Сколько очков вычитается')
+    min_presence_minutes = models.PositiveIntegerField(
+        'Минимум минут в канале', default=30,
+        help_text='Сколько минут нужно провести в каналах ивента, чтобы участие засчиталось'
+    )
+    penalty_scope = models.CharField('Кого штрафовать', max_length=20, choices=PENALTY_SCOPE_CHOICES, default='promised')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -155,6 +176,13 @@ class EventNotification(models.Model):
     )
     
     event_date = models.DateField('Дата проведения')
+    # Время нужно для учёта посещения в TeamSpeak: присутствие считается в окне [начало; начало + длительность]
+    start_time = models.TimeField(
+        'Время начала', null=True, blank=True,
+        help_text='По времени сервера (Москва). Без времени посещение не учитывается'
+    )
+    duration_minutes = models.PositiveIntegerField('Длительность, минут', default=120)
+    points_processed_at = models.DateTimeField('Очки начислены', null=True, blank=True, editable=False)
     subject = models.CharField('Тема', max_length=200)
     message = models.TextField('Сообщение')
     
@@ -182,6 +210,20 @@ class EventNotification(models.Model):
     
     def __str__(self):
         return f"{self.event_type.name} - {self.event_date}"
+
+    @property
+    def starts_at(self):
+        if not self.start_time:
+            return None
+        from django.utils import timezone as dj_timezone
+        import datetime
+        return dj_timezone.make_aware(datetime.datetime.combine(self.event_date, self.start_time))
+
+    @property
+    def ends_at(self):
+        import datetime
+        start = self.starts_at
+        return start + datetime.timedelta(minutes=self.duration_minutes) if start else None
 
 
 class EventAttendance(models.Model):

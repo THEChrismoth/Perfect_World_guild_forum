@@ -117,6 +117,9 @@ def profile_view(request, username):
         'is_owner': is_owner,
         'is_guild_member': is_guild_member,
     }
+    if is_owner:
+        from teamspeak.views import card_context
+        context.update(card_context(request, user))
     return render(request, 'profiles/profile_view.html', context)
 
 @login_required

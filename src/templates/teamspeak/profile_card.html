@@ -1,0 +1,72 @@
+{# Блок TeamSpeak в профиле: доступ к комнатам гильдии и личные комнаты. Данные — teamspeak/views.py: card_context #}
+<div class="ts-card">
+    <div class="ts-card-head">
+        <h2>🎧 TeamSpeak</h2>
+        <span class="ts-bot {% if ts_bot_online %}online{% endif %}">
+            {% if ts_bot_online %}бот на связи{% else %}бот не отвечает{% endif %}
+        </span>
+    </div>
+    <p class="ts-address">Адрес сервера: <strong>{{ ts_address }}</strong></p>
+
+    {% if not ts_link or not ts_link.verified %}
+        {% if ts_link %}
+            <p>⏳ Бот отправил вам личное сообщение в TeamSpeak. Откройте ссылку из него, войдя на сайт, — так мы убедимся, что это вы.</p>
+        {% endif %}
+        {% if ts_verify_error %}
+            <p class="ts-error">⚠️ {{ ts_verify_error }}</p>
+        {% endif %}
+
+        <ol class="ts-steps">
+            <li>В клиенте TeamSpeak откройте <strong>Инструменты → Идентификаторы</strong>.</li>
+            <li>Выберите <strong>локальный</strong> идентификатор, с которым подключаетесь к серверу (не синхронизированный с myTeamSpeak), и скопируйте поле <strong>«Уникальный ID»</strong> — 28 символов, в конце знак «=».</li>
+            <li>Подключитесь к серверу <strong>{{ ts_address }}</strong> с этим идентификатором, вставьте ID ниже и нажмите кнопку.</li>
+            <li>Откройте ссылку из личного сообщения бота — доступ к комнатам гильдии откроется.</li>
+        </ol>
+
+        <form method="post" action="{% url 'teamspeak:request_access' %}" class="ts-room-form">
+            {% csrf_token %}
+            <input type="text" name="uid" value="{{ ts_uid }}" placeholder="Уникальный ID, например AbCd…xyz=" maxlength="28" required
+                   pattern="[A-Za-z0-9+/]{27}=" title="28 символов, в конце знак «=»">
+            <button type="submit" class="ts-btn" {% if not ts_bot_online %}disabled{% endif %}>
+                {% if ts_link %}🔁 Отправить ссылку ещё раз{% else %}🎧 Получить доступ в TS3{% endif %}
+            </button>
+        </form>
+        {% if not ts_bot_online %}
+            <p class="ts-muted">Бот TeamSpeak сейчас не на связи — попробуйте позже.</p>
+        {% endif %}
+    {% else %}
+        <p class="ts-ok">✅ TS3 ID подтверждён — у вас есть доступ к комнатам гильдии.</p>
+
+        <h3>Мои комнаты</h3>
+        {% if ts_rooms %}
+            <ul class="ts-rooms">
+                {% for room in ts_rooms %}
+                    <li>
+                        <span class="ts-room-name">🔊 {{ room.name }}</span>
+                        <span class="ts-room-status ts-{{ room.status }}">{{ room.get_status_display }}</span>
+                        {% if room.error %}<span class="ts-error">{{ room.error }}</span>{% endif %}
+                        {% if room.status == 'active' or room.status == 'failed' %}
+                            <form method="post" action="{% url 'teamspeak:room_delete' room.pk %}"
+                                  onsubmit="return confirm('Удалить комнату «{{ room.name|escapejs }}»?')">
+                                {% csrf_token %}
+                                <button type="submit" class="ts-btn-link">Удалить</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="ts-muted">Комнат пока нет. Комната появится в разделе «Гильдия → Комнаты членов гильдии», вы будете её администратором.</p>
+        {% endif %}
+
+        {% if ts_can_create_room %}
+            <form method="post" action="{% url 'teamspeak:room_create' %}" class="ts-room-form">
+                {% csrf_token %}
+                <input type="text" name="name" maxlength="40" placeholder="Название комнаты" required>
+                <button type="submit" class="ts-btn" {% if not ts_bot_online %}disabled{% endif %}>➕ Создать</button>
+            </form>
+        {% elif ts_rooms %}
+            <p class="ts-muted">Можно создать не больше {{ ts_room_limit }} комнат.</p>
+        {% endif %}
+    {% endif %}
+</div>

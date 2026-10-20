@@ -74,6 +74,8 @@
                 <div class="form-group">
                     <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
                     {{ profile_form.ts3_id }}
+                    <small class="help-text">Клиент TeamSpeak → Инструменты → Идентификаторы → <strong>локальный</strong> идентификатор, с которым вы подключаетесь (не синхронизированный с myTeamSpeak) → «Уникальный ID»: 28 символов, в конце «=». Доступ к комнатам гильдии — кнопкой в блоке TeamSpeak в профиле</small>
+                    {% for error in profile_form.ts3_id.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
                 </div>
             </div>
         </div>

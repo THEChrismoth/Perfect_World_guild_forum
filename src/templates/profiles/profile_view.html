@@ -48,7 +48,7 @@
             {% if profile.age %}
                 <p>🎂 Возраст: {{ profile.age }} лет</p>
             {% endif %}
-            {% if profile.ts3_id %}
+            {% if is_owner and profile.ts3_id %}
                 <p>🎧 TS3 ID: {{ profile.ts3_id }}</p>
             {% endif %}
             
@@ -60,6 +60,10 @@
             {% endif %}
         </div>
     </div>
+
+    {% if is_owner and ts_enabled and ts_is_guild_member %}
+        {% include 'teamspeak/profile_card.html' %}
+    {% endif %}
 
     <div class="profile-stats">
         <div class="stats-title">📊 Характеристики персонажа</div>

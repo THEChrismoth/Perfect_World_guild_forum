@@ -114,7 +114,8 @@ docker compose cp ./media/. web:/app/media/
 | `Dockerfile` | Образ сайта (Django + gunicorn). Внутри та же структура: код в `/app/src`, данные в `/app/static` и `/app/media` |
 | `docker/entrypoint.sh` | Миграции, `collectstatic` и создание администратора при старте |
 | `docker/Caddyfile` | HTTPS, раздача `/static` и `/media`, проксирование в Django |
-| `docker-compose.yml` | Сервисы `db`, `web`, `scheduler` (резервные копии), `caddy` и тома с данными |
+| `docker-compose.yml` | Сервисы `db`, `web`, `scheduler` (резервные копии), `caddy` и тома с данными; `teamspeak` и `tsbot` — в профиле `teamspeak` |
+| `tsbot/` | Бот TeamSpeak — отдельный сервис со своим `Dockerfile`; `channels.json` — группы и комнаты |
 
 ## Резервные копии
 
@@ -143,3 +144,42 @@ docker compose cp ./media/. web:/app/media/
 - **Порядок и иконки разделов** — `APP_ORDER` в `core/admin_site.py`.
 - **Тема** — `static_src/admin/css/guild_theme.css`: переопределяет CSS-переменные Django для светлой (индиго) и тёмной (розовый) тем, поэтому работает встроенный переключатель темы. Для своих кнопок в шаблонах — классы `.btn .btn-primary/.btn-success/.btn-danger/.btn-outline-primary/.btn-outline-secondary`.
 - Собственные страницы админки рендерятся с `**admin.site.each_context(request)` — иначе у них не будет шапки с названием сайта и бокового меню.
+
+## Бот TeamSpeak (`tsbot/`)
+
+Отдельный сервис без Django и сторонних библиотек — только стандартная библиотека Python, образ `python:3.13-alpine`. С сайтом связан только HTTP API, поэтому бот и сайт развиваются и перезапускаются независимо.
+
+```
+tsbot/
+├── Dockerfile
+├── channels.json        группы и комнаты (монтируется в контейнер — правки без пересборки)
+├── tsbot/
+│   ├── __main__.py      python -m tsbot [run|setup]
+│   ├── query.py         клиент ServerQuery (экранирование, защита от флуда, повтор при ошибке 524)
+│   ├── setup.py         группы и комнаты по channels.json — при каждом старте
+│   ├── tree.py          пути каналов «Гильдия / МТВ / ГВГ»
+│   ├── site_api.py      HTTP-клиент API сайта
+│   └── bot.py           цикл: задачи сайта, присутствие в каналах, keepalive
+└── tests/test_bot.py    тесты на поддельном сервере (FakeQuery)
+```
+
+Тесты бота: `cd tsbot && python -m unittest discover -s tests -t .`
+
+**Связь с сайтом** (`src/teamspeak/`). Бот опрашивает сайт каждые 3 секунды, сайт бота не вызывает:
+
+| Запрос | Что делает |
+|---|---|
+| `GET /api/tsbot/state/` | отметка «бот на связи», задачи из очереди `TsTask`, нужно ли слать присутствие |
+| `POST /api/tsbot/tasks/<id>/` | результат задачи → `teamspeak/tasks.py: apply_task_result` |
+| `POST /api/tsbot/presence/` | кто в каких каналах → `teamspeak/attendance.py` |
+| `GET /api/tsbot/license/` | файл лицензии (хранится в базе, не в публичной `media`) |
+
+Авторизация — `Authorization: Bearer <TSBOT_API_TOKEN>`; без токена API отключено. Бот ходит на `http://web:8000` внутри сети Docker (`web` добавлен в `ALLOWED_HOSTS`) с заголовком `X-Forwarded-Proto: https`, чтобы Django не перенаправлял на https. Задача, взятая ботом и не закрытая за 10 минут, возвращается в очередь.
+
+**Задачи:** `verify_link` (личное сообщение со ссылкой подтверждения + тычок), `grant_guild` / `revoke_guild`, `create_room` / `delete_room` (комната в `rooms_parent`, владелец — Channel Admin), `install_license` (файл в том `teamspeak_data`, `serverprocessstop` — Docker перезапускает контейнер; если сервер не поднялся за 150 с — возврат прежней лицензии).
+
+**Группы TeamSpeak 3:** группа по умолчанию для всех посетителей — `Guest` (переименовывается в `default_group_name`); группа гильдии — стандартная `Normal` (`guild_group_source`), TeamSpeak её сам не выдаёт. `guild_power` при старте сверяется с силой входа группы посетителей.
+
+**Учёт ивентов** (`teamspeak/attendance.py`): окно — `EventNotification.start_time` + `duration_minutes`, каналы — `EventType.ts_channels`. Минута засчитывается один раз, даже если бот прислал отчёт чаще. Итоги подводятся при обращениях бота после окончания окна (`points_processed_at` защищает от повтора). Учитываются только подтверждённые привязки `TsLink`.
+
+**Особенности ServerQuery:** защита от флуда пропускает около 10 команд за 3 секунды (пауза 0,35 с, права одного канала — одной командой через `|`); пустой результат приходит ошибкой 1281; пароль ServerQuery задаётся переменной образа `TS3SERVER_SERVERADMIN_PASSWORD` (её поддерживает entrypoint официального образа, хотя в документации она не описана).

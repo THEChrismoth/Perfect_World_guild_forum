@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'notifications',
     'events',
     'backups',
+    'teamspeak',
 ]
 
 MIDDLEWARE = [
@@ -155,6 +156,9 @@ BACKUP_DIR = os.getenv('BACKUP_DIR') or os.path.join(ROOT_DIR, 'backups')
 BACKUP_ENCRYPTION_PASSWORD = os.getenv('BACKUP_ENCRYPTION_PASSWORD', '')
 # Путь к gpg, если его нет в PATH (например, gpg из Git для Windows)
 BACKUP_GPG_BINARY = os.getenv('BACKUP_GPG_BINARY', '')
+
+# Токен, которым бот TeamSpeak (tsbot/) входит в API сайта. Пусто — API бота отключено
+TSBOT_API_TOKEN = os.getenv('TSBOT_API_TOKEN', '')
 
 # Ограничения на загрузку файлов
 DATA_UPLOAD_MAX_MEMORY_SIZE = 60 * 1024 * 1024  # общий размер запроса

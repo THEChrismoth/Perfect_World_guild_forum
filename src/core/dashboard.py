@@ -171,4 +171,15 @@ def _system_alerts(now):
                                        '— введите их заново', site_url, 'Настройки'))
     if not site.email_configured:
         alerts.append(_alert('info', 'Почта не настроена: письма сайта не отправляются', site_url, 'Настроить'))
+
+    from teamspeak.models import TeamSpeakSettings, TsTask
+    ts_settings = TeamSpeakSettings.load()
+    # Бот хотя бы раз подключался, а теперь молчит — TeamSpeak включён, но задачи не выполняются
+    if ts_settings.bot_last_seen and not ts_settings.bot_online:
+        alerts.append(_alert('danger', 'Бот TeamSpeak не на связи: доступы и комнаты не выдаются, посещение ивентов не учитывается',
+                             _url('admin:teamspeak_teamspeaksettings_changelist'), 'Подробнее'))
+    failed = TsTask.objects.filter(status='failed', finished_at__gte=now - timedelta(days=1)).count()
+    if failed:
+        alerts.append(_alert('warning', f'Задачи бота TeamSpeak с ошибкой за сутки: {failed}',
+                             _url('admin:teamspeak_tstask_changelist', 'status__exact=failed'), 'Журнал'))
     return alerts

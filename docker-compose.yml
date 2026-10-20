@@ -2,7 +2,8 @@
 x-django-env: &django-env
   DEBUG: "False"
   USE_HTTPS: "True"
-  ALLOWED_HOSTS: ${DOMAIN:?Укажите DOMAIN в .env}
+  # web — внутреннее имя для бота TeamSpeak, который обращается к сайту напрямую внутри сети Docker
+  ALLOWED_HOSTS: ${DOMAIN:?Укажите DOMAIN в .env},web
   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Укажите DJANGO_SECRET_KEY в .env}
   DATABASE_URL: postgres://${POSTGRES_USER:-forum}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-forum}
 
@@ -56,6 +57,46 @@ services:
       web:
         condition: service_started
 
+  # ===== TeamSpeak 3 (необязательно) =====
+  # Запускается, только если в .env есть COMPOSE_PROFILES=teamspeak
+  teamspeak:
+    image: teamspeak:3.13
+    profiles: ["teamspeak"]
+    restart: unless-stopped
+    environment:
+      # Лицензию TeamSpeak нужно принять в .env: TS3SERVER_LICENSE=accept
+      TS3SERVER_LICENSE: ${TS3SERVER_LICENSE:-}
+      TS3SERVER_SERVERADMIN_PASSWORD: ${TS3_SERVERADMIN_PASSWORD:-}
+      TS3SERVER_QUERY_PROTOCOLS: raw
+    ports:
+      - "9987:9987/udp"   # голос
+      - "30033:30033"     # передача файлов (аватары, иконки)
+      # ServerQuery (10011) наружу не открыт — к нему подключается только бот tsbot
+    volumes:
+      - teamspeak_data:/var/ts3server
+
+  # Бот TeamSpeak (tsbot/): при запуске создаёт группы и комнаты из tsbot/channels.json,
+  # затем выполняет задачи сайта (доступ гильдии, комнаты, лицензия) и считает присутствие на ивентах.
+  # Связь с сайтом — по HTTP внутри сети Docker с токеном TSBOT_API_TOKEN
+  tsbot:
+    build: ./tsbot
+    profiles: ["teamspeak"]
+    # Без TSBOT_API_TOKEN бот настраивает комнаты и завершается — не перезапускать его по кругу
+    restart: on-failure
+    environment:
+      TS3_HOST: teamspeak
+      TS3_SERVERADMIN_PASSWORD: ${TS3_SERVERADMIN_PASSWORD:-}
+      TSBOT_API_TOKEN: ${TSBOT_API_TOKEN:-}
+      SITE_URL: http://web:8000
+      TS3_DATA_DIR: /ts3data
+    volumes:
+      - ./tsbot/channels.json:/app/channels.json:ro
+      # Данные TeamSpeak — сюда бот кладёт файл лицензии
+      - teamspeak_data:/ts3data
+    depends_on:
+      - teamspeak
+      - web
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -81,3 +122,4 @@ volumes:
   backups:
   caddy_data:
   caddy_config:
+  teamspeak_data:
