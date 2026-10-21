@@ -882,6 +882,14 @@ def dispatch(argv):
 def main():
     # Построчный вывод: иначе при выводе в файл или pipe сообщения перемешиваются со stderr.
     sys.stdout.reconfigure(line_buffering=True)
+    # Без readline Backspace в терминале стирает один байт, а не букву: после стертой русской
+    # буквы во вводе остается половина символа. readline стирает буквы целиком, а битые байты
+    # заменяются на «�» — проверка ответа их не пропустит и вопрос повторится.
+    try:
+        import readline  # noqa: F401
+    except ImportError:
+        pass
+    sys.stdin.reconfigure(errors='replace')
     try:
         dispatch(sys.argv[1:])
     except GuildError as error:

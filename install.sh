@@ -71,8 +71,9 @@ retry() {
 }
 
 download() {
-    if [ -d "$DIR/.git" ]; then
-        info "Сайт уже скачан в $DIR"
+    # Сайт уже установлен — его обновляет guild update, а не установщик.
+    if [ -f "$DIR/.env" ]; then
+        info "Сайт уже установлен в $DIR"
         return
     fi
 
@@ -80,7 +81,14 @@ download() {
     tags="$(retry git ls-remote --tags --refs --sort=-v:refname "$REPO" 'v*' 2>>"$LOG")" \
         || die "Не удалось связаться с GitHub. Проверьте интернет и DNS на сервере (подробности в $LOG) и запустите установку снова."
     tag="$(echo "$tags" | head -n1 | sed 's#.*refs/tags/##')"
-    if [ -n "$tag" ]; then
+
+    # Копия осталась от прерванной установки — обновляем её, чтобы не запускать старый код.
+    if [ -d "$DIR/.git" ]; then
+        info "Обновляю скачанную ранее копию в $DIR"
+        retry git -C "$DIR" fetch --quiet --tags --force origin 2>>"$LOG" || die "Не удалось обновить сайт, подробности в $LOG"
+        git -C "$DIR" checkout --quiet --force --detach "${tag:-origin/master}" 2>>"$LOG" \
+            || die "Не удалось обновить сайт, подробности в $LOG"
+    elif [ -n "$tag" ]; then
         info "Скачиваю версию $tag в $DIR"
         retry git clone --quiet --branch "$tag" "$REPO" "$DIR" 2>>"$LOG" || die "Не удалось скачать сайт, подробности в $LOG"
     else
