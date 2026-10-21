@@ -13,7 +13,13 @@ wheels/
 # Файлы PyCharm.
 .idea/
 
+# Локальные настройки Claude Code.
+.claude/
+
 db.sqlite3
 media/
 /static/
 /backups/
+
+# Данные незавершенной установки (guild setup).
+.guild-setup.json

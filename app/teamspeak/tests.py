@@ -1,8 +1,10 @@
 import datetime
+import io
 import json
 
 from django.contrib.auth.models import Group, User
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -365,3 +367,17 @@ class LicenseAdminTests(TestCase):
         self.assertEqual(bytes(settings_obj.license_data), b'KEY-DATA')
         task = TsTask.objects.get(type='install_license')
         self.assertEqual(task.payload, {'max_clients': 64})
+
+
+class TsAddressCommandTests(TestCase):
+    def test_sets_and_prints_address(self):
+        out = io.StringIO()
+        call_command('ts_address', 'ts.myguild.ru', stdout=out)
+        self.assertEqual(TeamSpeakSettings.load().server_address, 'ts.myguild.ru')
+        self.assertEqual(out.getvalue().strip(), 'ts.myguild.ru')
+
+    def test_prints_without_changing(self):
+        TeamSpeakSettings.objects.create(server_address='ts.myguild.ru')
+        out = io.StringIO()
+        call_command('ts_address', stdout=out)
+        self.assertEqual(out.getvalue().strip(), 'ts.myguild.ru')

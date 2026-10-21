@@ -19,10 +19,13 @@ Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально),
 │   ├── koslist/          кос-лист
 │   ├── notifications/    уведомления
 │   ├── backups/          резервные копии (сервер + Яндекс Диск)
+│   ├── teamspeak/        связь с ботом TeamSpeak: API, задачи, комнаты, присутствие
 │   ├── templates/
 │   └── static_src/       исходники статики (CSS, иконки)
-├── cli/guild.py          утилита guild для управления сайтом на сервере
+├── cli/guild.py          утилита guild: установка (setup) и управление сайтом на сервере
+├── install.sh            установка одной командой: проверки, пакеты, клон релиза, затем guild setup
 ├── docker/               Caddyfile и entrypoint.sh
+├── tsbot/                бот TeamSpeak (отдельный сервис)
 ├── docs/
 ├── Dockerfile, docker-compose.yml, .env.example
 └── pyproject.toml, uv.lock, requirements.txt
@@ -128,6 +131,40 @@ docker compose cp ./media/. web:/app/media/
 | `docker/Caddyfile` | HTTPS, раздача `/static` и `/media`, проксирование в Django |
 | `docker-compose.yml` | Сервисы `db`, `web`, `scheduler` (резервные копии), `caddy` и тома с данными; `teamspeak` и `tsbot` — в профиле `teamspeak` |
 | `tsbot/` | Бот TeamSpeak — отдельный сервис со своим `Dockerfile`; `channels.json` — группы и комнаты |
+
+## Установщик и утилита guild
+
+Установка состоит из двух частей:
+
+- **`install.sh`** (bash) делает то, что нельзя сделать на Python, пока его может не быть: проверяет root, архитектуру x86-64 и систему (Ubuntu 22.04/24.04, Debian 12/13), ставит `git`, `python3`, `bind9-dnsutils`, клонирует последний тег `v*` в `/opt/guild-forum` (`GUILD_DIR`) и запускает `guild setup` с теми же аргументами. Скачивается по постоянной ссылке из `master`, а сайт ставит из релиза. Весь код — в функции `main`, вызванной последней строкой: при оборванной загрузке не выполнится ничего.
+- **`guild setup`** (`cli/guild.py`) — сначала все проверки и вопросы, потом долгие шаги: занятые порты (`ss`), домены и DNS (`dig` к 1.1.1.1 и 8.8.8.8, чтобы не мешали кеш и `/etc/hosts`; без `dig` — системный резолвер), логин администратора, лицензия TeamSpeak, затем Docker (`get.docker.com`), `.env` из `.env.example` со сгенерированными секретами, `docker compose up -d --build`, администратор, адрес TeamSpeak (`manage.py ts_address`), ожидание ключа TeamSpeak и HTTPS.
+
+Правила `setup`:
+
+- **`.env` никогда не перезаписывается.** `POSTGRES_PASSWORD` применяется только при создании базы — новый пароль отрезал бы сайт от данных. Если `.env` есть, `setup` предлагает только `info` и `update`.
+- **Прерванная установка продолжается.** Перед созданием `.env` `setup` записывает домены и логин в `.guild-setup.json`. Если запуск сорвался (сборка, Docker, таймаут), повторный `guild setup` видит этот файл и продолжает с запуска сайта: администратору задаётся новый пароль, ведь прежний никто не видел. После создания администратора файл удаляется. Служба Docker проверяется (`docker info`) до создания `.env`.
+- **Пароль администратора нигде не хранится.** Администратор создаётся скриптом в контейнере, пароль передаётся через stdin (не в аргументах — их видно в списке процессов) и показывается один раз. `DJANGO_SUPERUSER_*` в `.env` остаются пустыми.
+- **Неинтерактивный режим** — параметры `--domain`, `--ts-domain`, `--admin`, `--accept-ts-license`, `--yes`. Без терминала и без `--yes` ошибки DNS и занятые порты прерывают установку.
+
+`guild.py` использует только стандартную библиотеку и синтаксис Python 3.8 — он запускается системным Python сервера, а не из `.venv`.
+
+## Релизы и версии
+
+Версия — тег `vX.Y.Z` ([SemVer](https://semver.org/lang/ru/)) и `version` в `pyproject.toml`. `guild version` показывает `git describe --tags`.
+
+`install.sh` ставит последний тег, `guild update` переходит на последний тег (`git checkout --detach`), `guild update --dev` — на `master`. Поэтому `master` можно менять свободно: на серверы изменения попадут только с новым тегом.
+
+Выпуск релиза:
+
+```bash
+# 1. Поднимите version в pyproject.toml и закоммитьте
+# 2. Поставьте тег и отправьте его
+git tag -a v1.1.0 -m "v1.1.0"
+git push origin master v1.1.0
+# 3. На GitHub: Releases → Draft a new release → тег v1.1.0, в описании — что нового
+```
+
+Перед релизом проверьте установку на чистых VPS (Ubuntu 22.04, 24.04, Debian 12) и повторный запуск `install.sh` на уже установленном сервере.
 
 ## Резервные копии
 
