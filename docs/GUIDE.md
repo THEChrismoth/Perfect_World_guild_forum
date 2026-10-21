@@ -121,24 +121,24 @@ docker compose exec web python manage.py check_auctions
 
 ```bash
 # список копий на сервере (🔒 — зашифрована)
-docker compose exec web python manage.py restore_backup
+guild restore
 
 # восстановить копию с сервера
-docker compose exec web python manage.py restore_backup backup-20261019-040000.tar.gz.gpg
+guild restore backup-20261019-040000.tar.gz.gpg
 
 # или скачать и восстановить копию с Яндекс Диска (если сервер новый)
-docker compose exec web python manage.py restore_backup backup-20261019-040000.tar.gz.gpg --from-yandex
-
-docker compose restart web
+guild restore backup-20261019-040000.tar.gz.gpg --from-yandex
 ```
 
-**На новом сервере** после установки: впишите в `.env` прежний `BACKUP_ENCRYPTION_PASSWORD`, выполните `docker compose up -d`, введите токен Яндекса в настройках резервных копий и запустите восстановление с `--from-yandex`.
+После восстановления `guild restore` сам перезапускает сайт.
 
-Восстановить копию, скачанную на компьютер:
+**На новом сервере** после установки: впишите в `.env` прежний `BACKUP_ENCRYPTION_PASSWORD`, выполните `guild start`, введите токен Яндекса в настройках резервных копий и запустите восстановление с `--from-yandex`.
+
+Восстановить копию, скачанную на компьютер (в папке сайта):
 
 ```bash
 docker compose cp backup-20261019-040000.tar.gz.gpg web:/app/backups/
-docker compose exec web python manage.py restore_backup backup-20261019-040000.tar.gz.gpg
+guild restore backup-20261019-040000.tar.gz.gpg
 ```
 
 Чтобы восстановить только базу без загруженных файлов, добавьте `--no-media`.

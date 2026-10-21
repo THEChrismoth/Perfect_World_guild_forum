@@ -1,3 +1,5 @@
 # Скрипты запускаются в Linux-контейнере: с переносами строк Windows (CRLF) sh их не выполнит
 *.sh text eol=lf
 docker/Caddyfile text eol=lf
+# Утилита guild запускается на Linux-сервере через shebang — с CRLF он не сработает
+cli/*.py text eol=lf

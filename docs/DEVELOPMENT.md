@@ -7,7 +7,7 @@ Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально),
 ## Структура репозитория
 
 ```
-├── src/                  весь сайт (Django)
+├── app/                  весь сайт (Django)
 │   ├── manage.py
 │   ├── config/           настройки и корневые URL
 │   ├── core/             настройки сайта: название, favicon, почта, капча, шифрование секретов
@@ -21,15 +21,16 @@ Python 3.13+, Django 6, PostgreSQL (в Docker) или SQLite (локально),
 │   ├── backups/          резервные копии (сервер + Яндекс Диск)
 │   ├── templates/
 │   └── static_src/       исходники статики (CSS, иконки)
+├── cli/guild.py          утилита guild для управления сайтом на сервере
 ├── docker/               Caddyfile и entrypoint.sh
 ├── docs/
 ├── Dockerfile, docker-compose.yml, .env.example
 └── pyproject.toml, uv.lock, requirements.txt
 ```
 
-`.env`, `db.sqlite3`, `media/` и собранная статика `static/` лежат в корне репозитория, а не в `src/`.
+`.env`, `db.sqlite3`, `media/` и собранная статика `static/` лежат в корне репозитория, а не в `app/`.
 
-**PyCharm:** пометьте папку `src` как Sources Root (правый клик → *Mark Directory as* → *Sources Root*), а в конфигурации запуска Django укажите `src/manage.py` и рабочую папку `src`.
+**PyCharm:** пометьте папку `app` как Sources Root (правый клик → *Mark Directory as* → *Sources Root*), а в конфигурации запуска Django укажите `app/manage.py` и рабочую папку `app`.
 
 ## Запуск без Docker
 
@@ -47,10 +48,10 @@ DEBUG=True
 DJANGO_SECRET_KEY=любая-длинная-строка
 ```
 
-Команды Django запускаются из папки `src`:
+Команды Django запускаются из папки `app`:
 
 ```bash
-cd src
+cd app
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
@@ -73,7 +74,7 @@ python manage.py runserver
 ## Тесты
 
 ```bash
-cd src
+cd app
 python manage.py test
 ```
 
@@ -91,7 +92,7 @@ python manage.py test
 ## Миграции
 
 ```bash
-cd src
+cd app
 python manage.py makemigrations
 ```
 
@@ -99,11 +100,11 @@ python manage.py makemigrations
 
 ## Статика
 
-Исходники — в `src/static_src/`, `collectstatic` собирает их в `static/` в корне репозитория (в Docker это делается при старте контейнера `web`).
+Исходники — в `app/static_src/`, `collectstatic` собирает их в `static/` в корне репозитория (в Docker это делается при старте контейнера `web`).
 
 ## Перенос данных со старой установки (SQLite → Docker)
 
-Сделайте резервную копию `db.sqlite3` и `media/`. На старой установке (в версиях до переноса кода в `src/` файл `manage.py` лежит в корне):
+Сделайте резервную копию `db.sqlite3` и `media/`. На старой установке (в старых версиях файл `manage.py` лежит в корне репозитория):
 
 ```bash
 python manage.py dumpdata --natural-foreign --natural-primary \
@@ -122,7 +123,7 @@ docker compose cp ./media/. web:/app/media/
 
 | Файл | Назначение |
 |---|---|
-| `Dockerfile` | Образ сайта (Django + gunicorn). Внутри та же структура: код в `/app/src`, данные в `/app/static` и `/app/media` |
+| `Dockerfile` | Образ сайта (Django + gunicorn). Внутри та же структура: код в `/app/app`, данные в `/app/static` и `/app/media` |
 | `docker/entrypoint.sh` | Миграции, `collectstatic` и создание администратора при старте |
 | `docker/Caddyfile` | HTTPS, раздача `/static` и `/media`, проксирование в Django |
 | `docker-compose.yml` | Сервисы `db`, `web`, `scheduler` (резервные копии), `caddy` и тома с данными; `teamspeak` и `tsbot` — в профиле `teamspeak` |
@@ -178,7 +179,7 @@ tsbot/
 
 Тесты бота: `cd tsbot && python -m unittest discover -s tests -t .`
 
-**Связь с сайтом** (`src/teamspeak/`). Бот опрашивает сайт каждые 3 секунды, сайт бота не вызывает:
+**Связь с сайтом** (`app/teamspeak/`). Бот опрашивает сайт каждые 3 секунды, сайт бота не вызывает:
 
 | Запрос | Что делает |
 |---|---|

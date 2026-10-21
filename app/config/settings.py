@@ -5,7 +5,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from pathlib import Path
 
-# BASE_DIR — папка src с кодом сайта (приложения, шаблоны, исходники статики).
+# BASE_DIR — папка app с кодом сайта (приложения, шаблоны, исходники статики).
 # ROOT_DIR — корень репозитория: там лежат .env и данные (db.sqlite3, media, собранная статика).
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROOT_DIR = BASE_DIR.parent

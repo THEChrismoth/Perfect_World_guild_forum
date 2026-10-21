@@ -1,4 +1,4 @@
-"""HTTP-клиент API сайта (src/teamspeak/api.py)."""
+"""HTTP-клиент API сайта (app/teamspeak/api.py)."""
 import json
 import urllib.error
 import urllib.request
