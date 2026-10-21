@@ -767,7 +767,7 @@ def finish_setup(state):
     print(f'  Админ-панель:        https://{domain}/admin/')
     print(f'  Логин:               {BOLD}{login}{RESET}')
     print(f'  Пароль:              {BOLD}{password}{RESET}')
-    print(f'  Адрес TeamSpeak:     {BOLD}{domain if srv else ts_domain}{RESET}')
+    print(f'  Адрес TeamSpeak:     {BOLD}{ts_domain}{RESET}' + (f' (или просто {domain} — настроена SRV-запись)' if srv else ''))
     if ts_key:
         print(f'  Ключ TeamSpeak:      {BOLD}{ts_key}{RESET}')
         print('                       в клиенте: Права → Использовать ключ привилегий — вы станете администратором')
