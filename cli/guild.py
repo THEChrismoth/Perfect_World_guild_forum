@@ -569,9 +569,11 @@ def ensure_docker():
     """Устанавливает Docker, если его нет, и проверяет, что служба запущена."""
     if not docker_ready():
         info(f'Устанавливаю Docker — это займёт пару минут (лог: {LOG})')
+        # needrestart после apt перезапускает systemd-resolved, и следующая загрузка падает без DNS.
+        env = dict(os.environ, NEEDRESTART_SUSPEND='1', DEBIAN_FRONTEND='noninteractive')
         with open(LOG, 'a', encoding='utf-8') as log:
             result = subprocess.run(['sh', '-c', 'curl -fsSL https://get.docker.com | sh'],
-                                    stdout=log, stderr=subprocess.STDOUT)
+                                    stdout=log, stderr=subprocess.STDOUT, env=env)
         if result.returncode != 0 or not docker_ready():
             raise GuildError(f'Не удалось установить Docker, подробности в {LOG}')
     if not daemon_ready():
@@ -734,7 +736,14 @@ def finish_setup(state):
     resume = 'Исправьте причину и продолжите установку: sudo guild setup'
 
     info('Собираю и запускаю сайт — первый запуск занимает несколько минут')
-    if compose('up', '-d', '--build', check=False).returncode != 0:
+    # Повторяем: на свежем сервере скачивание образов может сорваться из-за секундного сбоя сети.
+    for attempt in range(3):
+        if compose('up', '-d', '--build', check=False).returncode == 0:
+            break
+        if attempt < 2:
+            warn('Не получилось, пробую ещё раз через 10 секунд')
+            time.sleep(10)
+    else:
         raise GuildError(f'Не удалось запустить сайт. {resume}')
 
     info('Жду готовности')

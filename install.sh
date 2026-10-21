@@ -48,11 +48,26 @@ check_system() {
 install_packages() {
     info "Устанавливаю пакеты (лог: $LOG)"
     export DEBIAN_FRONTEND=noninteractive
+    # needrestart в Ubuntu после apt перезапускает службы, в том числе systemd-resolved и ssh:
+    # на несколько секунд пропадает DNS и падает следующая загрузка. Действует и на установку Docker.
+    export NEEDRESTART_SUSPEND=1
     # На свежем сервере apt часто занят автообновлениями — ждём, а не падаем.
+    # --no-upgrade: ставим только недостающее, обновлять систему — дело администратора.
     {
         apt-get -o DPkg::Lock::Timeout=300 update
-        apt-get -o DPkg::Lock::Timeout=300 install -y ca-certificates curl git python3 openssl bind9-dnsutils iproute2
+        apt-get -o DPkg::Lock::Timeout=300 install -y --no-upgrade \
+            ca-certificates curl git python3 openssl bind9-dnsutils iproute2
     } >>"$LOG" 2>&1 || die "Не удалось установить пакеты, подробности в $LOG"
+}
+
+# Повторяет команду до 5 раз: сеть на свежем сервере бывает недоступна несколько секунд.
+retry() {
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        "$@" && return 0
+        [ "$attempt" -lt 5 ] && sleep $((attempt * 3))
+    done
+    return 1
 }
 
 download() {
@@ -61,14 +76,16 @@ download() {
         return
     fi
 
-    local tag
-    tag="$(git ls-remote --tags --refs --sort=-v:refname "$REPO" 'v*' | head -n1 | sed 's#.*refs/tags/##')"
+    local tags tag
+    tags="$(retry git ls-remote --tags --refs --sort=-v:refname "$REPO" 'v*' 2>>"$LOG")" \
+        || die "Не удалось связаться с GitHub. Проверьте интернет и DNS на сервере (подробности в $LOG) и запустите установку снова."
+    tag="$(echo "$tags" | head -n1 | sed 's#.*refs/tags/##')"
     if [ -n "$tag" ]; then
         info "Скачиваю версию $tag в $DIR"
-        git clone --quiet --branch "$tag" "$REPO" "$DIR" 2>>"$LOG" || die "Не удалось скачать сайт, подробности в $LOG"
+        retry git clone --quiet --branch "$tag" "$REPO" "$DIR" 2>>"$LOG" || die "Не удалось скачать сайт, подробности в $LOG"
     else
         warn "Релизов пока нет — скачиваю текущую версию из master."
-        git clone --quiet "$REPO" "$DIR" 2>>"$LOG" || die "Не удалось скачать сайт, подробности в $LOG"
+        retry git clone --quiet "$REPO" "$DIR" 2>>"$LOG" || die "Не удалось скачать сайт, подробности в $LOG"
     fi
 }
 
