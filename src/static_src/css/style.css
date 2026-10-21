@@ -178,14 +178,15 @@ footer p {
     color: var(--text-secondary);
 }
 
-footer .social-links a {
+/* Ссылки в подвале не меняют цвет после перехода */
+footer a,
+footer a:visited {
     color: var(--text-secondary);
     text-decoration: none;
-    margin: 0 8px;
     transition: color 0.3s ease;
 }
 
-footer .social-links a:hover {
+footer a:hover {
     color: var(--accent);
 }
 
