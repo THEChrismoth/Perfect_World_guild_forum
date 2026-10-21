@@ -40,7 +40,7 @@ class SiteSettingsForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
 
-        # Пустое поле секрета — оставляем сохранённое значение (оно не показывается в форме)
+        # Пустое поле секрета — оставляем сохранённое значение (оно не показывается в форме).
         for field, clear_field in SECRET_FIELDS.items():
             value = (cleaned_data.get(field) or '').strip()
             if cleaned_data.get(clear_field):
@@ -99,7 +99,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         }),
     )
 
-    # Здесь хранятся пароль почты и ключи — только для суперпользователей
+    # Здесь хранятся пароль почты и ключи — только для суперпользователей.
     def has_module_permission(self, request):
         return request.user.is_superuser
 
@@ -116,7 +116,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         return False
 
     def changelist_view(self, request, extra_context=None):
-        # Запись всего одна — сразу открываем ее редактирование
+        # Запись всего одна — сразу открываем ее редактирование.
         obj = SiteSettings.load()
         return redirect(reverse('admin:core_sitesettings_change', args=[obj.pk]))
 

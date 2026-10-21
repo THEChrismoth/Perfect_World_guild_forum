@@ -26,7 +26,7 @@ class ActivityMenuTests(TestCase):
 
 
 def locmem_connection(*args, **kwargs):
-    """Письма складываются в django.core.mail.outbox вместо отправки по SMTP"""
+    """Письма складываются в django.core.mail.outbox вместо отправки по SMTP."""
     return get_connection('django.core.mail.backends.locmem.EmailBackend')
 
 

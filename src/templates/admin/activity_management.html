@@ -135,22 +135,22 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Исправлено: обновляем все три поля
-                // Для earned поля
+                // Обновляем все три поля.
+                // Поле earned.
                 const earnedInput = document.querySelector(`.earned-input[data-profile-id="${profileId}"]`);
                 if (earnedInput) {
                     earnedInput.value = data.earned;
                     earnedInput.setAttribute('data-original-value', data.earned);
                 }
                 
-                // Для spent поля
+                // Поле spent.
                 const spentInput = document.querySelector(`.spent-input[data-profile-id="${profileId}"]`);
                 if (spentInput) {
                     spentInput.value = data.spent;
                     spentInput.setAttribute('data-original-value', data.spent);
                 }
                 
-                // Для current поля
+                // Поле current.
                 const currentInput = document.querySelector(`.current-input[data-profile-id="${profileId}"]`);
                 if (currentInput) {
                     currentInput.value = data.current;
@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         indicator.style.color = '#28a745';
                     }, 2000);
                 }
-                // Восстанавливаем исходное значение только для изменяемого поля
+                // Восстанавливаем исходное значение только для изменяемого поля.
                 const input = document.querySelector(`.${field}-input[data-profile-id="${profileId}"]`);
                 if (input) {
                     input.value = input.getAttribute('data-original-value');

@@ -186,7 +186,7 @@
 </div>
 
 <script>
-// Превью изображений
+// Превью изображений.
 for (let i = 1; i <= 5; i++) {
     const input = document.querySelector(`input[name="screenshot${i}"]`);
     const preview = document.getElementById(`preview${i}`);
@@ -207,7 +207,7 @@ for (let i = 1; i <= 5; i++) {
     }
 }
 
-// ЧС детали
+// Поле «Подробности» показывается, только если отмечено, что игрок в черном списке.
 document.addEventListener('DOMContentLoaded', function() {
     const blacklistCheckbox = document.querySelector('input[name="on_blacklist"]');
     const blacklistDetails = document.getElementById('blacklist-details-group');

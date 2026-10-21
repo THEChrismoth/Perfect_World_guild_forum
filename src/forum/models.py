@@ -6,7 +6,7 @@ from datetime import timedelta
 from profiles.models import Profile
 
 def _user_group_ids(user):
-    """ID групп пользователя, кешируются на объекте на время запроса"""
+    """ID групп пользователя, кешируются на объекте на время запроса."""
     if not hasattr(user, '_forum_group_ids'):
         user._forum_group_ids = set(user.groups.values_list('id', flat=True))
     return user._forum_group_ids
@@ -14,7 +14,9 @@ def _user_group_ids(user):
 
 def _check_visibility(obj, user):
     """Общая проверка доступа для категорий и подкатегорий.
-    view_groups читаются через .all(), чтобы работал prefetch_related."""
+
+    view_groups читаются через .all(), чтобы работал prefetch_related.
+    """
     if user.is_superuser:
         return True
 
@@ -22,7 +24,7 @@ def _check_visibility(obj, user):
         return False
 
     view_group_ids = {group.id for group in obj.view_groups.all()}
-    # Если нет групп с доступом
+    # Если нет групп с доступом.
     if not view_group_ids:
         return True
 
@@ -35,13 +37,13 @@ def _check_visibility(obj, user):
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
     slug = models.SlugField(unique=True)
-    # Только для авторизованных пользователей
+    # Только для авторизованных пользователей.
     require_auth = models.BooleanField(
         'Только для авторизованных',
         default=False,
         help_text='Если включено, категорию видят только авторизованные пользователи'
     )
-    # Группы, которые могут видеть эту категорию (пусто = видят все, если require_auth=False)
+    # Группы, которые могут видеть эту категорию (пусто = видят все, если require_auth=False).
     view_groups = models.ManyToManyField(
         Group, 
         blank=True, 
@@ -63,7 +65,7 @@ class Category(models.Model):
         return self.title
     
     def is_visible_to_user(self, user):
-        """Проверяет, видит ли пользователь эту категорию"""
+        """Проверяет, видит ли пользователь эту категорию."""
         return _check_visibility(self, user)
 
 class SubCategory(models.Model):
@@ -75,34 +77,34 @@ class SubCategory(models.Model):
         related_name='subcategories',
         verbose_name='Категория'
     )
-    # Только для авторизованных пользователей
+    # Только для авторизованных пользователей.
     require_auth = models.BooleanField(
         'Только для авторизованных',
         default=False,
         help_text='Если включено, подкатегорию видят только авторизованные пользователи'
     )
-    # Группы, которые могут видеть эту подкатегорию
+    # Группы, которые могут видеть эту подкатегорию.
     view_groups = models.ManyToManyField(
         Group, 
         blank=True, 
         verbose_name='Группы с доступом',
         help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
     )
-    # Флаг аукциона
+    # Флаг аукциона.
     is_auction = models.BooleanField(
         'Это аукцион',
         default=False,
         help_text='Отметьте, если эта подкатегория является аукционом'
     )
 
-    # Флаг приема заявок
+    # Флаг приема заявок.
     is_reception = models.BooleanField(
         'Это прием заявок',
         default=False,
         help_text='Отметьте, если эта подкатегория предназначена для приема заявок в гильдию'
     )
 
-    # Флаг просмотра заявок
+    # Флаг просмотра заявок.
     is_reception_view = models.BooleanField(
         'Это просмотр заявок',
         default=False,
@@ -130,8 +132,8 @@ class SubCategory(models.Model):
         return f"{self.title} ({self.category.title})"
     
     def is_visible_to_user(self, user):
-        """Проверяет, видит ли пользователь эту подкатегорию"""
-        # Сначала проверяем видимость родительской категории
+        """Проверяет, видит ли пользователь эту подкатегорию."""
+        # Сначала проверяем видимость родительской категории.
         if not self.category.is_visible_to_user(user):
             return False
 
@@ -170,7 +172,7 @@ class Topic(models.Model):
         return self.posts.order_by('-created_at').first()
 
 class PostImage(models.Model):
-    """Модель для хранения изображений поста"""
+    """Модель для хранения изображений поста."""
     post = models.ForeignKey(
         'Post', 
         on_delete=models.CASCADE, 
@@ -214,19 +216,19 @@ class Post(models.Model):
         return self.topic.slug
 
 def get_online_users():
-    """Получить список пользователей онлайн через время последней активности"""
+    """Возвращает список пользователей онлайн через время последней активности."""
     time_threshold = timezone.now() - timedelta(minutes=5)
 
-    # Получаем профили с активностью в последние 5 минут
+    # Получаем профили с активностью в последние 5 минут.
     online_profiles = Profile.objects.filter(last_activity__gte=time_threshold)
 
-    # Получаем пользователей из этих профилей
+    # Получаем пользователей из этих профилей.
     online_users = User.objects.filter(profile__in=online_profiles, is_active=True)
 
     return online_users
 
 def get_forum_stats():
-    """Получить статистику форума"""
+    """Возвращает статистику форума."""
     topics_count = Topic.objects.count()
     posts_count = Post.objects.count()
     users_count = User.objects.count()
@@ -241,5 +243,5 @@ def get_forum_stats():
 
 
 def get_latest_posts(limit=10):
-    """Получить последние сообщения"""
+    """Возвращает последние сообщения."""
     return Post.objects.select_related('author', 'topic').order_by('-created_at')[:limit]

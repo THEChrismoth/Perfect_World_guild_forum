@@ -1,8 +1,8 @@
-"""Клиент ServerQuery TeamSpeak 3 (raw-протокол, порт 10011)"""
+"""Клиент ServerQuery TeamSpeak 3 (raw-протокол, порт 10011)."""
 import socket
 import time
 
-# Защита TeamSpeak от флуда пропускает около 10 команд за 3 секунды
+# Защита TeamSpeak от флуда пропускает около 10 команд за 3 секунды.
 COMMAND_DELAY = 0.35
 FLOOD_ERROR = 524
 FLOOD_RETRIES = 5
@@ -61,7 +61,7 @@ class ServerQuery:
         self.delay = delay
         self.sock = socket.create_connection((host, port), timeout=timeout)
         self.buffer = b''
-        # Приветствие: «TS3» и строка «Welcome to the TeamSpeak 3 ServerQuery interface...»
+        # Приветствие: «TS3» и строка «Welcome to the TeamSpeak 3 ServerQuery interface...».
         self._read_line()
         self._read_line()
 
@@ -93,14 +93,15 @@ class ServerQuery:
                     raise QueryError(error_id, fields.get('msg', 'ошибка'))
                 return data
             if line.startswith('notify'):
-                continue  # уведомления о событиях бот не подписывает, но на всякий случай пропускаем
+                continue  # Уведомления о событиях бот не подписывает, но на всякий случай пропускаем
             data.extend(parse_item(item) for item in line.split('|'))
 
     def command(self, cmd, *flags, items=None, **params):
         """Выполняет команду и возвращает строки результата списком словарей.
 
         items — несколько наборов параметров в одной команде (через «|»).
-        При ответе «client is flooding» ждёт и повторяет."""
+        При ответе «client is flooding» ждёт и повторяет.
+        """
         line = build_command(cmd, flags, items, **params) + '\n'
         for attempt in range(FLOOD_RETRIES + 1):
             self.sock.sendall(line.encode('utf-8'))
@@ -113,7 +114,7 @@ class ServerQuery:
                 time.sleep(3.5)
 
     def list(self, cmd, *flags, **params):
-        """Как command, но пустой результат (ошибка 1281) превращается в []"""
+        """Как command, но пустой результат (ошибка 1281) превращается в []."""
         try:
             return self.command(cmd, *flags, **params)
         except QueryError as error:
@@ -123,7 +124,7 @@ class ServerQuery:
 
 
 def connect(host, port, password, nickname, log=print, wait_seconds=120):
-    """Подключается (дожидаясь запуска сервера), входит как serveradmin и выбирает сервер 1"""
+    """Подключается (дожидаясь запуска сервера), входит как serveradmin и выбирает сервер 1."""
     deadline = time.time() + wait_seconds
     while True:
         try:
@@ -139,5 +140,5 @@ def connect(host, port, password, nickname, log=print, wait_seconds=120):
     try:
         query.command('clientupdate', client_nickname=nickname)
     except QueryError:
-        pass  # ник занят — не страшно
+        pass  # Ник занят — не страшно
     return query

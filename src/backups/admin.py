@@ -12,7 +12,7 @@ from .yandex import YandexDisk, YandexDiskError
 
 
 class SuperuserOnlyMixin:
-    """Копии содержат все данные сайта, поэтому раздел доступен только суперпользователям"""
+    """Копии содержат все данные сайта, поэтому раздел доступен только суперпользователям."""
 
     def has_module_permission(self, request):
         return request.user.is_superuser
@@ -34,7 +34,7 @@ class BackupSettingsForm(forms.ModelForm):
             '(платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, права '
             '«Доступ к папке приложения на Диске» и «Доступ к информации о Диске»), затем откройте '
             '<code>https://oauth.yandex.ru/authorize?response_type=token&amp;client_id=ВАШ_CLIENT_ID</code> и нажмите '
-            '«Разрешить». Подробно — в README, раздел «Резервные копии». Оставьте поле пустым, чтобы не менять сохранённый токен',
+            '«Разрешить». Подробно — в docs/GUIDE.md, раздел «Резервные копии». Оставьте поле пустым, чтобы не менять сохранённый токен',
             'https://oauth.yandex.ru/client/new',
         ),
     )
@@ -46,7 +46,7 @@ class BackupSettingsForm(forms.ModelForm):
 
     def clean_yandex_token(self):
         token = self.cleaned_data.get('yandex_token', '').strip()
-        # Пустое поле — оставляем сохраненный (зашифрованный) токен
+        # Пустое поле — оставляем сохраненный (зашифрованный) токен.
         return token or self.instance.yandex_token
 
     def clean(self):
@@ -95,7 +95,7 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         return False
 
     def changelist_view(self, request, extra_context=None):
-        # Запись всего одна — сразу открываем ее редактирование
+        # Запись всего одна — сразу открываем ее редактирование.
         obj = BackupSettings.load()
         return redirect(reverse('admin:backups_backupsettings_change', args=[obj.pk]))
 
@@ -134,7 +134,7 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         else:
             disk = YandexDisk(token)
             # Сведения о Диске (место, аккаунт) — только при праве «Доступ к информации о Диске».
-            # Для самих копий оно не нужно, поэтому без него проверка не считается неудачной
+            # Для самих копий оно не нужно, поэтому без него проверка не считается неудачной.
             try:
                 info = disk.check()
             except YandexDiskError:
@@ -172,7 +172,7 @@ class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        # Записи журнала не редактируются, только просматриваются
+        # Записи журнала не редактируются, только просматриваются.
         return False
 
     def has_delete_permission(self, request, obj=None):

@@ -1,32 +1,32 @@
 # Caddy сам получает и продлевает HTTPS-сертификаты Let's Encrypt для доменов из DOMAIN.
-# Для проверки на своем компьютере можно указать DOMAIN=localhost — будет локальный сертификат
+# Для проверки на своем компьютере можно указать DOMAIN=localhost — будет локальный сертификат.
 {$DOMAIN} {
 	encode zstd gzip
 
-	# Статика, собранная collectstatic
+	# Статика, собранная collectstatic.
 	handle_path /static/* {
 		root * /srv/static
 
 		# Файлы с хэшем содержимого в имени (style.3f2a9c1b7d4e.css) никогда не меняются —
-		# их можно кэшировать на год. Новая версия файла получает новое имя
+		# их можно кэшировать на год. Новая версия файла получает новое имя.
 		@hashed path_regexp \.[0-9a-f]{12}\.[A-Za-z0-9]+$
 		header @hashed Cache-Control "public, max-age=31536000, immutable"
 
-		# Остальное (файлы без хэша) — ненадолго, чтобы обновления быстро доходили до браузера
+		# Остальное (файлы без хэша) — ненадолго, чтобы обновления быстро доходили до браузера.
 		@plain not path_regexp \.[0-9a-f]{12}\.[A-Za-z0-9]+$
 		header @plain Cache-Control "public, max-age=3600"
 
 		file_server
 	}
 
-	# Загруженные пользователями файлы
+	# Загруженные пользователями файлы.
 	handle_path /media/* {
 		root * /srv/media
 		header X-Content-Type-Options "nosniff"
 		file_server
 	}
 
-	# Всё остальное — в Django
+	# Всё остальное — в Django.
 	handle {
 		reverse_proxy web:8000
 	}

@@ -28,7 +28,7 @@ from .tasks import apply_task_result
 
 logger = logging.getLogger(__name__)
 MAX_TASKS_PER_POLL = 20
-# Задача, которую бот взял, но не отчитался (например, перезапустился), возвращается в очередь
+# Задача, которую бот взял, но не отчитался (например, перезапустился), возвращается в очередь.
 STALE_TASK_AFTER = datetime.timedelta(minutes=10)
 
 

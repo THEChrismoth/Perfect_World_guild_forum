@@ -56,7 +56,7 @@ class BotApiTests(TestCase):
         self.assertTrue(TeamSpeakSettings.load().bot_online)
         task.refresh_from_db()
         self.assertEqual(task.status, 'running')
-        # Второй опрос не выдаёт ту же задачу повторно
+        # Второй опрос не выдаёт ту же задачу повторно.
         self.assertEqual(self.client.get(reverse('tsbot_api:state'), **bot_headers()).json()['tasks'], [])
 
     def test_stale_running_task_requeued(self):
@@ -104,7 +104,7 @@ class LinkFlowTests(TestCase):
         self.assertIn(reverse('teamspeak:confirm', args=[link.token]), verify.payload['url'])
         self.assertTrue(verify.payload['url'].startswith('http'))
 
-        # Чужой аккаунт не может подтвердить ссылку
+        # Чужой аккаунт не может подтвердить ссылку.
         stranger = make_member('Чужой')
         self.client.force_login(stranger)
         self.assertEqual(self.client.get(reverse('teamspeak:confirm', args=[link.token])).status_code, 404)
@@ -137,7 +137,7 @@ class LinkFlowTests(TestCase):
 
         self.assertContains(response, 'Получить доступ в TS3')
         self.assertContains(response, 'локальный')
-        self.assertContains(response, UID_A)  # свой ID — уже в поле ввода
+        self.assertContains(response, UID_A)  # Свой ID — уже в поле ввода
 
         other = make_member('Другой')
         self.client.force_login(other)
@@ -157,7 +157,7 @@ class LinkFlowTests(TestCase):
         self.user.profile.refresh_from_db()
         self.assertEqual(self.user.profile.ts3_id, UID_C)  # ID сохранился в профиле
         link.refresh_from_db()
-        self.assertTrue(link.verified)  # сохранение ID в профиль не сбросило привязку
+        self.assertTrue(link.verified)  # Сохранение ID в профиль не сбросило привязку
 
     def test_uid_linked_to_other_account_rejected(self):
         other = make_member('Другой', uid=UID_B, verified=True)
@@ -294,7 +294,7 @@ class AttendanceTests(TestCase):
         self.report(5, path)
         attendance.record_presence([{'uid': UID_A, 'path': path}], self.start + datetime.timedelta(minutes=5, seconds=30))
         self.report(6, path)
-        self.report(7, ['Гостиная'])  # вышел из каналов ивента — не считается
+        self.report(7, ['Гостиная'])  # Вышел из каналов ивента — не считается
 
         self.assertEqual(EventPresence.objects.get(user=self.present).minutes, 2)
 
@@ -315,7 +315,7 @@ class AttendanceTests(TestCase):
         self.assertEqual(points, {'Пришёл': 30, 'Обещал': 15, 'Молчал': 20})
         self.assertTrue(PointsTransaction.objects.filter(user=self.present, transaction_type='credit', amount=10).exists())
         self.assertTrue(PointsTransaction.objects.filter(user=self.promised, transaction_type='debit', amount=5).exists())
-        # Повторно не начисляется
+        # Повторно не начисляется.
         self.assertEqual(self.finish(), 0)
         self.assertEqual(User.objects.get(pk=self.present.pk).profile.activity_points, 30)
 

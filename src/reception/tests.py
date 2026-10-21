@@ -31,7 +31,7 @@ class ApplicationFormTests(TestCase):
     def test_empty_profile_redirects_to_profile_edit(self):
         response = self.client.get(reverse('reception:application_form'), follow=True)
 
-        # Раньше здесь был редирект на несуществующий /profile/edit/ и страница 404
+        # Раньше здесь был редирект на несуществующий /profile/edit/ и страница 404.
         self.assertRedirects(response, reverse('profile_edit'))
         self.assertContains(response, 'заполните профиль')
 
@@ -60,7 +60,7 @@ class ApplicationFormTests(TestCase):
         self.assertEqual(application.timezone, 'UTC+5')
         self.assertEqual(application.player_class, 'Маг')
 
-        # Снимок: изменение профиля не меняет уже поданную заявку
+        # Снимок: изменение профиля не меняет уже поданную заявку.
         profile.real_name = 'Другое имя'
         profile.save()
         application.refresh_from_db()

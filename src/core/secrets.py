@@ -19,7 +19,7 @@ def _fernet():
         length=32,
         salt=None,
         # Метка осталась от первой версии (токен Яндекса в backups) — менять нельзя,
-        # иначе уже сохранённые секреты перестанут расшифровываться
+        # иначе уже сохранённые секреты перестанут расшифровываться.
         info=b'backups.secret-field',
     ).derive(settings.SECRET_KEY.encode())
     return Fernet(base64.urlsafe_b64encode(key))
@@ -34,12 +34,14 @@ def encrypt_secret(value):
 
 
 def decrypt_secret(value):
-    """Возвращает расшифрованное значение или None, если расшифровать не удалось
-    (например, сменился SECRET_KEY)"""
+    """Возвращает расшифрованное значение.
+
+    Если расшифровать не удалось (например, сменился SECRET_KEY), возвращает None.
+    """
     if not value:
         return ''
     if not value.startswith(SECRET_PREFIX):
-        # Значение, сохранённое до появления шифрования
+        # Значение, сохранённое до появления шифрования.
         return value
     try:
         return _fernet().decrypt(value[len(SECRET_PREFIX):].encode()).decode()

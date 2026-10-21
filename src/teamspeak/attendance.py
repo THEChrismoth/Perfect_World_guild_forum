@@ -25,7 +25,8 @@ def parse_channels(text):
     """Каналы ивента из настройки типа: по одному пути на строку, например 'Гильдия / МТВ / ГВГ'.
 
     Имена каналов сами могут содержать «/» («МТВ / ГВГ»), поэтому путь не разбивается на части:
-    сравнение идёт по склеенной строке — см. path_matches."""
+    сравнение идёт по склеенной строке — см. path_matches.
+    """
     return [line.strip() for line in (text or '').splitlines() if line.strip()]
 
 
@@ -34,7 +35,7 @@ def _normalize(path_text):
 
 
 def path_matches(client_path, channel_rules):
-    """Канал клиента — один из каналов ивента или его подканал"""
+    """Канал клиента — один из каналов ивента или его подканал."""
     joined = _normalize(PATH_SEPARATOR.join(client_path))
     for rule in channel_rules:
         rule = _normalize(rule)
@@ -54,7 +55,7 @@ def _tracked_notifications():
 def active_sessions(now=None):
     now = now or timezone.now()
     today = timezone.localtime(now).date()
-    # Ивент может начаться вчера и закончиться после полуночи
+    # Ивент может начаться вчера и закончиться после полуночи.
     candidates = _tracked_notifications().filter(event_date__gte=today - datetime.timedelta(days=1), event_date__lte=today)
     return [n for n in candidates if n.starts_at <= now < n.ends_at]
 
@@ -77,7 +78,7 @@ def record_presence(clients, now=None):
                    if c.get('uid') in users_by_uid and path_matches(c.get('path') or [], rules)}
         for user_id in present:
             presence, _ = EventPresence.objects.get_or_create(notification=session, user_id=user_id)
-            # Бот может прислать отчёт чаще раза в минуту — считаем каждую минуту один раз
+            # Бот может прислать отчёт чаще раза в минуту — считаем каждую минуту один раз.
             if presence.last_minute != minute:
                 presence.minutes += 1
                 presence.last_minute = minute
@@ -128,7 +129,7 @@ def finalize(notification_id, now=None):
         invited = _invited_users(notification)
         if event_type.penalty_scope == 'promised':
             candidates = [u for u in invited if statuses.get(u.pk) == 'yes']
-            # Ответивший «Приду» мог не попасть в список рассылки (например, приглашение без рассылки)
+            # Ответивший «Приду» мог не попасть в список рассылки (например, приглашение без рассылки).
             known = {u.pk for u in candidates}
             candidates += list(User.objects.filter(pk__in=[uid for uid, s in statuses.items()
                                                            if s == 'yes' and uid not in known]))

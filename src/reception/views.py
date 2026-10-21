@@ -43,7 +43,7 @@ def application_form(request):
             app = form.save()
             messages.success(request, 'Заявка отправлена! Ожидайте проверки.')
 
-            # Уведомление администраторам
+            # Уведомление администраторам.
             from notifications.utils import send_notification_to_admins
             send_notification_to_admins(
                 title='📝 Новая заявка',
@@ -107,7 +107,7 @@ def application_detail(request, id):
                 )
                 messages.success(request, 'Ваш голос учтен!')
 
-                # Уведомление автору заявки о голосе (если не воздержался)
+                # Уведомление автору заявки о голосе (если не воздержался).
                 if vote.vote != 'abstain':
                     vote_text = 'ЗА' if vote.vote == 'for' else 'ПРОТИВ'
                     send_notification(

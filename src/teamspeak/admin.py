@@ -48,7 +48,7 @@ class TeamSpeakSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         ('Бот', {
             'fields': ('bot_status',),
             'description': 'Бот TeamSpeak — отдельный контейнер tsbot. Он выдаёт группу «Член гильдии», создаёт '
-                           'комнаты и считает присутствие на ивентах. Как включить — в README, раздел «TeamSpeak».',
+                           'комнаты и считает присутствие на ивентах. Как включить — в docs/GUIDE.md, раздел «TeamSpeak».',
         }),
         ('Сервер', {'fields': ('server_address', 'rooms_per_member')}),
         ('Лицензия', {

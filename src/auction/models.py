@@ -15,7 +15,7 @@ class AuctionLot(models.Model):
         ('cancelled', 'Отменен'),
     ]
     
-    # Типы иконок
+    # Типы иконок.
     ICON_CHOICES = [
         ('wheel_of_fate', 'Колесо Судьбы'),
         ('stone_of_universe', 'Камень мироздания'),
@@ -29,12 +29,12 @@ class AuctionLot(models.Model):
         ('custom', 'Своя картинка'),
     ]
     
-    # Основная информация
+    # Основная информация.
     name = models.CharField('Название лота', max_length=200)
     slug = models.SlugField(unique=True, max_length=200, blank=True)
     description = models.TextField('Описание', blank=True)
     
-    # Выбор иконки или своей картинки
+    # Выбор иконки или своей картинки.
     icon_choice = models.CharField(
         'Выбор иконки', 
         max_length=30, 
@@ -43,7 +43,7 @@ class AuctionLot(models.Model):
         help_text='Выберите иконку или "Своя картинка" для загрузки своего изображения'
     )
     
-    # Своя картинка
+    # Своя картинка.
     custom_image = models.ImageField(
         'Своя картинка', 
         upload_to='auction/lots/', 
@@ -52,20 +52,20 @@ class AuctionLot(models.Model):
         help_text='Загрузите свою картинку (только если выбрано "Своя картинка")'
     )
     
-    # Аукционные параметры
+    # Аукционные параметры.
     initial_price = models.IntegerField('Начальная цена', validators=[MinValueValidator(1)])
     current_price = models.IntegerField('Текущая цена', default=0)
     min_step = models.IntegerField('Минимальный шаг ставки', default=1, validators=[MinValueValidator(1)])
     
-    # Временные параметры
+    # Временные параметры.
     start_date = models.DateTimeField('Дата начала', default=timezone.now)
     end_date = models.DateTimeField('Дата окончания (план)', null=True, blank=True, 
                                      help_text='Плановая дата окончания. После этой даты ставки будут запрещены до завершения админом')
     
-    # Статус
+    # Статус.
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='active')
     
-    # Кто завершил аукцион
+    # Кто завершил аукцион.
     ended_by = models.ForeignKey(
         User, 
         on_delete=models.SET_NULL, 
@@ -76,7 +76,7 @@ class AuctionLot(models.Model):
     )
     ended_at = models.DateTimeField('Дата завершения', null=True, blank=True)
     
-    # Мета
+    # Мета.
     created_at = models.DateTimeField('Создан', auto_now_add=True)
     updated_at = models.DateTimeField('Обновлен', auto_now=True)
     
@@ -101,7 +101,7 @@ class AuctionLot(models.Model):
         return reverse('auction:lot_detail', args=[self.slug])
     
     def get_image_url(self):
-        """Возвращает URL изображения"""
+        """Возвращает URL изображения."""
         if self.icon_choice == 'custom' and self.custom_image:
             return self.custom_image.url
         
@@ -123,12 +123,12 @@ class AuctionLot(models.Model):
     
     @property
     def is_active(self):
-        """Проверяет, активен ли аукцион (только по статусу)"""
+        """Проверяет, активен ли аукцион (только по статусу)."""
         return self.status == 'active'
     
     @property
     def can_bid(self):
-        """Может ли пользователь делать ставки (активен И время не истекло)"""
+        """Может ли пользователь делать ставки (активен и время не истекло)."""
         if self.status != 'active':
             return False
         if self.end_date and timezone.now() >= self.end_date:
@@ -137,7 +137,7 @@ class AuctionLot(models.Model):
     
     @property
     def is_time_expired(self):
-        """Проверяет, истекло ли плановое время (но админ еще не завершил)"""
+        """Проверяет, истекло ли плановое время (но админ еще не завершил)."""
         return self.status == 'active' and self.end_date and timezone.now() >= self.end_date
     
     @property
@@ -155,12 +155,12 @@ class AuctionLot(models.Model):
         return self.bids.filter(is_frozen=True).order_by('-bid_amount').first()
     
     def process_auction_end(self, ended_by_user=None, force_winner_id=None):
-        """Обрабатывает завершение аукциона администратором"""
+        """Обрабатывает завершение аукциона администратором."""
         from profiles.models import Profile
 
         with transaction.atomic():
             # Перечитываем лот с блокировкой, чтобы аукцион нельзя было
-            # завершить дважды (два админа, двойной клик, cron)
+            # завершить дважды (два админа, двойной клик, cron).
             lot = AuctionLot.objects.select_for_update().get(pk=self.pk)
             if lot.status != 'active':
                 return False, "Аукцион уже завершен или отменен"
@@ -178,12 +178,12 @@ class AuctionLot(models.Model):
                 profile = Profile.objects.select_for_update().get(user=leader.bidder)
 
                 # Снимаем заморозку перед списанием, иначе ставка
-                # не учитывается в доступных очках
+                # не учитывается в доступных очках.
                 leader.is_frozen = False
                 leader.save(update_fields=['is_frozen'])
 
                 # Победителем ставка становится только после успешного списания.
-                # Если очков не хватает — откатываем всё, аукцион остается активным
+                # Если очков не хватает — откатываем всё, аукцион остается активным.
                 if not profile.spend_points_auction(leader.bid_amount):
                     transaction.set_rollback(True)
                     return False, (
@@ -211,7 +211,7 @@ class AuctionLot(models.Model):
                     link=reverse('auction:lot_detail', args=[lot.slug])
                 )
 
-                # Все остальные замороженные ставки размораживаем
+                # Все остальные замороженные ставки размораживаем.
                 other_bids = lot.bids.filter(is_frozen=True).exclude(id=leader.id)
                 for bid in other_bids:
                     bid.is_frozen = False
@@ -251,7 +251,7 @@ class AuctionLot(models.Model):
         return True, "Аукцион успешно завершен"
 
     def cancel_auction(self, cancelled_by_user=None):
-        """Отмена аукциона с возвратом всех очков"""
+        """Отмена аукциона с возвратом всех очков."""
         with transaction.atomic():
             lot = AuctionLot.objects.select_for_update().get(pk=self.pk)
             if lot.status != 'active':
@@ -289,7 +289,7 @@ class AuctionLot(models.Model):
 
 
 class AuctionBid(models.Model):
-    """Модель ставки"""
+    """Модель ставки."""
     BID_STATUS = [
         ('active', 'Активна'),
         ('frozen', 'Заморожена'),
@@ -317,7 +317,7 @@ class AuctionBid(models.Model):
 
 
 class PointsTransaction(models.Model):
-    """Модель транзакций очков активности"""
+    """Модель транзакций очков активности."""
     TRANSACTION_TYPES = [
         ('credit', 'Начисление'),
         ('debit', 'Списание'),

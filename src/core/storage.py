@@ -20,9 +20,12 @@ class ForgivingManifestStaticFilesStorage(ManifestStaticFilesStorage):
             return StaticFilesStorage.url(self, name)
 
     def url_converter(self, name, hashed_files, template=None):
-        """При collectstatic ссылки внутри CSS/JS заменяются на имена с хэшем. Сторонние пакеты
+        """Оставляет как есть ссылки на несуществующие файлы внутри CSS/JS.
+
+        При collectstatic ссылки внутри CSS/JS заменяются на имена с хэшем. Сторонние пакеты
         иногда ссылаются на файлы, которых нет (например, на карты исходников *.js.map),
-        и collectstatic падал бы при старте контейнера. Такие ссылки оставляем как есть."""
+        и collectstatic падал бы при старте контейнера.
+        """
         convert = super().url_converter(name, hashed_files, template)
 
         def safe_convert(matchobj):

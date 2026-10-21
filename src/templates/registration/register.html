@@ -25,7 +25,7 @@
         {% endfor %}
 
         {% if captcha_active %}
-            {# Капча DDoS-Guard: после проверки виджет сам добавит в форму поле ddg-captcha-token #}
+            {# Капча DDoS-Guard: после проверки виджет сам добавит в форму поле ddg-captcha-token. #}
             <div class="form-group captcha-group">
                 <div class="ddg-captcha-container" data-sitekey="{{ captcha_site_key }}"></div>
             </div>

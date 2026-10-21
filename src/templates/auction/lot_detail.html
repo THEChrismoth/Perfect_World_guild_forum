@@ -228,7 +228,7 @@
 
 {% if lot.is_active and lot.end_date and not time_expired %}
 <script>
-// Таймер работает только если время еще не истекло
+// Таймер работает, только если время еще не истекло.
 var endTimestamp = {{ end_timestamp }};
 var timerElement = document.getElementById('timer-value');
 var availablePoints = {{ available_points }};

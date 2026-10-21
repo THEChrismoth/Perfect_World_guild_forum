@@ -6,8 +6,10 @@ from .models import Backup
 
 @receiver(post_delete, sender=Backup)
 def delete_backup_file(sender, instance, **kwargs):
-    """При удалении записи из журнала удаляем и файл копии на сервере.
-    Копия на Яндекс Диске остается — ее удаляет ротация или вы вручную."""
+    """При удалении записи из журнала удаляет и файл копии на сервере.
+
+    Копия на Яндекс Диске остается — ее удаляет ротация или вы вручную.
+    """
     path = instance.local_path
     if path and path.exists():
         path.unlink()

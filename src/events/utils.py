@@ -5,35 +5,33 @@ from .models import EventNotification
 
 
 def get_recipient_users(notification):
-    """
-    Получить список пользователей-получателей на основе выбранных групп
-    
-    Параметры:
-    - notification: объект EventNotification
+    """Возвращает список пользователей-получателей на основе выбранных групп.
+
+    Аргументы:
+        notification: объект EventNotification.
     """
     groups = notification.recipient_groups.all()
     
     if groups.exists():
-        # Если выбраны группы - берем пользователей из этих групп
+        # Если выбраны группы — берем пользователей из этих групп.
         users = User.objects.filter(groups__in=groups, is_active=True).distinct()
     else:
-        # Если группы не выбраны - берем всех членов группы "Член гильдии"
+        # Если группы не выбраны — берем всех членов группы "Член гильдии".
         try:
             guild_group = Group.objects.get(name='Член гильдии')
             users = guild_group.user_set.filter(is_active=True)
         except Group.DoesNotExist:
-            # Если группы "Член гильдии" нет, берем всех активных пользователей
+            # Если группы "Член гильдии" нет, берем всех активных пользователей.
             users = User.objects.filter(is_active=True)
     
     return users
 
 
 def send_event_notification(notification_id):
-    """
-    Отправить уведомление выбранным группам пользователей через модуль notifications
-    
-    Параметры:
-    - notification_id: ID уведомления
+    """Отправляет уведомление выбранным группам пользователей через модуль notifications.
+
+    Аргументы:
+        notification_id: ID уведомления.
     """
     
     try:
@@ -46,19 +44,19 @@ def send_event_notification(notification_id):
     event_date_str = event_date.strftime('%d.%m.%Y')
     weekday = get_weekday_name(event_date)
     
-    # Получаем пользователей для отправки
+    # Получаем пользователей для отправки.
     users = get_recipient_users(notification)
     
-    # Ссылка для голосования
+    # Ссылка для голосования.
     vote_url = f"/events/vote/{notification.id}/"
     
-    # Формируем сообщение БЕЗ текстовой ссылки (только кнопка добавится в notifications/utils.py)
+    # Формируем сообщение без текстовой ссылки (только кнопка добавится в notifications/utils.py).
     full_message = f"""{notification.message}
 
 📅 Дата: {weekday}, {event_date_str}
 🎯 Ивент: {event_type.icon} {event_type.name}"""
     
-    # Отправляем уведомления через модуль notifications
+    # Отправляем уведомления через модуль notifications.
     sent_count = 0
     for user in users:
         send_notification(
@@ -71,7 +69,7 @@ def send_event_notification(notification_id):
         notification.sent_to_users.add(user)
         sent_count += 1
     
-    # Обновляем время отправки
+    # Обновляем время отправки.
     notification.sent_at = timezone.now()
     notification.save()
     
@@ -79,11 +77,10 @@ def send_event_notification(notification_id):
 
 
 def get_attendance_stats(notification_id):
-    """
-    Получить статистику ответов на уведомление
-    
-    Параметры:
-    - notification_id: ID уведомления
+    """Возвращает статистику ответов на уведомление.
+
+    Аргументы:
+        notification_id: ID уведомления.
     """
     
     try:
@@ -119,6 +116,6 @@ def get_attendance_stats(notification_id):
 
 
 def get_weekday_name(date_obj):
-    """Получить русское название дня недели"""
+    """Возвращает русское название дня недели."""
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     return weekdays[date_obj.weekday()]

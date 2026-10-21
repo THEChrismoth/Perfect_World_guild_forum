@@ -14,7 +14,7 @@ from .tasks import confirm_link, request_link
 ROOM_NAME_MAX = 40
 
 def card_context(request, profile_user):
-    """Данные для блока TeamSpeak на странице профиля (показывается только владельцу)"""
+    """Данные для блока TeamSpeak на странице профиля (показывается только владельцу)."""
     ts_settings = TeamSpeakSettings.load()
     link = TsLink.objects.filter(user=profile_user).first()
     last_verify = TsTask.objects.filter(user=profile_user, type='verify_link').first()
@@ -49,7 +49,7 @@ def request_access(request):
         messages.error(request, 'Бот TeamSpeak сейчас не на связи — попробуйте позже')
         return _back(request)
 
-    # TS3 ID — из поля в блоке TeamSpeak или уже сохранённый в профиле
+    # TS3 ID — из поля в блоке TeamSpeak или уже сохранённый в профиле.
     uid = (request.POST.get('uid') or request.user.profile.ts3_id or '').strip()
     if not uid:
         messages.error(request, 'Укажите свой TS3 ID')
@@ -72,7 +72,7 @@ def request_access(request):
 @login_required
 def confirm(request, token):
     link = TsLink.objects.filter(token=token).first()
-    # Ссылка подтверждает, что TS-клиент принадлежит именно этому аккаунту сайта
+    # Ссылка подтверждает, что TS-клиент принадлежит именно этому аккаунту сайта.
     if not link or link.user_id != request.user.pk:
         raise Http404('Ссылка не найдена или принадлежит другому аккаунту')
     if link.verified:
@@ -80,7 +80,7 @@ def confirm(request, token):
     else:
         confirm_link(link)
         # Подтверждённый ID сохраняем в профиль — вводить его вручную не нужно.
-        # update() вместо save(): сигнал смены TS3 ID здесь не нужен
+        # update() вместо save(): сигнал смены TS3 ID здесь не нужен.
         Profile.objects.filter(user=request.user).update(ts3_id=link.uid)
         messages.success(request, 'TeamSpeak привязан! Бот выдаст вам группу «Член гильдии» в течение нескольких секунд.')
     return _back(request)

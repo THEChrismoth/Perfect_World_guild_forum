@@ -47,7 +47,7 @@ class VisibilityTests(ForumTestCase):
 
         self.assertFalse(self.subcategory.is_visible_to_user(self.user))
 
-        # Группы кешируются на объекте пользователя, берем свежий
+        # Группы кешируются на объекте пользователя, берем свежий.
         self.user.groups.add(group)
         user = User.objects.get(pk=self.user.pk)
         self.assertTrue(self.subcategory.is_visible_to_user(user))

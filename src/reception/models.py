@@ -5,7 +5,7 @@ from django.urls import reverse
 
 
 class Application(models.Model):
-    """Модель заявки на вступление в гильдию"""
+    """Модель заявки на вступление в гильдию."""
 
     STATUS_CHOICES = [
         ('pending', 'На рассмотрении'),

@@ -16,7 +16,7 @@ urlpatterns = [
     path('notifications/', include('notifications.urls')),
     path('events/', include('events.urls')),
     path('teamspeak/', include('teamspeak.urls')),
-    # API для бота TeamSpeak (авторизация по TSBOT_API_TOKEN)
+    # API для бота TeamSpeak (авторизация по TSBOT_API_TOKEN).
     path('api/tsbot/', include('teamspeak.api_urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

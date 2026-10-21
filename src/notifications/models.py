@@ -4,7 +4,7 @@ from django.urls import reverse
 
 
 class Notification(models.Model):
-    """Универсальная модель уведомлений для всего сайта"""
+    """Универсальная модель уведомлений для всего сайта."""
 
     NOTIFICATION_TYPES = [
         ('info', 'ℹ️ Информация'),
@@ -34,12 +34,12 @@ class Notification(models.Model):
         return f'{self.get_notification_type_display()}: {self.title} - {self.user.username}'
 
     def mark_as_read(self):
-        """Пометить как прочитанное"""
+        """Помечает как прочитанное."""
         self.is_read = True
         self.save()
 
     def get_icon(self):
-        """Получить иконку для типа уведомления"""
+        """Возвращает иконку для типа уведомления."""
         icons = {
             'info': 'ℹ️',
             'success': '✅',

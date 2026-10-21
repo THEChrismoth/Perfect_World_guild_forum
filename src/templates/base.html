@@ -4,7 +4,7 @@
 <head>
     <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     <script>
-        // Тема применяется до загрузки стилей, чтобы страница не мигала тёмной темой
+        // Тема применяется до загрузки стилей, чтобы страница не мигала тёмной темой.
         (function () {
             var theme = null;
             try { theme = localStorage.getItem('theme'); } catch (e) {}

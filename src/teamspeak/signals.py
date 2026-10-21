@@ -1,4 +1,4 @@
-"""Синхронизация группы гильдии и привязки TS3 ID с TeamSpeak"""
+"""Синхронизация группы гильдии и привязки TS3 ID с TeamSpeak."""
 from django.contrib.auth.models import User
 from django.db.models.signals import m2m_changed, pre_save
 from django.dispatch import receiver
@@ -12,7 +12,8 @@ from .tasks import revoke_link
 def guild_group_changed(sender, instance, action, pk_set, reverse, **kwargs):
     """Игрока добавили в «Член гильдии» на сайте — выдаём группу в TS, убрали — снимаем.
 
-    Работает только для подтверждённых привязок: клиент в TS должен быть точно этим игроком."""
+    Работает только для подтверждённых привязок: клиент в TS должен быть точно этим игроком.
+    """
     if reverse or action not in ('post_add', 'post_remove', 'post_clear'):
         return
     link = TsLink.objects.filter(user=instance, status='verified').first()
@@ -27,13 +28,13 @@ def guild_group_changed(sender, instance, action, pk_set, reverse, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def ts3_id_changed(sender, instance, **kwargs):
-    """Сменили TS3 ID в профиле — старая привязка больше не действительна"""
+    """Сменили TS3 ID в профиле — старая привязка больше не действительна."""
     if not instance.pk:
         return
     old = Profile.objects.filter(pk=instance.pk).values_list('ts3_id', flat=True).first()
     if (old or '').strip() == (instance.ts3_id or '').strip():
         return
     link = TsLink.objects.filter(user_id=instance.user_id).first()
-    # Тот же ID, что и в привязке (например, его записал сам сайт после подтверждения) — ничего не меняем
+    # Тот же ID, что и в привязке (например, его записал сам сайт после подтверждения) — ничего не меняем.
     if link and link.uid != (instance.ts3_id or '').strip():
         revoke_link(link)

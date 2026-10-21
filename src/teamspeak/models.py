@@ -31,7 +31,7 @@ class TeamSpeakSettings(models.Model):
         help_text='После установки лицензии бот выставит это число слотов. Пусто — не менять'
     )
 
-    # Лицензия хранится в базе, а не в media: файлы media доступны из интернета
+    # Лицензия хранится в базе, а не в media: файлы media доступны из интернета.
     license_name = models.CharField('Файл лицензии', max_length=255, blank=True, editable=False)
     license_data = models.BinaryField('Лицензия', null=True, blank=True, editable=False)
     license_uploaded_at = models.DateTimeField('Лицензия загружена', null=True, blank=True, editable=False)
@@ -72,7 +72,7 @@ class TeamSpeakSettings(models.Model):
 
 
 class TsLink(models.Model):
-    """Привязка аккаунта сайта к клиенту TeamSpeak (по уникальному ID клиента)"""
+    """Привязка аккаунта сайта к клиенту TeamSpeak (по уникальному ID клиента)."""
 
     STATUS_CHOICES = [
         ('pending', 'Ждёт подтверждения в TeamSpeak'),
@@ -103,7 +103,7 @@ class TsLink(models.Model):
 
 
 class TsTask(models.Model):
-    """Очередь задач для бота"""
+    """Очередь задач для бота."""
 
     TYPE_CHOICES = [
         ('verify_link', 'Подтверждение TS3 ID'),
@@ -145,7 +145,7 @@ class TsTask(models.Model):
 
 
 class TsRoom(models.Model):
-    """Комната члена гильдии в разделе «Комнаты членов гильдии»"""
+    """Комната члена гильдии в разделе «Комнаты членов гильдии»."""
 
     STATUS_CHOICES = [
         ('creating', 'Создаётся'),
@@ -172,7 +172,7 @@ class TsRoom(models.Model):
 
 
 class EventPresence(models.Model):
-    """Сколько минут игрок провёл в каналах ивента во время его проведения"""
+    """Сколько минут игрок провёл в каналах ивента во время его проведения."""
 
     notification = models.ForeignKey('events.EventNotification', on_delete=models.CASCADE,
                                      related_name='ts_presence', verbose_name='Ивент')

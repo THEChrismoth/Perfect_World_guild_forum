@@ -41,15 +41,13 @@ class AuctionLotAdmin(admin.ModelAdmin):
     
     actions = ['force_end_auction', 'cancel_selected_auctions']
     inlines = [AuctionBidInline]
-    # Временно убираем кастомный шаблон, пока не настроим его правильно
-    # change_form_template = 'admin/auction/auctionlot/change_form.html'
     
     def total_bids(self, obj):
         return obj.total_bids_count
     total_bids.short_description = 'Всего ставок'
     
     def force_end_auction(self, request, queryset):
-        """Массовое завершение аукционов"""
+        """Массовое завершение аукционов."""
         ended_count = 0
         errors = []
         
@@ -69,7 +67,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
     force_end_auction.short_description = 'Завершить выбранные аукционы'
     
     def cancel_selected_auctions(self, request, queryset):
-        """Отмена выбранных аукционов"""
+        """Отмена выбранных аукционов."""
         cancelled_count = 0
         errors = []
         
@@ -105,7 +103,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
         return custom_urls + urls
     
     def end_auction_view(self, request, lot_id):
-        """Индивидуальное завершение аукциона с выбором победителя"""
+        """Индивидуальное завершение аукциона с выбором победителя."""
         lot = self.get_object(request, lot_id)
         
         if not lot:
@@ -116,7 +114,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
             self.message_user(request, 'Этот аукцион уже завершен или отменен', level=messages.ERROR)
             return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
         
-        # Получаем все замороженные ставки
+        # Получаем все замороженные ставки.
         frozen_bids = lot.bids.filter(is_frozen=True).order_by('-bid_amount')
         
         if request.method == 'POST':
@@ -133,7 +131,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
                 else:
                     self.message_user(request, message, level=messages.ERROR)
             elif winner_id == '':
-                # Завершаем без победителя
+                # Завершаем без победителя.
                 success, message = lot.process_auction_end(ended_by_user=request.user)
                 if success:
                     self.message_user(request, message, level=messages.SUCCESS)
@@ -144,7 +142,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
                 self.message_user(request, 'Пожалуйста, выберите победителя', level=messages.ERROR)
         
         context = {
-            # Шапка, меню и название сайта как на остальных страницах админки
+            # Шапка, меню и название сайта как на остальных страницах админки.
             **self.admin_site.each_context(request),
             'title': f'Завершение аукциона: {lot.name}',
             'lot': lot,
@@ -156,7 +154,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
         return TemplateResponse(request, 'admin/auction/end_auction_confirmation.html', context)
     
     def cancel_auction_view(self, request, lot_id):
-        """Отмена аукциона"""
+        """Отмена аукциона."""
         lot = self.get_object(request, lot_id)
         
         if not lot:
@@ -176,7 +174,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
                 self.message_user(request, message, level=messages.ERROR)
         
         context = {
-            # Шапка, меню и название сайта как на остальных страницах админки
+            # Шапка, меню и название сайта как на остальных страницах админки.
             **self.admin_site.each_context(request),
             'title': f'Отмена аукциона: {lot.name}',
             'lot': lot,

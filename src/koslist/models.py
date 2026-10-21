@@ -1,5 +1,4 @@
 from django.db import models
-#from django.utils import choices
 from django.templatetags.static import static
 
 class Guild(models.Model):
@@ -48,7 +47,7 @@ class Player(models.Model):
         return self.name
 
     def get_icon_url(self):
-        """Возвращаем URL иконки для класса персонажа"""
+        """Возвращает URL иконки для класса персонажа."""
         icons = {
             'var': 'class_icon/voin.png',
             'mag': 'class_icon/mag.png',

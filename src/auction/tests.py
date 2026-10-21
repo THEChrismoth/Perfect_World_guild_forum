@@ -88,7 +88,7 @@ class BidTests(AuctionTestCase):
         self.bid(self.alice, 15)
 
         self.assertFalse(AuctionBid.objects.exists())
-        # До решения администратора лот остается активным
+        # До решения администратора лот остается активным.
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.status, 'active')
 
@@ -139,14 +139,14 @@ class AuctionEndTests(AuctionTestCase):
 
     def test_winner_without_points_rolls_back(self):
         self.bid(self.alice, 50)
-        # Админ уменьшил баланс уже после ставки
+        # Админ уменьшил баланс уже после ставки.
         self.alice.profile.refresh_from_db()
         self.alice.profile.activity_points = 10
         self.alice.profile.save()
 
         self.assertFalse(self.finish_lot())
 
-        # Ничего не изменилось: админ может выбрать другого победителя
+        # Ничего не изменилось: админ может выбрать другого победителя.
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.status, 'active')
         bid = AuctionBid.objects.get(bidder=self.alice)

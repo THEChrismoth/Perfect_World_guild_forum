@@ -63,7 +63,7 @@ class ApplicationAdmin(admin.ModelAdmin):
             '<div style="background:#f8f9fa;padding:10px;margin-bottom:10px;border-radius:5px;"><h4 style="margin:0 0 10px 0;">Статистика:</h4>✅ За: {} | ❌ Против: {} | ⚪ Воздержались: {}</div>',
             stats['for'], stats['against'], stats['abstain']
         )
-        # format_html_join экранирует имя и комментарий — их пишут пользователи
+        # format_html_join экранирует имя и комментарий — их пишут пользователи.
         rows = format_html_join(
             '',
             '<tr style="border-bottom: 1px solid #dee2e6;"><td style="padding: 8px;">{}</td><td style="padding: 8px; color:{};"><strong>{}</strong></td><td style="padding: 8px;">{}</td><td style="padding: 8px;">{}</td></tr>',
@@ -103,7 +103,7 @@ class ApplicationAdmin(admin.ModelAdmin):
                 pass
 
         if 'status' in form.changed_data:
-            # Допуск до голосования
+            # Допуск до голосования.
             if obj.status == 'voting' and old_status != 'voting':
                 obj.approve_by_admin(request.user)
                 send_notification(
@@ -113,7 +113,7 @@ class ApplicationAdmin(admin.ModelAdmin):
                     notification_type='application',
                     link=reverse('reception:application_detail', args=[obj.id])
                 )
-            # Отклонение заявки
+            # Отклонение заявки.
             elif obj.status == 'rejected' and old_status != 'rejected':
                 obj.reject_by_admin(request.user, obj.admin_comment)
                 reason = obj.admin_comment if obj.admin_comment else 'Не указана'
@@ -124,7 +124,7 @@ class ApplicationAdmin(admin.ModelAdmin):
                     notification_type='error',
                     link=reverse('reception:my_applications')
                 )
-            # Одобрение заявки (финальное) - группа выдается вручную, только уведомление
+            # Одобрение заявки (финальное) — группа выдается вручную, только уведомление.
             elif obj.status == 'approved' and old_status != 'approved':
                 obj.status = 'approved'
                 obj.save()
@@ -142,7 +142,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     actions = ['approve_applications', 'reject_applications', 'final_approve_applications']
 
     def approve_applications(self, request, queryset):
-        """Допустить до голосования"""
+        """Допускает до голосования."""
         count = 0
         for app in queryset.filter(status='pending'):
             app.approve_by_admin(request.user)
@@ -158,7 +158,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     approve_applications.short_description = 'Допустить до голосования'
 
     def reject_applications(self, request, queryset):
-        """Отклонить заявки"""
+        """Отклоняет заявки."""
         count = 0
         for app in queryset.filter(status='pending'):
             app.reject_by_admin(request.user, 'Отклонено администратором')
@@ -174,7 +174,7 @@ class ApplicationAdmin(admin.ModelAdmin):
     reject_applications.short_description = 'Отклонить'
 
     def final_approve_applications(self, request, queryset):
-        """Финальное одобрение заявок"""
+        """Финальное одобрение заявок."""
         count = 0
         for app in queryset.filter(status='voting'):
             app.status = 'approved'

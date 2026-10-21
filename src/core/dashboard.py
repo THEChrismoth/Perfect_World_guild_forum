@@ -41,7 +41,7 @@ def build_dashboard(request):
         guild = guild_group.user_set.count() if guild_group else 0
         stats.append(_stat('👥', 'Пользователи', total, _url('admin:auth_user_changelist'),
                            f'+{new_week} за неделю' if new_week else 'новых за неделю нет'))
-        # Фильтр админки по группе — groups__id__exact (как в боковом фильтре списка пользователей)
+        # Фильтр админки по группе — groups__id__exact (как в боковом фильтре списка пользователей).
         guild_url = _url('admin:auth_user_changelist', f'groups__id__exact={guild_group.pk}') if guild_group else None
         stats.append(_stat('🛡️', 'Члены гильдии', guild, guild_url,
                            '' if guild_group else f'создайте группу «{GUILD_GROUP}»', tone='success'))
@@ -174,7 +174,7 @@ def _system_alerts(now):
 
     from teamspeak.models import TeamSpeakSettings, TsTask
     ts_settings = TeamSpeakSettings.load()
-    # Бот хотя бы раз подключался, а теперь молчит — TeamSpeak включён, но задачи не выполняются
+    # Бот хотя бы раз подключался, а теперь молчит — TeamSpeak включён, но задачи не выполняются.
     if ts_settings.bot_last_seen and not ts_settings.bot_online:
         alerts.append(_alert('danger', 'Бот TeamSpeak не на связи: доступы и комнаты не выдаются, посещение ивентов не учитывается',
                              _url('admin:teamspeak_teamspeaksettings_changelist'), 'Подробнее'))

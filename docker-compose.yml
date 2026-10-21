@@ -1,13 +1,14 @@
-# Общие настройки для контейнеров с Django (web и scheduler)
+# Общие настройки для контейнеров с Django (web и scheduler).
 x-django-env: &django-env
   DEBUG: "False"
   USE_HTTPS: "True"
-  # web — внутреннее имя для бота TeamSpeak, который обращается к сайту напрямую внутри сети Docker
+  # web — внутреннее имя для бота TeamSpeak, который обращается к сайту напрямую внутри сети Docker.
   ALLOWED_HOSTS: ${DOMAIN:?Укажите DOMAIN в .env},web
   DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?Укажите DJANGO_SECRET_KEY в .env}
   DATABASE_URL: postgres://${POSTGRES_USER:-forum}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-forum}
 
 services:
+  # База данных PostgreSQL. Наружу не открыта, к ней подключаются только контейнеры сайта.
   db:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -23,6 +24,7 @@ services:
       timeout: 5s
       retries: 10
 
+  # Сайт (Django и gunicorn). При запуске применяет миграции и собирает статику.
   web:
     build: .
     restart: unless-stopped
@@ -37,7 +39,7 @@ services:
       db:
         condition: service_healthy
 
-  # Резервные копии по расписанию и по кнопке из админ-панели
+  # Резервные копии по расписанию и по кнопке из админ-панели.
   scheduler:
     build: .
     restart: unless-stopped
@@ -45,7 +47,7 @@ services:
     env_file: .env
     environment:
       <<: *django-env
-      # Миграции и статику готовит контейнер web
+      # Миграции и статику готовит контейнер web.
       SKIP_SETUP: "1"
     command: python manage.py run_backup_scheduler
     volumes:
@@ -57,31 +59,27 @@ services:
       web:
         condition: service_started
 
-  # ===== TeamSpeak 3 (необязательно) =====
-  # Запускается, только если в .env есть COMPOSE_PROFILES=teamspeak
+  # Сервер TeamSpeak 3. Запускается профилем teamspeak (COMPOSE_PROFILES=teamspeak в .env).
   teamspeak:
     image: teamspeak:3.13
     profiles: ["teamspeak"]
     restart: unless-stopped
     environment:
-      # Лицензию TeamSpeak нужно принять в .env: TS3SERVER_LICENSE=accept
       TS3SERVER_LICENSE: ${TS3SERVER_LICENSE:-}
       TS3SERVER_SERVERADMIN_PASSWORD: ${TS3_SERVERADMIN_PASSWORD:-}
       TS3SERVER_QUERY_PROTOCOLS: raw
+    # ServerQuery (10011) наружу не открыт — к нему подключается только бот tsbot.
     ports:
-      - "9987:9987/udp"   # голос
-      - "30033:30033"     # передача файлов (аватары, иконки)
-      # ServerQuery (10011) наружу не открыт — к нему подключается только бот tsbot
+      - "9987:9987/udp"   # Голос
+      - "30033:30033"     # Передача файлов
     volumes:
       - teamspeak_data:/var/ts3server
 
-  # Бот TeamSpeak (tsbot/): при запуске создаёт группы и комнаты из tsbot/channels.json,
-  # затем выполняет задачи сайта (доступ гильдии, комнаты, лицензия) и считает присутствие на ивентах.
-  # Связь с сайтом — по HTTP внутри сети Docker с токеном TSBOT_API_TOKEN
+  # Бот TeamSpeak: комнаты из tsbot/channels.json, задачи сайта и присутствие на ивентах.
   tsbot:
     build: ./tsbot
     profiles: ["teamspeak"]
-    # Без TSBOT_API_TOKEN бот настраивает комнаты и завершается — не перезапускать его по кругу
+    # Без TSBOT_API_TOKEN бот настраивает комнаты и завершается — не перезапускать его по кругу.
     restart: on-failure
     environment:
       TS3_HOST: teamspeak
@@ -91,12 +89,12 @@ services:
       TS3_DATA_DIR: /ts3data
     volumes:
       - ./tsbot/channels.json:/app/channels.json:ro
-      # Данные TeamSpeak — сюда бот кладёт файл лицензии
-      - teamspeak_data:/ts3data
+      - teamspeak_data:/ts3data  # Сюда бот кладёт файл лицензии
     depends_on:
       - teamspeak
       - web
 
+  # Веб-сервер: HTTPS-сертификаты, статика и загруженные файлы, остальное — в web.
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -115,6 +113,7 @@ services:
     depends_on:
       - web
 
+# Данные хранятся в томах и переживают пересоздание контейнеров. docker compose down -v их удаляет.
 volumes:
   postgres_data:
   static:

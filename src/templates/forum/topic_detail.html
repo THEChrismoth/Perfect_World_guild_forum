@@ -170,7 +170,7 @@
 </div>
 
 <script>
-// Функции для редактирования постов
+// Редактирование постов.
 function showEditForm(postId) {
     document.getElementById('post-text-' + postId).style.display = 'none';
     document.getElementById('edit-form-' + postId).style.display = 'block';
@@ -215,7 +215,7 @@ function cancelEdit(postId) {
     document.getElementById('edit-form-' + postId).style.display = 'none';
 }
 
-// Предпросмотр изображений для ответа
+// Предпросмотр изображений для ответа.
 document.addEventListener('DOMContentLoaded', function() {
     const replyImageInput = document.getElementById('reply-images');
     const replyPreviewContainer = document.getElementById('reply-image-previews');
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Sticky блок автора с ограничением по высоте поста
+// Sticky-блок автора с ограничением по высоте поста.
 (function() {
     function initStickyAuthors() {
         const authorBlocks = document.querySelectorAll('.post-author');
@@ -273,38 +273,38 @@ document.addEventListener('DOMContentLoaded', function() {
                 const scrollTop = window.pageYOffset;
                 const viewportHeight = window.innerHeight;
                 
-                // Получаем позиции элементов относительно документа
+                // Получаем позиции элементов относительно документа.
                 const postTop = postRect.top + scrollTop;
                 const postBottom = postRect.bottom + scrollTop;
                 
-                // Настройки отступов
+                // Настройки отступов.
                 const offsetTop = 20;
                 const offsetBottom = 20;
                 
-                // Проверяем, виден ли пост
+                // Проверяем, виден ли пост.
                 const isPostVisible = postRect.bottom > 0 && postRect.top < viewportHeight;
                 
                 if (isPostVisible && authorHeight < contentHeight + 40) {
-                    // Если пост виден и блок автора не выше контента, делаем sticky
+                    // Если пост виден и блок автора не выше контента, делаем sticky.
                     let newTop = scrollTop + offsetTop;
                     
-                    // Не выходим за пределы поста снизу
+                    // Не выходим за пределы поста снизу.
                     if (newTop + authorHeight > postBottom - offsetBottom) {
                         newTop = postBottom - authorHeight - offsetBottom;
                     }
                     
-                    // Не выходим за пределы поста сверху
+                    // Не выходим за пределы поста сверху.
                     if (newTop < postTop + offsetTop) {
                         newTop = postTop + offsetTop;
                     }
                     
-                    // Применяем позиционирование
+                    // Применяем позиционирование.
                     authorBlock.style.position = 'absolute';
                     authorBlock.style.top = (newTop - postTop) + 'px';
                     authorBlock.style.bottom = 'auto';
                     authorBlock.style.width = authorBlock.parentElement.offsetWidth + 'px';
                 } else {
-                    // Если пост не виден или блок выше контента, возвращаем обычное позиционирование
+                    // Если пост не виден или блок выше контента, возвращаем обычное позиционирование.
                     authorBlock.style.position = '';
                     authorBlock.style.top = '';
                     authorBlock.style.bottom = '';
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Настраиваем каждый блок автора
+        // Настраиваем каждый блок автора.
         authorBlocks.forEach(function(authorBlock) {
             const postItem = authorBlock.closest('.post-item');
             if (postItem) {
@@ -321,17 +321,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Обновляем при скролле и ресайзе
+        // Обновляем при скролле и ресайзе.
         window.addEventListener('scroll', updateStickyPositions);
         window.addEventListener('resize', updateStickyPositions);
         
-        // Первоначальное обновление
+        // Первоначальное обновление.
         setTimeout(updateStickyPositions, 100);
-        // Обновляем после загрузки изображений
+        // Обновляем после загрузки изображений.
         window.addEventListener('load', updateStickyPositions);
     }
     
-    // Запускаем после загрузки страницы
+    // Запускаем после загрузки страницы.
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initStickyAuthors);
     } else {

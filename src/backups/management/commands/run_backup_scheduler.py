@@ -8,7 +8,7 @@ from django.utils import timezone
 from backups.models import Backup, BackupSettings
 from backups.services import is_backup_due, recover_interrupted, run_backup
 
-CHECK_INTERVAL = 30  # секунд
+CHECK_INTERVAL = 30  # Секунд
 
 
 class Command(BaseCommand):
@@ -31,7 +31,7 @@ class Command(BaseCommand):
                     recovered = True
                 self.tick()
             except DatabaseError as error:
-                # База еще не готова или миграции не применены — подождем
+                # База еще не готова или миграции не применены — подождем.
                 self.stderr.write(f'База данных недоступна: {error}')
             except Exception as error:
                 self.stderr.write(f'Ошибка планировщика: {error}')
@@ -46,7 +46,7 @@ class Command(BaseCommand):
     def tick(self):
         backup_settings = BackupSettings.load()
 
-        # Первое включение расписания: запоминаем момент, первая копия — в ближайшее время по расписанию
+        # Первое включение расписания: запоминаем момент, первая копия — в ближайшее время по расписанию.
         if backup_settings.enabled and backup_settings.last_scheduled_run is None:
             backup_settings.last_scheduled_run = timezone.now()
             backup_settings.save(update_fields=['last_scheduled_run'])
@@ -56,7 +56,7 @@ class Command(BaseCommand):
             backup_settings.save(update_fields=['last_scheduled_run'])
             Backup.objects.create(trigger='schedule')
 
-        # Выполняем все копии из очереди: и по расписанию, и запрошенные вручную
+        # Выполняем все копии из очереди: и по расписанию, и запрошенные вручную.
         for backup in Backup.objects.filter(status='pending').order_by('created_at'):
             if not self.running:
                 break

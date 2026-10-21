@@ -21,7 +21,7 @@ class BackupSettings(models.Model):
         (6, 'Воскресенье'),
     ]
 
-    # Расписание
+    # Расписание.
     enabled = models.BooleanField(
         'Автоматические копии',
         default=False,
@@ -36,14 +36,14 @@ class BackupSettings(models.Model):
     )
     run_time = models.TimeField('Время', default=datetime.time(4, 0), help_text='По времени сервера (Москва)')
 
-    # Что сохранять
+    # Что сохранять.
     include_media = models.BooleanField(
         'Сохранять загруженные файлы',
         default=True,
         help_text='Аватары, картинки постов, скриншоты заявок. Без них копия меньше, но картинки не восстановятся'
     )
 
-    # Локальное хранение
+    # Локальное хранение.
     keep_local = models.PositiveIntegerField(
         'Хранить копий на сервере',
         default=7,
@@ -51,13 +51,13 @@ class BackupSettings(models.Model):
         help_text='Более старые копии удаляются с сервера автоматически'
     )
 
-    # Яндекс Диск
+    # Яндекс Диск.
     yandex_enabled = models.BooleanField(
         'Загружать на Яндекс Диск',
         default=False,
         help_text='Только для зашифрованных копий: задайте BACKUP_ENCRYPTION_PASSWORD в .env'
     )
-    # Хранится зашифрованным (см. backups/crypto.py). Читать — get_yandex_token()
+    # Хранится зашифрованным (см. backups/crypto.py). Читать — get_yandex_token().
     yandex_token = models.CharField(
         'OAuth-токен Яндекса',
         max_length=500,
@@ -78,7 +78,7 @@ class BackupSettings(models.Model):
         help_text='Более старые копии удаляются с Диска автоматически'
     )
 
-    # Служебное: когда в последний раз сработало расписание
+    # Служебное: когда в последний раз сработало расписание.
     last_scheduled_run = models.DateTimeField('Последний запуск по расписанию', null=True, blank=True, editable=False)
 
     class Meta:
@@ -92,13 +92,13 @@ class BackupSettings(models.Model):
         from .crypto import SECRET_PREFIX, encrypt_secret
 
         self.pk = 1
-        # Токен никогда не записывается в базу открытым текстом
+        # Токен никогда не записывается в базу открытым текстом.
         if self.yandex_token and not self.yandex_token.startswith(SECRET_PREFIX):
             self.yandex_token = encrypt_secret(self.yandex_token)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        # Настройки не удаляются
+        # Настройки не удаляются.
         pass
 
     @classmethod
@@ -107,13 +107,13 @@ class BackupSettings(models.Model):
         return obj
 
     def get_yandex_token(self):
-        """Расшифрованный токен или пустая строка"""
+        """Расшифрованный токен или пустая строка."""
         from .crypto import decrypt_secret
         return decrypt_secret(self.yandex_token) or ''
 
     @property
     def yandex_token_unreadable(self):
-        """Токен сохранен, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY"""
+        """Токен сохранен, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY."""
         return bool(self.yandex_token) and not self.get_yandex_token()
 
     @property
@@ -122,7 +122,7 @@ class BackupSettings(models.Model):
 
 
 class Backup(models.Model):
-    """Журнал резервных копий"""
+    """Журнал резервных копий."""
 
     STATUS_CHOICES = [
         ('pending', 'В очереди'),
@@ -131,7 +131,7 @@ class Backup(models.Model):
         ('warning', 'Готово с замечаниями'),
         ('failed', 'Ошибка'),
     ]
-    # Статусы, при которых архив создан и пригоден для восстановления
+    # Статусы, при которых архив создан и пригоден для восстановления.
     COMPLETED_STATUSES = ('success', 'warning')
     TRIGGER_CHOICES = [
         ('schedule', 'По расписанию'),

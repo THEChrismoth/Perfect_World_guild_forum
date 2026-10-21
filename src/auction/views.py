@@ -10,7 +10,7 @@ from profiles.models import Profile
 from .models import AuctionLot, AuctionBid, PointsTransaction
 
 def check_auction_access(user):
-    """Проверяет, имеет ли пользователь доступ к аукциону"""
+    """Проверяет, имеет ли пользователь доступ к аукциону."""
     if user.is_superuser:
         return True
 
@@ -20,7 +20,7 @@ def check_auction_access(user):
     return auction_subcategory.is_visible_to_user(user)
 
 def auction_index(request):
-    """Главная страница аукциона"""
+    """Главная страница аукциона."""
     if not check_auction_access(request.user):
         raise PermissionDenied("У вас нет доступа к аукциону")
 
@@ -51,15 +51,18 @@ def auction_index(request):
 
 
 def place_bid(request, lot_id, bid_amount):
-    """Делает ставку на лот. Вся операция атомарна: лот и профиль блокируются,
-    чтобы параллельные ставки не прошли проверки одновременно."""
+    """Делает ставку на лот.
+
+    Вся операция атомарна: лот и профиль блокируются, чтобы параллельные ставки
+    не прошли проверки одновременно.
+    """
     with transaction.atomic():
         lot = AuctionLot.objects.select_for_update().get(id=lot_id)
         # Блокируем профиль, чтобы одновременные ставки на разные лоты
-        # не потратили одни и те же доступные очки
+        # не потратили одни и те же доступные очки.
         profile = Profile.objects.select_for_update().get(user=request.user)
 
-        # Статус и время проверяем повторно уже под блокировкой
+        # Статус и время проверяем повторно уже под блокировкой.
         if not lot.can_bid:
             messages.error(request, 'Прием ставок на этот лот завершен')
             return
@@ -69,27 +72,27 @@ def place_bid(request, lot_id, bid_amount):
             messages.error(request, f'Минимальная ставка: {min_bid} ⭐')
             return
 
-        # Проверяем, не делал ли пользователь уже ставку-лидера (замороженную)
+        # Проверяем, не делал ли пользователь уже ставку-лидера (замороженную).
         if lot.bids.filter(bidder=request.user, is_frozen=True).exists():
             messages.error(request, 'Вы уже являетесь лидером на этом аукционе! Ваша ставка активна и очки заморожены.')
             return
 
-        # Проверяем доступные очки с учетом заморозки
+        # Проверяем доступные очки с учетом заморозки.
         available_points = profile.get_available_points()
         if available_points < bid_amount:
             messages.error(request, f'Недостаточно доступных очков. Доступно: {available_points} ⭐ (Всего: {profile.activity_points} ⭐)')
             return
 
-        # Находим текущего лидера (замороженную ставку)
+        # Находим текущего лидера (замороженную ставку).
         current_leader = lot.get_current_leader()
 
         if current_leader:
-            # Размораживаем очки предыдущего лидера
+            # Размораживаем очки предыдущего лидера.
             current_leader.is_frozen = False
             current_leader.status = 'outbid'
             current_leader.save()
 
-            # Создаем транзакцию разморозки
+            # Создаем транзакцию разморозки.
             PointsTransaction.objects.create(
                 user=current_leader.bidder,
                 lot=lot,
@@ -100,7 +103,7 @@ def place_bid(request, lot_id, bid_amount):
 
             messages.info(request, f'Ставка {current_leader.bid_amount} ⭐ была перебита! Очки разморожены.')
 
-        # Создаем новую ставку (сразу замороженную)
+        # Создаем новую ставку (сразу замороженную).
         AuctionBid.objects.create(
             lot=lot,
             bidder=request.user,
@@ -110,11 +113,11 @@ def place_bid(request, lot_id, bid_amount):
             is_winner=False
         )
 
-        # Обновляем текущую цену лота
+        # Обновляем текущую цену лота.
         lot.current_price = bid_amount
         lot.save(update_fields=['current_price', 'updated_at'])
 
-        # Создаем транзакцию заморозки
+        # Создаем транзакцию заморозки.
         PointsTransaction.objects.create(
             user=request.user,
             lot=lot,
@@ -128,17 +131,17 @@ def place_bid(request, lot_id, bid_amount):
 
 @login_required
 def lot_detail(request, slug):
-    """Детальная страница лота"""
+    """Детальная страница лота."""
     if not check_auction_access(request.user):
         raise PermissionDenied("У вас нет доступа к аукциону")
 
     lot = get_object_or_404(AuctionLot, slug=slug)
 
-    # Проверяем, разрешены ли ставки (активен И время не истекло)
+    # Проверяем, разрешены ли ставки (активен и время не истекло).
     bidding_allowed = lot.can_bid
     time_expired = lot.is_time_expired
 
-    # Обработка формы ставки (только если разрешены ставки)
+    # Обработка формы ставки (только если разрешены ставки).
     if request.method == 'POST' and bidding_allowed:
         bid_amount = request.POST.get('bid_amount')
 
@@ -154,22 +157,22 @@ def lot_detail(request, slug):
 
         return redirect('auction:lot_detail', slug=lot.slug)
 
-    # ПОКАЗЫВАЕМ ВСЕ СТАВКИ для истории
+    # Показываем все ставки для истории.
     all_bids = lot.bids.select_related('bidder').order_by('-bid_amount', 'created_at')
 
-    # Проверяем, есть ли у пользователя ЗАМОРОЖЕННАЯ ставка на этот лот (он лидер)
+    # Проверяем, есть ли у пользователя замороженная ставка на этот лот (он лидер).
     user_frozen_bid = lot.bids.filter(bidder=request.user, is_frozen=True).first()
     user_available_points = request.user.profile.get_available_points()
 
     winners = lot.get_winner_bids() if lot.status == 'ended' else []
     
-    # Для таймера
+    # Для таймера.
     end_timestamp = int(lot.end_date.timestamp() * 1000) if lot.end_date and lot.is_active else 0
 
-    # Находим текущего лидера
+    # Находим текущего лидера.
     current_leader = lot.get_current_leader()
 
-    # Может ли пользователь сделать ставку (учитываем время)
+    # Может ли пользователь сделать ставку (учитываем время).
     can_bid = bidding_allowed and not user_frozen_bid
 
     context = {
@@ -190,7 +193,7 @@ def lot_detail(request, slug):
 
 @login_required
 def my_bids(request):
-    """Мои ставки"""
+    """Мои ставки."""
     if not check_auction_access(request.user):
         raise PermissionDenied("У вас нет доступа к аукциону")
 

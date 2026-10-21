@@ -6,23 +6,23 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # pg_dump и pg_restore для резервных копий. В Debian trixie это PostgreSQL 17 —
-# версия должна быть не ниже версии базы в docker-compose.yml. gpg — шифрование копий
+# версия должна быть не ниже версии базы в docker-compose.yml. gpg — шифрование копий.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client gpg gpg-agent \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Зависимости ставим отдельным слоем, чтобы при правке кода они не пересобирались
+# Зависимости ставим отдельным слоем, чтобы при правке кода они не пересобирались.
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Структура как в репозитории: код в /app/src, данные (static, media) в /app
+# Структура как в репозитории: код в /app/src, данные (static, media) в /app.
 COPY docker/ docker/
 COPY src/ src/
 
 # Работаем не от root. Папки static, media и backups создаем заранее с нужным владельцем —
-# Docker скопирует эти права в тома при первом запуске
+# Docker скопирует эти права в тома при первом запуске.
 RUN useradd --create-home --uid 1000 app \
     && mkdir -p /app/static /app/media /app/backups \
     && chown -R app:app /app \

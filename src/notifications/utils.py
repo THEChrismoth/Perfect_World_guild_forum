@@ -6,12 +6,14 @@ from django.utils.safestring import mark_safe
 
 
 def build_message_html(message, link=None):
-    """Готовит HTML уведомления: текст экранируется (в нем бывают имена,
-    причины отказа, названия лотов), переносы строк превращаются в <br>,
-    при наличии ссылки добавляется кнопка"""
+    """Готовит HTML уведомления.
+
+    Текст экранируется (в нем бывают имена, причины отказа, названия лотов), переносы строк
+    превращаются в <br>, при наличии ссылки добавляется кнопка.
+    """
     message_html = escape(message).replace('\n', '<br>')
 
-    # Добавляем кнопку, если есть ссылка (без текстовой ссылки)
+    # Добавляем кнопку, если есть ссылка (без текстовой ссылки).
     if link:
         message_html += format_html('<br><br><a href="{}" class="btn-vote-notify">🗳️ Проголосовать</a>', link)
 
@@ -19,17 +21,16 @@ def build_message_html(message, link=None):
 
 
 def send_notification(user, title, message, notification_type='info', link=None):
-    """
-    Отправить уведомление одному пользователю
+    """Отправляет уведомление одному пользователю.
 
-    Параметры:
-    - user: пользователь (объект User, username или id)
-    - title: заголовок
-    - message: текст сообщения
-    - notification_type: тип уведомления
-    - link: ссылка (опционально)
+    Аргументы:
+        user: пользователь (объект User, username или id).
+        title: заголовок.
+        message: текст сообщения.
+        notification_type: тип уведомления.
+        link: ссылка (необязательно).
     """
-    # Получаем пользователя если передан username или id
+    # Получаем пользователя если передан username или id.
     if isinstance(user, str):
         try:
             user = User.objects.get(username=user)
@@ -52,7 +53,7 @@ def send_notification(user, title, message, notification_type='info', link=None)
 
 
 def send_notification_to_group(group_name, title, message, notification_type='info', link=None):
-    """Отправить уведомление всем пользователям группы"""
+    """Отправляет уведомление всем пользователям группы."""
     try:
         group = Group.objects.get(name=group_name)
         users = group.user_set.all()
@@ -74,7 +75,7 @@ def send_notification_to_group(group_name, title, message, notification_type='in
 
 
 def send_notification_to_all(title, message, notification_type='info', link=None):
-    """Отправить уведомление всем пользователям"""
+    """Отправляет уведомление всем пользователям."""
     users = User.objects.all()
     notifications = []
     message_html = build_message_html(message, link)
@@ -92,7 +93,7 @@ def send_notification_to_all(title, message, notification_type='info', link=None
 
 
 def send_notification_to_admins(title, message, notification_type='info', link=None):
-    """Отправить уведомление всем администраторам"""
+    """Отправляет уведомление всем администраторам."""
     admins = User.objects.filter(is_superuser=True)
     notifications = []
     message_html = build_message_html(message, link)
@@ -110,10 +111,10 @@ def send_notification_to_admins(title, message, notification_type='info', link=N
 
 
 def get_unread_count(user):
-    """Получить количество непрочитанных уведомлений"""
+    """Возвращает количество непрочитанных уведомлений."""
     return Notification.objects.filter(user=user, is_read=False).count()
 
 
 def mark_all_as_read(user):
-    """Пометить все уведомления пользователя как прочитанные"""
+    """Помечает все уведомления пользователя как прочитанные."""
     return Notification.objects.filter(user=user, is_read=False).update(is_read=True)

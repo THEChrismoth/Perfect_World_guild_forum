@@ -5,35 +5,35 @@ from django.utils.text import slugify
 
 
 class EventType(models.Model):
-    """Тип ивента (шаблон отрядов)"""
+    """Тип ивента (шаблон отрядов)."""
     name = models.CharField('Название типа ивента', max_length=100)
     slug = models.SlugField('Слаг', unique=True, blank=True, editable=False)
     description = models.TextField('Описание', blank=True)
     
-    # Количество отрядов
+    # Количество отрядов.
     parties_count = models.PositiveIntegerField(
         'Количество отрядов',
         default=1,
         help_text='Сколько отрядов в ивенте'
     )
     
-    # Размер отряда
+    # Размер отряда.
     party_size = models.PositiveIntegerField(
         'Размер отряда',
         default=10,
         help_text='Количество участников в отряде (включая лидера)'
     )
     
-    # Иконка
+    # Иконка.
     icon = models.CharField('Иконка', max_length=10, default='⚔️')
     
-    # Активен ли тип
+    # Активен ли тип.
     is_active = models.BooleanField('Активен', default=True)
     
-    # Порядок сортировки
+    # Порядок сортировки.
     order = models.IntegerField('Порядок', default=0)
     
-    # Связь с подкатегорией форума (опционально)
+    # Связь с подкатегорией форума (опционально).
     forum_subcategory = models.ForeignKey(
         'forum.SubCategory',
         on_delete=models.SET_NULL,
@@ -84,12 +84,12 @@ class EventType(models.Model):
     
     @property
     def total_slots(self):
-        """Общее количество слотов в ивенте этого типа"""
+        """Общее количество слотов в ивенте этого типа."""
         return self.parties_count * self.party_size
 
 
 class Event(models.Model):
-    """Ивент - создается на основе EventType, отряды заполняются вручную"""
+    """Ивент — создается на основе EventType, отряды заполняются вручную."""
     
     event_type = models.ForeignKey(
         EventType,
@@ -116,7 +116,7 @@ class Event(models.Model):
 
 
 class Party(models.Model):
-    """Отряд в ивенте"""
+    """Отряд в ивенте."""
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='parties')
     number = models.PositiveIntegerField('Номер отряда')
     leader = models.ForeignKey(
@@ -151,7 +151,7 @@ class Party(models.Model):
 
 
 class PartyMember(models.Model):
-    """Участник отряда (не лидер)"""
+    """Участник отряда (не лидер)."""
     party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='members')
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_memberships')
     joined_at = models.DateTimeField(auto_now_add=True)
@@ -166,7 +166,7 @@ class PartyMember(models.Model):
 
 
 class EventNotification(models.Model):
-    """Уведомление о проведении ивента на конкретную дату"""
+    """Уведомление о проведении ивента на конкретную дату."""
     
     event_type = models.ForeignKey(
         EventType,
@@ -176,7 +176,7 @@ class EventNotification(models.Model):
     )
     
     event_date = models.DateField('Дата проведения')
-    # Время нужно для учёта посещения в TeamSpeak: присутствие считается в окне [начало; начало + длительность]
+    # Время нужно для учёта посещения в TeamSpeak: присутствие считается в окне [начало; начало + длительность].
     start_time = models.TimeField(
         'Время начала', null=True, blank=True,
         help_text='По времени сервера (Москва). Без времени посещение не учитывается'
@@ -186,7 +186,7 @@ class EventNotification(models.Model):
     subject = models.CharField('Тема', max_length=200)
     message = models.TextField('Сообщение')
     
-    # Группы получателей (можно выбрать несколько)
+    # Группы получателей (можно выбрать несколько).
     recipient_groups = models.ManyToManyField(
         Group,
         blank=True,
@@ -227,7 +227,7 @@ class EventNotification(models.Model):
 
 
 class EventAttendance(models.Model):
-    """Ответы пользователей на уведомление (кто придет/не придет)"""
+    """Ответы пользователей на уведомление (кто придет/не придет)."""
     
     STATUS_CHOICES = [
         ('yes', '✅ Приду'),
@@ -268,15 +268,15 @@ from django.dispatch import receiver
 
 @receiver(post_save, sender=EventType)
 def create_event_and_parties(sender, instance, created, **kwargs):
-    """При создании типа ивента автоматически создаем Event и отряды"""
+    """При создании типа ивента автоматически создаем Event и отряды."""
     if created:
-        # Создаем ивент
+        # Создаем ивент.
         event = Event.objects.create(
             event_type=instance,
             is_active=True
         )
         
-        # Создаем отряды
+        # Создаем отряды.
         for i in range(instance.parties_count):
             Party.objects.create(
                 event=event,
@@ -286,7 +286,7 @@ def create_event_and_parties(sender, instance, created, **kwargs):
 
 @receiver(post_save, sender=EventType)
 def update_parties_count(sender, instance, **kwargs):
-    """При изменении количества отрядов в EventType обновляем отряды в Event"""
+    """При изменении количества отрядов в EventType обновляем отряды в Event."""
     if not instance.pk:
         return
     
@@ -297,12 +297,12 @@ def update_parties_count(sender, instance, **kwargs):
     
     current_parties = event.parties.count()
     
-    # Если нужно добавить отряды
+    # Если нужно добавить отряды.
     if instance.parties_count > current_parties:
         for i in range(current_parties + 1, instance.parties_count + 1):
             Party.objects.create(event=event, number=i)
     
-    # Если нужно удалить отряды (только пустые)
+    # Если нужно удалить отряды (только пустые).
     elif instance.parties_count < current_parties:
         parties_to_remove = event.parties.filter(number__gt=instance.parties_count)
         for party in parties_to_remove:

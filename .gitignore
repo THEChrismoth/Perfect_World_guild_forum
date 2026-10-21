@@ -1,4 +1,4 @@
-# Python-generated files
+# Файлы, которые создаёт Python.
 __pycache__/
 *.py[oc]
 build/
@@ -7,10 +7,10 @@ wheels/
 *.egg-info
 .env
 
-# Virtual environments
+# Виртуальные окружения.
 .venv
 
-# PyCharm files
+# Файлы PyCharm.
 .idea/
 
 db.sqlite3

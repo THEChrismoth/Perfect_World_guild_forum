@@ -26,7 +26,7 @@ class RegistrationForm(UserCreationForm):
     def clean(self):
         cleaned_data = super().clean()
         # Капча проверяется последней и только для формы без других ошибок:
-        # токен одноразовый, и тратить его на заведомо неверную форму нельзя
+        # токен одноразовый, и тратить его на заведомо неверную форму нельзя.
         if self.site_settings.captcha_active and not self.errors:
             error = verify_captcha(self.data.get(TOKEN_FIELD, ''), self.site_settings)
             if error:
@@ -46,7 +46,9 @@ TS3_UID_RE = re.compile(r'^[A-Za-z0-9+/]{27}=$')
 class ProfileForm(forms.ModelForm):
     def clean_ts3_id(self):
         """Уникальный ID клиента TeamSpeak: 28 символов, заканчивается на «=».
-        Бот ищет игрока по нему, поэтому опечатка сломает выдачу доступа и учёт ивентов"""
+
+        Бот ищет игрока по нему, поэтому опечатка сломает выдачу доступа и учёт ивентов.
+        """
         value = (self.cleaned_data.get('ts3_id') or '').strip()
         if value and not TS3_UID_RE.match(value):
             raise forms.ValidationError(

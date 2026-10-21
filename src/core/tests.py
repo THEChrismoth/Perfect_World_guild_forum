@@ -123,7 +123,7 @@ class SiteSettingsAdminTests(TestCase):
         self.assertNotContains(response, 'mail-pass')
         self.assertNotContains(response, 'captcha-secret')
 
-        # Повторное сохранение с пустыми полями не стирает секреты
+        # Повторное сохранение с пустыми полями не стирает секреты.
         self.post(email_host='smtp.example.com', site_name='Ermitage')
         site = SiteSettings.load()
         self.assertEqual(site.get_email_password(), 'mail-pass')
@@ -178,7 +178,7 @@ class HashedStaticTests(SimpleTestCase):
         self.assertRegex(static('css/style.css'), r'^/static/css/style\.[0-9a-f]{12}\.css$')
 
     def test_name_changes_with_content(self):
-        # Имя зависит от содержимого: так браузер узнаёт о новой версии файла
+        # Имя зависит от содержимого: так браузер узнаёт о новой версии файла.
         url = static('forum/css/style.css')
         other = static('css/style.css')
         self.assertNotEqual(re.search(r'\.([0-9a-f]{12})\.', url).group(1), re.search(r'\.([0-9a-f]{12})\.', other).group(1))

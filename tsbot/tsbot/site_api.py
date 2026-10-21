@@ -1,4 +1,4 @@
-"""HTTP-клиент API сайта (src/teamspeak/api.py)"""
+"""HTTP-клиент API сайта (src/teamspeak/api.py)."""
 import json
 import urllib.error
 import urllib.request
@@ -22,7 +22,7 @@ class SiteApi:
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             # Бот ходит к сайту напрямую внутри сети Docker, минуя Caddy: сообщаем Django,
-            # что исходное соединение защищённое, иначе он перенаправит на https
+            # что исходное соединение защищённое, иначе он перенаправит на https.
             'X-Forwarded-Proto': 'https',
         })
         try:

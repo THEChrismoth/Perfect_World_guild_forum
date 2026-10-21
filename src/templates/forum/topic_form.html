@@ -81,15 +81,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     previewContainer.appendChild(previewDiv);
                     
-                    // Добавляем обработчик для кнопки удаления
+                    // Добавляем обработчик для кнопки удаления.
                     const removeBtn = previewDiv.querySelector('.remove-image-btn');
                     removeBtn.addEventListener('click', function() {
-                        // Создаем новый FileList без удаленного файла
+                        // Создаем новый FileList без удаленного файла.
                         const dt = new DataTransfer();
                         const remainingFiles = files.filter((_, i) => i !== index);
                         remainingFiles.forEach(file => dt.items.add(file));
                         imageInput.files = dt.files;
-                        // Перезагружаем превью
+                        // Перезагружаем превью.
                         imageInput.dispatchEvent(new Event('change'));
                     });
                 };

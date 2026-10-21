@@ -24,7 +24,7 @@ from .yandex import YandexDisk, YandexDiskError
 
 
 def fake_encrypt(source, target, password=None):
-    """Подмена gpg в тестах: «шифрованный» файл — копия с меткой в начале"""
+    """Подмена gpg в тестах: «шифрованный» файл — копия с меткой в начале."""
     Path(target).write_bytes(b'FAKE-GPG' + Path(source).read_bytes())
 
 
@@ -36,7 +36,7 @@ def fake_decrypt(source, target, password=None):
 
 
 def gpg_works():
-    """Настоящий gpg доступен и умеет шифровать (в Docker — да; gpg из Git для Windows — не всегда)"""
+    """Настоящий gpg доступен и умеет шифровать (в Docker — да; gpg из Git для Windows — не всегда)."""
     with tempfile.TemporaryDirectory() as tmp:
         source, target, back = Path(tmp) / 'a', Path(tmp) / 'a.gpg', Path(tmp) / 'b'
         source.write_bytes(b'probe')
@@ -49,12 +49,12 @@ def gpg_works():
 
 
 ENCRYPTED = override_settings(BACKUP_ENCRYPTION_PASSWORD='test-password')
-# Тесты не должны зависеть от пароля шифрования в .env разработчика
+# Тесты не должны зависеть от пароля шифрования в .env разработчика.
 NOT_ENCRYPTED = override_settings(BACKUP_ENCRYPTION_PASSWORD='')
 
 
 class TempDirsMixin:
-    """Копии и media пишутся во временные папки, а не в настоящие"""
+    """Копии и media пишутся во временные папки, а не в настоящие."""
 
     def setUp(self):
         super().setUp()
@@ -89,10 +89,10 @@ class ScheduleTests(TestCase):
         self.assertFalse(services.is_backup_due(s, moscow(2026, 10, 19, 23, 0)))
 
     def test_weekly(self):
-        # 19.10.2026 — понедельник
+        # 19.10.2026 — понедельник.
         s = self.make_settings(frequency='weekly', weekday=2, last_scheduled_run=moscow(2026, 10, 14, 4, 1))
-        self.assertFalse(services.is_backup_due(s, moscow(2026, 10, 20, 12, 0)))  # вторник
-        self.assertTrue(services.is_backup_due(s, moscow(2026, 10, 21, 4, 0)))   # среда
+        self.assertFalse(services.is_backup_due(s, moscow(2026, 10, 20, 12, 0)))  # Вторник
+        self.assertTrue(services.is_backup_due(s, moscow(2026, 10, 21, 4, 0)))   # Среда
 
     def test_disabled_or_just_enabled(self):
         self.assertFalse(services.is_backup_due(self.make_settings(enabled=False, last_scheduled_run=moscow(2020, 1, 1, 0, 0))))
@@ -115,14 +115,14 @@ class CreateBackupTests(TempDirsMixin, TransactionTestCase):
             self.assertIn('media/avatars/a.png', names)
             self.assertIn(manifest['database_file'], names)
             if settings.DATABASES['default']['ENGINE'] != 'django.db.backends.sqlite3':
-                # PostgreSQL (тесты в Docker): дамп pg_dump в формате custom начинается с PGDMP
+                # PostgreSQL (тесты в Docker): дамп pg_dump в формате custom начинается с PGDMP.
                 self.assertEqual(manifest['database_engine'], 'postgresql')
                 self.assertEqual(archive.extractfile('database.dump').read(5), b'PGDMP')
                 return
             db_bytes = archive.extractfile('database.sqlite3').read()
         self.assertEqual(manifest['database_engine'], 'sqlite')
 
-        # В копии базы есть созданный пользователь
+        # В копии базы есть созданный пользователь.
         db_path = self.tmp / 'check.sqlite3'
         db_path.write_bytes(db_bytes)
         with sqlite3.connect(db_path) as conn:
@@ -146,7 +146,7 @@ class CreateBackupTests(TempDirsMixin, TransactionTestCase):
 
         backups = []
         for i in range(4):
-            # Разные имена файлов, как будто копии сделаны в разное время
+            # Разные имена файлов, как будто копии сделаны в разное время.
             with mock.patch('backups.services.timezone.localtime',
                             return_value=moscow(2026, 10, 19, 4, 0, i)):
                 backups.append(services.run_backup(Backup.objects.create()))
@@ -176,7 +176,7 @@ class CreateBackupTests(TempDirsMixin, TransactionTestCase):
 
     def test_journal_synced_after_restore(self):
         backup = services.run_backup(Backup.objects.create())
-        # Как будто восстановили базу из копии: записи о файле нет, а копия «выполняется»
+        # Как будто восстановили базу из копии: записи о файле нет, а копия «выполняется».
         Backup.objects.filter(pk=backup.pk).update(file_name='', status='running')
 
         services.sync_journal_with_files()
@@ -234,10 +234,10 @@ class YandexUploadTests(TempDirsMixin, TransactionTestCase):
         self.assertEqual(backup.yandex_status, 'uploaded')
         self.assertEqual(backup.yandex_path, f'app:/backups/{backup.file_name}')
         ensure_folder.assert_called_once_with('app:/backups')
-        # На Диск уходит именно зашифрованный файл
+        # На Диск уходит именно зашифрованный файл.
         uploaded_path = upload.call_args.args[0]
         self.assertTrue(Path(uploaded_path).read_bytes().startswith(b'FAKE-GPG'))
-        # Остаются две самые новые копии, чужие файлы не трогаем
+        # Остаются две самые новые копии, чужие файлы не трогаем.
         deleted = sorted(call.args[0] for call in delete.call_args_list)
         self.assertEqual(deleted, ['app:/backups/backup-20261010-040000.tar.gz', 'app:/backups/backup-20261011-040000.tar.gz'])
 
@@ -250,7 +250,7 @@ class YandexUploadTests(TempDirsMixin, TransactionTestCase):
         self.assertIn('Токен недействителен', backup.error)
         self.assertTrue(backup.local_available)
 
-        # Копия с ошибкой загрузки на Диск не удаляется ротацией раньше времени
+        # Копия с ошибкой загрузки на Диск не удаляется ротацией раньше времени.
         s = BackupSettings.load()
         s.yandex_enabled = False
         s.keep_local = 2
@@ -275,7 +275,7 @@ class EncryptedBackupTests(TempDirsMixin, TransactionTestCase):
         backup = services.run_backup(Backup.objects.create())
         (self.media_root / 'avatars' / 'a.png').unlink()
 
-        # Саму базу не трогаем: подменяем и SQLite, и pg_restore (в Docker тесты идут на PostgreSQL)
+        # Саму базу не трогаем: подменяем и SQLite, и pg_restore (в Docker тесты идут на PostgreSQL).
         with mock.patch('backups.services.connection'), \
                 mock.patch('backups.services.sqlite3.connect') as connect, \
                 mock.patch('backups.services.subprocess.run', return_value=mock.Mock(returncode=0)) as run:
@@ -373,7 +373,7 @@ class RestoreTests(TempDirsMixin, TestCase):
         target_db = self.tmp / 'site.sqlite3'
         sqlite3.connect(target_db).close()
 
-        # Подменяем базу, чтобы не трогать тестовую базу Django (в Docker это PostgreSQL)
+        # Подменяем базу, чтобы не трогать тестовую базу Django (в Docker это PostgreSQL).
         with mock.patch.dict(settings.DATABASES['default'],
                              {'ENGINE': 'django.db.backends.sqlite3', 'NAME': str(target_db)}), \
                 mock.patch('backups.services.connection'):
@@ -382,7 +382,7 @@ class RestoreTests(TempDirsMixin, TestCase):
         with sqlite3.connect(target_db) as conn:
             self.assertEqual(conn.execute('SELECT value FROM marker').fetchone()[0], 'from backup')
         self.assertEqual((self.media_root / 'posts' / 'restored.png').read_bytes(), b'restored')
-        # Старые файлы заменены содержимым копии
+        # Старые файлы заменены содержимым копии.
         self.assertFalse((self.media_root / 'avatars' / 'a.png').exists())
 
     def test_not_a_backup(self):

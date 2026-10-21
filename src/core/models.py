@@ -48,7 +48,7 @@ class SiteSettings(models.Model):
     )
     email_security = models.CharField('Шифрование', max_length=4, choices=EMAIL_SECURITY_CHOICES, default='tls')
     email_host_user = models.CharField('Логин', max_length=255, blank=True, help_text='Обычно — полный адрес почты')
-    # Хранится зашифрованным. Читать — get_email_password()
+    # Хранится зашифрованным. Читать — get_email_password().
     email_host_password = models.CharField(
         'Пароль', max_length=500, blank=True,
         help_text='Для Яндекса и Gmail — пароль приложения, а не пароль от почты. '
@@ -61,7 +61,7 @@ class SiteSettings(models.Model):
 
     # ===== Капча DDoS-Guard =====
     captcha_site_key = models.CharField('Site key', max_length=255, blank=True, help_text='Открытый ключ — виден в коде страницы')
-    # Хранится зашифрованным. Читать — get_captcha_private_key()
+    # Хранится зашифрованным. Читать — get_captcha_private_key().
     captcha_private_key = models.CharField(
         'Private key', max_length=500, blank=True,
         help_text='Секретный ключ — используется только на сервере. Оставьте поле пустым, чтобы не менять сохранённый ключ'
@@ -76,19 +76,19 @@ class SiteSettings(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
-        # Секреты никогда не записываются в базу открытым текстом
+        # Секреты никогда не записываются в базу открытым текстом.
         for field in ('email_host_password', 'captcha_private_key'):
             value = getattr(self, field)
             if value and not value.startswith(SECRET_PREFIX):
                 setattr(self, field, encrypt_secret(value))
-        # При замене иконки удаляем старый файл, чтобы не копился мусор в media
+        # При замене иконки удаляем старый файл, чтобы не копился мусор в media.
         old = SiteSettings.objects.filter(pk=1).first()
         if old and old.favicon and old.favicon != self.favicon:
             old.favicon.delete(save=False)
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        # Настройки не удаляются
+        # Настройки не удаляются.
         pass
 
     @classmethod
@@ -120,10 +120,10 @@ class SiteSettings(models.Model):
 
     @property
     def captcha_active(self):
-        """Капча включена и есть оба ключа"""
+        """Капча включена и есть оба ключа."""
         return self.captcha_enabled and self.captcha_configured
 
     def secret_unreadable(self, field):
-        """Секрет сохранён, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY"""
+        """Секрет сохранён, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY."""
         value = getattr(self, field)
         return bool(value) and decrypt_secret(value) is None

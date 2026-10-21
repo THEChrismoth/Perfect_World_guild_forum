@@ -1,4 +1,4 @@
-"""python -m tsbot [run|setup]
+"""Запуск бота: python -m tsbot [run|setup].
 
 run   — настроить сервер по channels.json и работать с сайтом (по умолчанию)
 setup — только настроить сервер и выйти

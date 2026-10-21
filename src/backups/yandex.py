@@ -52,12 +52,12 @@ class YandexDisk:
         return data
 
     def ensure_folder(self, path):
-        """Создает папку и все родительские папки, если их нет"""
+        """Создает папку и все родительские папки, если их нет."""
         prefix, _, rest = path.partition(':/')
         current = f'{prefix}:/'
         for part in [p for p in rest.split('/') if p]:
             current = current.rstrip('/') + '/' + part
-            # 409 — папка уже существует
+            # 409 — папка уже существует.
             self._request('PUT', '/resources', {'path': current}, ok_statuses=(201, 409))
 
     def upload(self, local_path, remote_path):
@@ -84,7 +84,7 @@ class YandexDisk:
             raise YandexDiskError(f'Не удалось загрузить файл (код {status})')
 
     def list_files(self, folder):
-        """Файлы в папке: список словарей с ключами name, path, created"""
+        """Файлы в папке: список словарей с ключами name, path, created."""
         _, data = self._request('GET', '/resources', {
             'path': folder,
             'limit': 1000,
@@ -94,7 +94,7 @@ class YandexDisk:
         return [item for item in items if item.get('type') == 'file']
 
     def delete(self, path):
-        # 404 — файла уже нет, это не ошибка
+        # 404 — файла уже нет, это не ошибка.
         self._request('DELETE', '/resources', {'path': path, 'permanently': 'true'}, ok_statuses=(202, 204, 404))
 
     def download(self, remote_path, local_path):

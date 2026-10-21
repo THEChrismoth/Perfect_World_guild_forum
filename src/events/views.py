@@ -7,24 +7,24 @@ from .utils import get_attendance_stats
 
 @login_required
 def event_index(request):
-    """Страница со списком типов ивентов и отрядов"""
+    """Страница со списком типов ивентов и отрядов."""
     
-    # Получаем все активные типы ивентов
+    # Получаем все активные типы ивентов.
     event_types = EventType.objects.filter(is_active=True)
     
-    # Для каждого типа получаем отряды
+    # Для каждого типа получаем отряды.
     event_types_data = []
     for event_type in event_types:
         try:
             event = Event.objects.get(event_type=event_type)
             parties = event.parties.all().prefetch_related('leader__profile', 'members__user__profile')
             
-            # Формируем данные по отрядам
+            # Формируем данные по отрядам.
             parties_data = []
             for party in parties:
                 members_list = []
                 
-                # Лидер
+                # Лидер.
                 if party.leader:
                     members_list.append({
                         'user': party.leader,
@@ -33,7 +33,7 @@ def event_index(request):
                         'profile': party.leader.profile
                     })
                 
-                # Участники
+                # Участники.
                 for member in party.members.all():
                     members_list.append({
                         'user': member.user,
@@ -73,7 +73,7 @@ def event_index(request):
 
 @login_required
 def event_detail(request, event_type_slug):
-    """Детальная страница конкретного типа ивента"""
+    """Детальная страница конкретного типа ивента."""
     
     event_type = get_object_or_404(EventType, slug=event_type_slug, is_active=True)
     
@@ -125,12 +125,12 @@ def event_detail(request, event_type_slug):
 
 @login_required
 def vote_view(request, notification_id):
-    """Страница голосования по уведомлению"""
+    """Страница голосования по уведомлению."""
     
     notification = get_object_or_404(EventNotification, id=notification_id)
     event_type = notification.event_type
     
-    # Проверяем, голосовал ли уже пользователь
+    # Проверяем, голосовал ли уже пользователь.
     existing_vote = EventAttendance.objects.filter(
         notification=notification,
         user=request.user
@@ -142,13 +142,13 @@ def vote_view(request, notification_id):
         
         if status in ['yes', 'no', 'maybe']:
             if existing_vote:
-                # Обновляем существующий голос
+                # Обновляем существующий голос.
                 existing_vote.status = status
                 existing_vote.comment = comment
                 existing_vote.save()
                 messages.success(request, f'Ваш ответ обновлен: {existing_vote.get_status_display()}')
             else:
-                # Создаем новый голос
+                # Создаем новый голос.
                 EventAttendance.objects.create(
                     notification=notification,
                     user=request.user,
@@ -161,7 +161,7 @@ def vote_view(request, notification_id):
         else:
             messages.error(request, 'Пожалуйста, выберите вариант ответа')
     
-    # Статистика
+    # Статистика.
     stats = get_attendance_stats(notification_id)
     
     context = {
@@ -176,7 +176,7 @@ def vote_view(request, notification_id):
 
 @login_required
 def vote_results(request, notification_id):
-    """Страница результатов голосования"""
+    """Страница результатов голосования."""
     
     stats = get_attendance_stats(notification_id)
     notification = stats['notification']
@@ -196,7 +196,7 @@ def vote_results(request, notification_id):
 
 @login_required
 def my_votes(request):
-    """Страница с историей голосований пользователя"""
+    """Страница с историей голосований пользователя."""
     
     votes = EventAttendance.objects.filter(
         user=request.user

@@ -44,9 +44,9 @@ class UserAdmin(BaseUserAdmin):
         ]
         return custom_urls + urls
 
-# Создаем кастомный ModelAdmin для отображения в меню
+# Создаем кастомный ModelAdmin для отображения в меню.
 class ActivityManagementAdmin(admin.ModelAdmin):
-    """Фейковый ModelAdmin для отображения пункта в меню"""
+    """Фейковый ModelAdmin для отображения пункта в меню."""
 
     def has_module_permission(self, request):
         return request.user.is_staff
@@ -64,16 +64,16 @@ class ActivityManagementAdmin(admin.ModelAdmin):
         return request.user.is_staff
 
     def changelist_view(self, request, extra_context=None):
-        """Перенаправляем на страницу управления активностью"""
+        """Перенаправляет на страницу управления активностью."""
         from django.shortcuts import redirect
         return redirect('admin:activity_management')
 
 
-# Регистрируем User с кастомным админом
+# Регистрируем User с кастомным админом.
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
-# Регистрируем фейковую модель для отображения в меню
+# Регистрируем фейковую модель для отображения в меню.
 from django.contrib.admin import SimpleListFilter
 
 
@@ -83,9 +83,9 @@ class DummyModel(models.Model):
         verbose_name = 'Таблица активности'
         verbose_name_plural = 'Таблица активности'
         # Модель должна принадлежать нашему приложению: с app_label='auth' makemigrations
-        # создавал миграцию внутри установленного Django (.venv), и она не попадала в репозиторий
+        # создавал миграцию внутри установленного Django (.venv), и она не попадала в репозиторий.
         app_label = 'profiles'
 
 
-# Регистрируем фейковую модель
+# Регистрируем фейковую модель.
 admin.site.register(DummyModel, ActivityManagementAdmin)

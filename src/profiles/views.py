@@ -19,11 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 def send_verification_email(user, request, site_settings):
-    # Генерация токена
+    # Генерация токена.
     token = default_token_generator.make_token(user)
     uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-    # Создание ссылки активации
+    # Создание ссылки активации.
     verification_url = request.build_absolute_uri(
         reverse('verify_email', kwargs={'uidb64': uid, 'token': token})
     )
@@ -44,7 +44,7 @@ def register(request):
         form = RegistrationForm(request.POST, site_settings=site_settings)
         if form.is_valid():
             if not site_settings.email_verification:
-                # Подтверждение почты выключено — аккаунт активен сразу, входим автоматически
+                # Подтверждение почты выключено — аккаунт активен сразу, входим автоматически.
                 user = form.save()
                 login(request, user)
                 messages.success(request, f'Добро пожаловать, {user.username}! Регистрация завершена.')
@@ -52,7 +52,7 @@ def register(request):
 
             try:
                 # Если письмо не ушло, аккаунт не создаётся: иначе он остался бы
-                # неактивным, а повторить регистрацию с тем же именем было бы нельзя
+                # неактивным, а повторить регистрацию с тем же именем было бы нельзя.
                 with transaction.atomic():
                     user = form.save(commit=False)
                     user.is_active = False  # Пользователь неактивен до подтверждения
@@ -108,7 +108,7 @@ def profile_view(request, username):
     profile = user.profile
     is_owner = request.user == user
     
-    # Проверяем, состоит ли пользователь в группе "Член гильдии"
+    # Проверяем, состоит ли пользователь в группе "Член гильдии".
     is_guild_member = user.groups.filter(name='Член гильдии').exists()
 
     context = {
@@ -132,7 +132,7 @@ def profile_edit(request):
             user_form.save()
             profile = profile_form.save(commit=False)
             
-            # Обработка очистки аватара
+            # Обработка очистки аватара.
             if request.POST.get('avatar-clear') == 'on':
                 if profile.avatar:
                     profile.avatar.delete(save=False)

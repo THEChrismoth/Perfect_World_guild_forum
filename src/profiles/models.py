@@ -4,7 +4,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from datetime import date
 from django.templatetags.static import static
-# Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль
+# Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль.
 from django.utils import timezone as django_timezone
 
 TIMEZONE_CHOICES = [
@@ -53,7 +53,7 @@ class Profile(models.Model):
     city = models.CharField('Город', max_length=100, blank=True, null=True)
     player_class = models.CharField('Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
     
-    # Характеристики (заполняются пользователем)
+    # Характеристики (заполняются пользователем).
     hp = models.IntegerField(default=0, verbose_name='❤️ HP')
     mp = models.IntegerField(default=0, verbose_name='💧 MP')
     pa = models.IntegerField(default=0, verbose_name='ПА - Показатель Атаки')
@@ -71,7 +71,7 @@ class Profile(models.Model):
     accuracy = models.IntegerField(default=0, verbose_name='Меткость')
     dodge = models.IntegerField(default=0, verbose_name='Уклонение')
     
-    # Очки активности (только для админа)
+    # Очки активности (только для админа).
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
@@ -79,20 +79,20 @@ class Profile(models.Model):
     last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # Автоматически поддерживаем консистентность при сохранении
+        # Автоматически поддерживаем консистентность при сохранении.
         if self.earned_points != self.activity_points + self.spent_points:
             self.earned_points = self.activity_points + self.spent_points
         super().save(*args, **kwargs)
 
     def add_points(self, points):
-        """Начисление очков"""
+        """Начисление очков."""
         if points > 0:
             self.earned_points += points
             self.activity_points += points
             self.save()
     
     def spend_points(self, points):
-        """Списание очков"""
+        """Списание очков."""
         if points > 0 and points <= self.activity_points:
             self.spent_points += points
             self.activity_points -= points
@@ -101,25 +101,25 @@ class Profile(models.Model):
         return False 
 
     def set_balance(self, new_balance):
-        """Установка нового баланса (для администратора)"""
+        """Установка нового баланса (для администратора)."""
         if new_balance >= 0:
-            # Корректируем earned_points чтобы баланс сходился
+            # Корректируем earned_points чтобы баланс сходился.
             self.earned_points = new_balance + self.spent_points
             self.activity_points = new_balance
             self.save()
 
     @property
     def total_earned_points(self):
-        """Всего начислено очков активности"""
+        """Всего начислено очков активности."""
         return self.earned_points
 
     # ========== МЕТОДЫ ДЛЯ АУКЦИОНА ==========
     
     def get_available_points(self):
-        """Возвращает доступные очки (не замороженные)"""
+        """Возвращает доступные очки (не замороженные)."""
         from auction.models import AuctionBid
         
-        # Сумма всех замороженных ставок
+        # Сумма всех замороженных ставок.
         frozen_amount = AuctionBid.objects.filter(
             bidder=self.user,
             is_frozen=True
@@ -128,11 +128,11 @@ class Profile(models.Model):
         return self.activity_points - frozen_amount
 
     def spend_points_auction(self, amount):
-        """Списание очков для аукциона (только доступных, не замороженных)"""
+        """Списание очков для аукциона (только доступных, не замороженных)."""
         if amount <= 0:
             return False
         
-        # Проверяем что достаточно доступных очков
+        # Проверяем что достаточно доступных очков.
         available = self.get_available_points()
         if available >= amount and self.activity_points >= amount:
             self.activity_points -= amount
@@ -151,7 +151,7 @@ class Profile(models.Model):
         return f"Профиль {self.user.username}"
     
     def get_icon_url(self):
-        """Возвращает URL иконки для класса персонажа"""
+        """Возвращает URL иконки для класса персонажа."""
         icons = {
             'var': 'class_icon/var.png',
             'mag': 'class_icon/mag.png',
@@ -177,7 +177,7 @@ class Profile(models.Model):
         return ''
     
     def age(self):
-        """Возвращает возраст пользователя"""
+        """Возвращает возраст пользователя."""
         if self.birth_date:
             today = date.today()
             return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
@@ -185,6 +185,6 @@ class Profile(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создает профиль только когда пользователь создается"""
+    """Создает профиль только когда пользователь создается."""
     if created:
         Profile.objects.create(user=instance)

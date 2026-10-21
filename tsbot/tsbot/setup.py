@@ -13,7 +13,7 @@
 """
 import json
 
-# Права, которые закрывают канал для всех, кроме группы гильдии (и администраторов)
+# Права, которые закрывают канал для всех, кроме группы гильдии (и администраторов).
 GUILD_CHANNEL_PERMS = ['i_channel_needed_join_power', 'i_channel_needed_subscribe_power',
                        'i_channel_needed_description_view_power']
 GUILD_GROUP_PERMS = ['i_channel_join_power', 'i_channel_subscribe_power', 'i_channel_description_view_power']
@@ -29,7 +29,7 @@ def load_config(path):
 
 
 def expand(nodes):
-    """Раскрывает count: {"name": "Пати {n}", "count": 3} -> Пати 1, Пати 2, Пати 3"""
+    """Раскрывает count: {"name": "Пати {n}", "count": 3} -> Пати 1, Пати 2, Пати 3."""
     result = []
     for node in nodes:
         if 'count' in node:
@@ -78,7 +78,7 @@ class Setup:
             self.log(f'Группа по умолчанию «{group["name"]}» переименована в «{name}»')
 
     def check_guild_power(self):
-        """Порог доступа к комнатам гильдии должен быть выше силы входа группы посетителей"""
+        """Порог доступа к комнатам гильдии должен быть выше силы входа группы посетителей."""
         visitors = self.join_power(self.default_group_id())
         if self.power <= visitors:
             raise SystemExit(f'guild_power в channels.json ({self.power}) должен быть больше силы входа группы '
@@ -88,7 +88,8 @@ class Setup:
         """Группа гильдии — переименованная стандартная группа Normal (guild_group_source).
 
         Если группа гильдии уже создана отдельно (так делали ранние версии бота) и в ней никого нет —
-        она удаляется, а Normal переименовывается. Если в ней есть люди — ничего не удаляется."""
+        она удаляется, а Normal переименовывается. Если в ней есть люди — ничего не удаляется.
+        """
         name = self.config['guild_group']
         source_name = self.config.get('guild_group_source', 'Normal')
         groups = self.server_groups()
@@ -131,7 +132,7 @@ class Setup:
         channel_id = self.find_child(parent_id, name)
 
         if channel_id is None and node.get('default'):
-            # Канал по умолчанию уже есть («Default Channel») — переименовываем его
+            # Канал по умолчанию уже есть («Default Channel») — переименовываем его.
             default = next((c for c in self.channels if c['pid'] == '0' and 'Default Channel' in c['channel_name']), None)
             if default:
                 self.query.command('channeledit', cid=default['cid'], channel_name=name)
@@ -162,7 +163,7 @@ class Setup:
     # ----- администратор -----
 
     def admin_token(self):
-        """Неиспользованный ключ Server Admin, пока у сервера нет администратора (иначе None)"""
+        """Неиспользованный ключ Server Admin, пока у сервера нет администратора (иначе None)."""
         admin = next((g for g in self.server_groups() if g['name'] == 'Server Admin'), None)
         if not admin or self.query.list('servergroupclientlist', sgid=admin['sgid']):
             return None

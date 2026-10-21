@@ -11,7 +11,7 @@ def normalize(path_text):
 
 
 def channel_paths(channels):
-    """channellist -> {cid: ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}"""
+    """channellist -> {cid: ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}."""
     by_id = {c['cid']: c for c in channels}
     paths = {}
 
@@ -32,7 +32,7 @@ def channel_paths(channels):
 
 
 def find_channel(channels, path_text):
-    """cid канала по пути или None"""
+    """cid канала по пути или None."""
     wanted = normalize(path_text)
     for cid, path in channel_paths(channels).items():
         if normalize(' / '.join(path)) == wanted:

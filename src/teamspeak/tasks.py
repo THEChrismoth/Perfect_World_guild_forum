@@ -1,4 +1,4 @@
-"""Постановка задач боту и обработка их результатов на стороне сайта"""
+"""Постановка задач боту и обработка их результатов на стороне сайта."""
 from django.urls import reverse
 from django.utils import timezone
 
@@ -6,7 +6,7 @@ from .models import TeamSpeakSettings, TsLink, TsRoom, TsTask
 
 
 def apply_task_result(task):
-    """Последствия выполненной (или проваленной) задачи для данных сайта"""
+    """Последствия выполненной (или проваленной) задачи для данных сайта."""
     from notifications.utils import send_notification
 
     payload = task.payload or {}
@@ -47,7 +47,7 @@ def apply_task_result(task):
 
 
 def request_link(user, uid, confirm_url_builder):
-    """Начать привязку: бот отправит игроку в TeamSpeak ссылку подтверждения"""
+    """Начинает привязку: бот отправит игроку в TeamSpeak ссылку подтверждения."""
     link, _ = TsLink.objects.update_or_create(
         user=user, defaults={'uid': uid, 'status': 'pending', 'token': TsLink.new_token(), 'verified_at': None}
     )
@@ -64,7 +64,7 @@ def confirm_link(link):
 
 
 def revoke_link(link):
-    """Снять группу гильдии с привязанного клиента и удалить привязку"""
+    """Снимает группу гильдии с привязанного клиента и удаляет привязку."""
     if link.verified:
         TsTask.enqueue('revoke_guild', user=link.user, uid=link.uid)
     link.delete()

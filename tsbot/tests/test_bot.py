@@ -31,14 +31,14 @@ CONFIG = {
 
 
 class FakeQuery:
-    """Минимальная модель сервера TeamSpeak для команд, которые использует бот"""
+    """Минимальная модель сервера TeamSpeak для команд, которые использует бот."""
 
     def __init__(self):
         self.channels = [{'cid': '1', 'pid': '0', 'channel_name': 'Default Channel'}]
         self.groups = [
             {'sgid': '6', 'name': 'Server Admin', 'type': '1'},
             {'sgid': '7', 'name': 'Normal', 'type': '1'},
-            # Группа по умолчанию — Guest (sgid 8), как на настоящем сервере TeamSpeak 3
+            # Группа по умолчанию — Guest (sgid 8), как на настоящем сервере TeamSpeak 3.
             {'sgid': '8', 'name': 'Guest', 'type': '1'},
             {'sgid': '1', 'name': 'Guest Server Query', 'type': '2'},
         ]
@@ -196,7 +196,7 @@ class SetupTests(unittest.TestCase):
         self.assertIn('Гильдия / Комнаты членов гильдии', paths)
         names = {g['name'] for g in query.groups}
         self.assertIn('Гость', names)            # Guest — группа посетителей по умолчанию
-        self.assertIn('Член гильдии', names)     # переименованная Normal
+        self.assertIn('Член гильдии', names)     # Переименованная Normal
         self.assertNotIn('Normal', names)
         self.assertEqual(next(g['sgid'] for g in query.groups if g['name'] == 'Член гильдии'), '7')
         guild_cid = find_channel(query.channels, 'Гильдия')
@@ -271,7 +271,7 @@ class TaskTests(unittest.TestCase):
 
     def test_grant_twice_and_revoke(self):
         self.assertTrue(self.run_task('grant_guild', uid=UID)[0])
-        self.assertTrue(self.run_task('grant_guild', uid=UID)[0])  # повторно — не ошибка
+        self.assertTrue(self.run_task('grant_guild', uid=UID)[0])  # Повторно — не ошибка
         self.assertEqual(self.query.group_members[self.guild_sgid], {'15'})
         self.assertTrue(self.run_task('revoke_guild', uid=UID)[0])
         self.assertEqual(self.query.group_members[self.guild_sgid], set())
@@ -295,7 +295,7 @@ class TaskTests(unittest.TestCase):
         self.assertIn('уже есть', error)
 
         self.assertTrue(self.run_task('delete_room', cid=int(cid))[0])
-        self.assertTrue(self.run_task('delete_room', cid=int(cid))[0])  # уже удалена — не ошибка
+        self.assertTrue(self.run_task('delete_room', cid=int(cid))[0])  # Уже удалена — не ошибка
 
     def test_room_for_owner_who_never_connected(self):
         ok, data, _ = self.run_task('create_room', name='Комната', owner_uid='Z' * 27 + '=')
@@ -335,7 +335,7 @@ class TaskTests(unittest.TestCase):
 
         self.assertEqual(self.api.results[0][:2], (7, True))
         self.assertEqual(self.api.presence_calls, [[{'uid': UID, 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}]])
-        # Чаще раза в минуту не отправляется, а вне ивента — вообще
+        # Чаще раза в минуту не отправляется, а вне ивента — вообще.
         self.bot.tick(1010, {'tasks': [], 'track_presence': True})
         self.assertEqual(len(self.api.presence_calls), 1)
         self.bot.tick(2000, {'tasks': [], 'track_presence': False})

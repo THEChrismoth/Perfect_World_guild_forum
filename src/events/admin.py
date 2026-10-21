@@ -211,7 +211,7 @@ class EventNotificationAdmin(admin.ModelAdmin):
     actions = ['send_selected_notifications']
     
     def send_selected_notifications(self, request, queryset):
-        """Отправить выбранные уведомления"""
+        """Отправляет выбранные уведомления."""
         from .utils import send_event_notification
         
         sent_count = 0
@@ -231,7 +231,7 @@ class EventNotificationAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
     
     def response_add(self, request, obj, post_url_continue=None):
-        """При создании - предлагаем отправить"""
+        """При создании — предлагаем отправить."""
         if '_send_notification' in request.POST:
             from .utils import send_event_notification
             result = send_event_notification(obj.id)
@@ -243,7 +243,7 @@ class EventNotificationAdmin(admin.ModelAdmin):
         return super().response_add(request, obj, post_url_continue)
     
     def response_change(self, request, obj):
-        """При изменении - предлагаем отправить"""
+        """При изменении — предлагаем отправить."""
         if '_send_notification' in request.POST:
             from .utils import send_event_notification
             result = send_event_notification(obj.id)
@@ -258,7 +258,7 @@ class EventNotificationAdmin(admin.ModelAdmin):
         extra_context = extra_context or {}
         extra_context['show_send_button'] = True
         
-        # Добавляем статистику голосования если уведомление уже существует
+        # Добавляем статистику голосования если уведомление уже существует.
         if object_id:
             from .utils import get_attendance_stats
             stats = get_attendance_stats(object_id)

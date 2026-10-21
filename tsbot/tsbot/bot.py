@@ -1,4 +1,4 @@
-"""Основной цикл бота: задачи сайта и присутствие в каналах"""
+"""Основной цикл бота: задачи сайта и присутствие в каналах."""
 import os
 import time
 from pathlib import Path
@@ -8,19 +8,19 @@ from .setup import guild_channel_perms
 from .site_api import SiteApiError
 from .tree import channel_paths, find_channel
 
-POLL_INTERVAL = 3          # как часто спрашивать сайт о задачах, секунд
-PRESENCE_INTERVAL = 60     # как часто отправлять присутствие в каналах во время ивента
+POLL_INTERVAL = 3          # Как часто спрашивать сайт о задачах, секунд
+PRESENCE_INTERVAL = 60     # Как часто отправлять присутствие в каналах во время ивента
 KEEPALIVE_INTERVAL = 120   # ServerQuery отключает молчащих через 300 секунд
-RESTART_WAIT = 150         # сколько ждать перезапуска TeamSpeak после установки лицензии
+RESTART_WAIT = 150         # Сколько ждать перезапуска TeamSpeak после установки лицензии
 
-ERR_INVALID_CLIENT = (512, 1281, 1540)   # клиента нет в базе TeamSpeak
-ERR_DUPLICATE = 2561                     # уже в группе
+ERR_INVALID_CLIENT = (512, 1281, 1540)   # Клиента нет в базе TeamSpeak
+ERR_DUPLICATE = 2561                     # Уже в группе
 ERR_INVALID_CHANNEL = 768
 ERR_NAME_IN_USE = 771
 
 
 class TaskError(Exception):
-    """Ошибка, понятная игроку — её текст увидит пользователь сайта"""
+    """Ошибка, понятная игроку — её текст увидит пользователь сайта."""
 
 
 class Bot:
@@ -84,7 +84,7 @@ class Bot:
                    f'откройте ссылку, войдя на сайт: [URL]{payload["url"]}[/URL]')
         for client in clients:
             self.query.command('sendtextmessage', targetmode=1, target=client['clid'], msg=message)
-            # Тычок привлекает внимание: личное сообщение легко не заметить
+            # Тычок привлекает внимание: личное сообщение легко не заметить.
             self.query.command('clientpoke', clid=client['clid'], msg='Сайт гильдии: откройте личное сообщение от бота')
         return {'clients': len(clients)}
 
@@ -104,7 +104,7 @@ class Bot:
             db_id = self.client_db_id(payload['uid'])
             self.query.command('servergroupdelclient', sgid=group_id, cldbid=db_id)
         except (TaskError, QueryError):
-            pass  # клиента нет или он уже не в группе — снимать нечего
+            pass  # Клиента нет или он уже не в группе — снимать нечего
         return {}
 
     def create_room(self, payload):
@@ -123,7 +123,7 @@ class Bot:
             if error.error_id == ERR_NAME_IN_USE:
                 raise TaskError(f'Комната «{name}» уже есть — выберите другое название') from None
             raise
-        # Комната внутри раздела гильдии — тоже только для гильдии
+        # Комната внутри раздела гильдии — тоже только для гильдии.
         self.query.command('channeladdperm', cid=cid, items=guild_channel_perms(self.config['guild_power']))
 
         result = {'cid': int(cid), 'owner_admin': False}
@@ -135,7 +135,7 @@ class Bot:
                 self.query.command('setclientchannelgroup', cgid=admin_group, cid=cid, cldbid=db_id)
                 result['owner_admin'] = True
         except TaskError:
-            pass  # владелец ещё не заходил — комната создана, админом его можно сделать позже
+            pass  # Владелец ещё не заходил — комната создана, админом его можно сделать позже
         return result
 
     def delete_room(self, payload):
@@ -150,7 +150,8 @@ class Bot:
         """Кладёт файл лицензии в данные TeamSpeak и перезапускает сервер.
 
         Контейнер teamspeak перезапускается Docker'ом (restart: unless-stopped) после
-        serverprocessstop. Если с новой лицензией сервер не поднялся — возвращается старая."""
+        serverprocessstop. Если с новой лицензией сервер не поднялся — возвращается старая.
+        """
         data = self.api.license()
         if not data:
             raise TaskError('На сайте нет файла лицензии')
@@ -167,7 +168,7 @@ class Bot:
         try:
             self.query.command('serverprocessstop', reasonmsg='Установка лицензии, сервер вернётся через минуту')
         except (QueryError, OSError):
-            pass  # сервер закрывает соединение, не дожидаясь ответа
+            pass  # Сервер закрывает соединение, не дожидаясь ответа
         self.query.close()
         self.query = None
         time.sleep(10)
@@ -216,7 +217,7 @@ class Bot:
     # ----- цикл -----
 
     def tick(self, now, state):
-        """Один шаг: выполнить задачи и при необходимости отправить присутствие"""
+        """Один шаг: выполнить задачи и при необходимости отправить присутствие."""
         for task in state.get('tasks', []):
             ok, data, error = self.run_task(task)
             self.log(f'Задача #{task["id"]} {task["type"]}: {"готово" if ok else "ошибка — " + error}')

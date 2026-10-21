@@ -55,7 +55,7 @@ class ApplicationForm(forms.ModelForm):
             profile = getattr(self.user, 'profile', None)
             if profile:
                 # Снимок данных профиля на момент подачи: если профиль потом изменится,
-                # в заявке останется то, что видели проголосовавшие
+                # в заявке останется то, что видели проголосовавшие.
                 instance.real_name = profile.real_name
                 instance.age = profile.age()
                 instance.timezone = profile.timezone
@@ -67,7 +67,7 @@ class ApplicationForm(forms.ModelForm):
 
 
 class VoteForm(forms.Form):
-    """Форма голосования"""
+    """Форма голосования."""
     vote = forms.ChoiceField(choices=[
         ('for', 'За'), ('against', 'Против'), ('abstain', 'Воздержался'),
     ], widget=forms.RadioSelect)

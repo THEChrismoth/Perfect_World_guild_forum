@@ -16,7 +16,7 @@ class TopicForm(forms.ModelForm):
         }
 
 class TopicEditForm(forms.ModelForm):
-    """Редактирование темы: меняется только название, текст правится в самом посте"""
+    """Редактирование темы: меняется только название, текст правится в самом посте."""
 
     class Meta:
         model = Topic
@@ -32,7 +32,9 @@ MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 МБ
 
 def validate_post_images(files):
     """Проверяет загруженные к посту файлы: количество, размер и что это действительно картинки.
-    Возвращает список ошибок (пустой, если всё хорошо)."""
+
+    Возвращает список ошибок (пустой, если всё хорошо).
+    """
     if len(files) > MAX_IMAGES_PER_POST:
         return [f'Можно прикрепить не больше {MAX_IMAGES_PER_POST} изображений']
 
@@ -64,7 +66,7 @@ class PostForm(forms.ModelForm):
         cleaned_data = super().clean()
         content = cleaned_data.get('content')
         
-        # Проверяем, что текст сообщения заполнен
+        # Проверяем, что текст сообщения заполнен.
         if not content:
             raise forms.ValidationError('Заполните текст сообщения')
         

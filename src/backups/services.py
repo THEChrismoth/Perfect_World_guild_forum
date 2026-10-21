@@ -39,7 +39,7 @@ def is_archive_name(name):
 
 
 def list_archives():
-    """Файлы копий на сервере, новые первыми"""
+    """Файлы копий на сервере, новые первыми."""
     return sorted((p for p in backup_dir().iterdir() if p.is_file() and is_archive_name(p.name)), reverse=True)
 
 
@@ -56,7 +56,7 @@ def backup_dir():
 # ---------- Расписание ----------
 
 def last_due_time(backup_settings, now=None):
-    """Последний момент, когда по расписанию должна была создаться копия"""
+    """Последний момент, когда по расписанию должна была создаться копия."""
     now = timezone.localtime(now or timezone.now())
     due = now.replace(
         hour=backup_settings.run_time.hour,
@@ -77,7 +77,7 @@ def is_backup_due(backup_settings, now=None):
     if not backup_settings.enabled:
         return False
     if backup_settings.last_scheduled_run is None:
-        # Расписание только что включили: первая копия — в ближайшее время по расписанию
+        # Расписание только что включили: первая копия — в ближайшее время по расписанию.
         return False
     return backup_settings.last_scheduled_run < last_due_time(backup_settings, now)
 
@@ -111,10 +111,10 @@ def _dump_database(target_dir):
 
     if engine == 'django.db.backends.sqlite3':
         path = target_dir / 'database.sqlite3'
-        # Внутри открытой транзакции SQLite не отдаст копию и будет ждать бесконечно
+        # Внутри открытой транзакции SQLite не отдаст копию и будет ждать бесконечно.
         if connection.in_atomic_block:
             raise BackupError('Копию SQLite нельзя создать внутри транзакции')
-        # Встроенный механизм SQLite дает целостную копию даже при работающем сайте
+        # Встроенный механизм SQLite дает целостную копию даже при работающем сайте.
         connection.ensure_connection()
         destination = sqlite3.connect(path)
         try:
@@ -127,12 +127,12 @@ def _dump_database(target_dir):
 
 
 def _build_archive(backup, include_media):
-    """Создает архив копии. Возвращает (путь к файлу, зашифрован ли он)"""
+    """Создает архив копии. Возвращает (путь к файлу, зашифрован ли он)."""
     encrypt = encryption_enabled()
     timestamp = timezone.localtime().strftime('%Y%m%d-%H%M%S')
     suffix = ENCRYPTED_ARCHIVE_SUFFIX if encrypt else ARCHIVE_SUFFIX
     archive_path = backup_dir() / f'{ARCHIVE_PREFIX}{timestamp}{suffix}'
-    # Пишем во временный файл: недописанный архив не попадет в список копий
+    # Пишем во временный файл: недописанный архив не попадет в список копий.
     partial_path = archive_path.with_name(archive_path.name + PARTIAL_SUFFIX)
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -148,7 +148,7 @@ def _build_archive(backup, include_media):
         }
         (tmp_dir / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
 
-        # Незашифрованный архив собираем во временной папке, а не в папке копий
+        # Незашифрованный архив собираем во временной папке, а не в папке копий.
         plain_path = tmp_dir / 'archive.tar.gz'
         with tarfile.open(plain_path, 'w:gz') as archive:
             archive.add(tmp_dir / 'manifest.json', arcname='manifest.json')
@@ -166,7 +166,7 @@ def _build_archive(backup, include_media):
             partial_path.unlink(missing_ok=True)
             raise
 
-    # Файл копии может читать только владелец (пользователь сайта)
+    # Файл копии может читать только владелец (пользователь сайта).
     partial_path.chmod(0o600)
     partial_path.replace(archive_path)
     return archive_path, encrypt
@@ -194,7 +194,7 @@ def run_backup(backup):
 
     errors = []
     if backup_settings.yandex_configured and not encrypted:
-        # Данные пользователей не отправляем в чужое облако открытым текстом
+        # Данные пользователей не отправляем в чужое облако открытым текстом.
         backup.yandex_status = 'failed'
         errors.append('Яндекс Диск: копия не загружена, потому что не зашифрована. '
                       'Задайте BACKUP_ENCRYPTION_PASSWORD в .env и перезапустите контейнеры')
@@ -209,7 +209,7 @@ def run_backup(backup):
             backup.yandex_path = remote_path
 
     # Архив на сервере готов — копия считается созданной, даже если с Диском что-то не так.
-    # Статус сохраняем до ротации, чтобы текущая копия учитывалась в числе хранимых
+    # Статус сохраняем до ротации, чтобы текущая копия учитывалась в числе хранимых.
     backup.status = 'success'
     backup.save()
 
@@ -231,7 +231,7 @@ def run_backup(backup):
     backup.save()
 
     if errors:
-        # Копия на сервере есть, но что-то пошло не так — сообщаем администраторам
+        # Копия на сервере есть, но что-то пошло не так — сообщаем администраторам.
         _notify_admins(backup)
     return backup
 
@@ -259,7 +259,7 @@ def _notify_admins(backup):
 # ---------- Хранение ----------
 
 def rotate_local(keep):
-    """Оставляет на сервере только keep последних успешных копий"""
+    """Оставляет на сервере только keep последних успешных копий."""
     backups = Backup.objects.filter(local_deleted=False).exclude(file_name='').order_by('-created_at')
     kept = 0
     for backup in backups:
@@ -288,10 +288,10 @@ def _upload_to_yandex(backup_settings, archive_path):
 
 
 def rotate_yandex(backup_settings):
-    """Оставляет на Яндекс Диске только keep_yandex последних копий сайта"""
+    """Оставляет на Яндекс Диске только keep_yandex последних копий сайта."""
     disk = YandexDisk(backup_settings.get_yandex_token())
     files = [item for item in disk.list_files(backup_settings.yandex_folder) if is_archive_name(item['name'])]
-    # Имя содержит дату, поэтому сортировка по имени — это сортировка по времени
+    # Имя содержит дату, поэтому сортировка по имени — это сортировка по времени.
     files.sort(key=lambda item: item['name'], reverse=True)
     for item in files[backup_settings.keep_yandex:]:
         disk.delete(item['path'])
@@ -299,7 +299,7 @@ def rotate_yandex(backup_settings):
 
 
 def recover_interrupted():
-    """Копии, которые выполнялись при остановке сервера, помечаем как прерванные"""
+    """Копии, которые выполнялись при остановке сервера, помечаем как прерванные."""
     for backup in Backup.objects.filter(status='running'):
         backup.status = 'failed'
         backup.error = 'Копирование прервано: сервер был остановлен или перезапущен'
@@ -310,9 +310,11 @@ def recover_interrupted():
 
 
 def sync_journal_with_files():
-    """После восстановления журнал копий тоже становится таким, каким был в момент копии:
+    """Сверяет журнал копий с файлами на сервере после восстановления.
+
+    После восстановления журнал копий тоже становится таким, каким был в момент копии:
     копия, из которой восстанавливались, записана в нем как «выполняется», а более новых нет.
-    Сверяем журнал с файлами на сервере."""
+    """
     known = set(Backup.objects.exclude(file_name='').values_list('file_name', flat=True))
     for backup in Backup.objects.filter(status__in=('pending', 'running')):
         backup.status = 'failed'
@@ -410,7 +412,7 @@ def restore_backup(archive_path, restore_media=True, log=print):
             log('Восстанавливаю загруженные файлы...')
             media_root = Path(settings.MEDIA_ROOT)
             media_root.mkdir(parents=True, exist_ok=True)
-            # Очищаем содержимое, а не саму папку: в Docker это точка монтирования тома
+            # Очищаем содержимое, а не саму папку: в Docker это точка монтирования тома.
             for child in media_root.iterdir():
                 if child.is_dir():
                     shutil.rmtree(child)

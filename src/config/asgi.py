@@ -1,10 +1,7 @@
-"""
-ASGI config for config project.
+"""Точка входа ASGI для сайта.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
+Объект ASGI-приложения доступен как переменная модуля ``application``.
+Подробнее: https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 """
 
 import os

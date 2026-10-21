@@ -16,7 +16,7 @@ import tempfile
 
 from django.conf import settings
 
-# Шифрование секретов в базе — общее для всего сайта
+# Шифрование секретов в базе — общее для всего сайта.
 from core.secrets import SECRET_PREFIX, decrypt_secret, encrypt_secret  # noqa: F401
 
 ENCRYPTED_SUFFIX = '.gpg'
@@ -41,7 +41,7 @@ def gpg_binary():
 
 
 def _run_gpg(args, password):
-    # Отдельная временная папка ключей: не зависим от домашней папки пользователя
+    # Отдельная временная папка ключей: не зависим от домашней папки пользователя.
     with tempfile.TemporaryDirectory() as gnupg_home:
         env = os.environ.copy()
         env['GNUPGHOME'] = gnupg_home
@@ -62,7 +62,7 @@ def encrypt_file(source, target, password=None):
         '--symmetric',
         '--cipher-algo', 'AES256',
         '--s2k-mode', '3', '--s2k-digest-algo', 'SHA512', '--s2k-count', '65011712',
-        # Архив уже сжат gzip — повторно не сжимаем
+        # Архив уже сжат gzip — повторно не сжимаем.
         '--compress-algo', 'none',
         '--output', str(target),
         str(source),
