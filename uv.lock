@@ -208,7 +208,7 @@ wheels = [
 
 [[package]]
 name = "perfect-world-guild-forum"
-version = "1.0.0"
+version = "1.0.1"
 source = { virtual = "." }
 dependencies = [
     { name = "cryptography" },
