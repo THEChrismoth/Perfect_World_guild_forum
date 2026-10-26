@@ -8,7 +8,7 @@ import datetime
 import random
 
 from django.conf import settings
-from django.contrib.auth.models import Group, Permission, User
+from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
@@ -17,12 +17,11 @@ from django.utils import timezone
 from auction.models import AuctionLot, PointsTransaction
 from auction.views import place_bid
 from core.models import SiteSettings
-from demo.accounts import DEMO_ROLES, ADMIN_GROUP
+from demo.guests import admin_group, fill_profile
 from events.models import Event, EventAttendance, EventNotification, EventType, PartyMember
 from events.utils import send_event_notification
 from forum.models import Category, Post, SubCategory, Topic
 from koslist.models import Guild, Player
-from notifications.utils import send_notification
 from reception.models import Application, ApplicationVote
 from teamspeak.attendance import finalize
 from teamspeak.models import GUILD_GROUP, EventPresence, TsLink
@@ -39,9 +38,6 @@ MEMBERS = [
 ]
 # Подавшие заявки, но не вступившие.
 APPLICANTS = [('Странник_Ночи', 'luk'), ('Кремень', 'var'), ('Ржавый', 'sin')]
-
-MAGIC_CLASSES = {'mag', 'zhrec', 'dru', 'sham', 'mist', 'bard'}
-CITIES = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Минск', 'Самара', 'Краснодар']
 
 # Ивент: название, адрес, иконка, описание, отрядов, размер, канал TS, очки за участие, штраф.
 EVENT_TYPES = [
@@ -84,7 +80,6 @@ class Command(BaseCommand):
             self.create_auction()
             self.create_reception()
             self.create_koslist()
-            self.welcome()
 
         self.stdout.write(self.style.SUCCESS(f'Демо-гильдия «{GUILD_NAME}» создана'))
 
@@ -92,53 +87,27 @@ class Command(BaseCommand):
 
     def make_user(self, username, player_class, days_ago):
         user = User.objects.create(username=username, date_joined=self.now - datetime.timedelta(days=days_ago))
-        # Пароля нет: в демо входят только кнопками ролей.
+        # Пароля нет: под вымышленными игроками не войти.
         user.set_unusable_password()
         user.save()
-        magic = player_class in MAGIC_CLASSES
-        profile = user.profile
-        profile.player_class = player_class
-        profile.city = self.random.choice(CITIES)
-        profile.birth_date = datetime.date(self.random.randint(1985, 2005), self.random.randint(1, 12), self.random.randint(1, 28))
-        profile.hp = self.random.randint(18, 45) * 1000
-        profile.mp = self.random.randint(8, 25) * 1000
-        profile.pa = self.random.randint(150, 260)
-        profile.pz = self.random.randint(150, 260)
-        profile.fa = 0 if magic else self.random.randint(9, 24) * 1000
-        profile.ma = self.random.randint(9, 24) * 1000 if magic else 0
-        profile.bd = self.random.randint(60, 150)
-        profile.bu = self.random.randint(5, 30)
-        profile.physical_defense = self.random.randint(20, 60) * 1000
-        profile.magic_defense = self.random.randint(20, 60) * 1000
-        profile.physical_pierce = 0 if magic else self.random.randint(10, 60)
-        profile.magic_pierce = self.random.randint(10, 60) if magic else 0
-        profile.crit_damage = self.random.randint(200, 350)
-        profile.crit_chance = self.random.randint(5, 40)
-        profile.accuracy = self.random.randint(3, 15) * 1000
-        profile.dodge = self.random.randint(2, 10) * 1000
-        profile.save()
+        fill_profile(user, player_class, self.random)
         return user
 
     def create_users(self):
         self.guild_group = Group.objects.create(name=GUILD_GROUP)
-        admin_group = Group.objects.create(name=ADMIN_GROUP)
-        admin_group.permissions.set(Permission.objects.filter(content_type__app_label__in=[
-            'events', 'auction', 'reception', 'profiles', 'forum', 'koslist', 'notifications',
-        ]))
+        admins = admin_group()
 
         self.members = [self.make_user(name, cls, self.random.randint(60, 400)) for name, cls in MEMBERS]
-        self.member = self.make_user(DEMO_ROLES['member']['username'], 'mag', 90)
-        self.admin = self.make_user(DEMO_ROLES['admin']['username'], 'var', 300)
-        self.candidate = self.make_user(DEMO_ROLES['candidate']['username'], 'dru', 2)
         self.applicants = [self.make_user(name, cls, self.random.randint(1, 10)) for name, cls in APPLICANTS]
 
-        # Администраторы: демо-администратор и двое первых игроков.
-        for user in [self.admin, *self.members[:2]]:
+        # Администраторы: двое первых игроков. Аккаунты посетителей создаются при входе (demo/guests.py).
+        self.admin = self.members[0]
+        for user in self.members[:2]:
             user.is_staff = True
             user.save(update_fields=['is_staff'])
-            user.groups.add(admin_group)
+            user.groups.add(admins)
 
-        self.guild = [*self.members, self.member, self.admin]
+        self.guild = self.members
         for index, user in enumerate(self.guild):
             user.groups.add(self.guild_group)
             TsLink.objects.create(user=user, uid=f'demo{index:03d}+uid=', status='verified',
@@ -173,7 +142,7 @@ class Command(BaseCommand):
             (leader, 'ТВ — суббота 20:00, КХ — среда и воскресенье 20:00, мировой босс — по оповещению.\n'
                      'Отмечайтесь в оповещениях «Приду / Не приду», явка считается по TeamSpeak автоматически.'),
             (self.members[5], 'Принято, в среду буду.'),
-            (self.member, 'В субботу могу опоздать минут на 15.'),
+            (self.members[13], 'В субботу могу опоздать минут на 15.'),
         ])
         self.topic(news, 'Правила распределения лута', admin, 20, [
             (admin, 'Ценный лут с КХ уходит на аукцион за очки активности.\n'
@@ -220,7 +189,7 @@ class Command(BaseCommand):
     def fill_parties(self, event):
         parties = list(event.parties.all())
         leaders = self.members[:len(parties)]
-        others = [user for user in [self.member, *self.members] if user not in leaders]
+        others = [user for user in self.members if user not in leaders]
         for party, leader in zip(parties, leaders):
             party.leader = leader
             party.save(update_fields=['leader'])
@@ -257,7 +226,7 @@ class Command(BaseCommand):
     def upcoming_event(self, event_type, date):
         notification = self.notification(event_type, date)
         send_event_notification(notification.id)
-        # Демо-аккаунты не отвечают — посетитель сам отметится «Приду / Не приду».
+        # Часть игроков еще не ответила, гости отвечают сами.
         for user in self.members:
             if self.random.random() < 0.7:
                 self.answer(notification, user, [70, 20, 10])
@@ -289,7 +258,7 @@ class Command(BaseCommand):
         for user, amount in [(members[5], 20), (members[8], 30), (members[5], 40)]:
             self.bid(opal, user, amount)
         meteor = self.lot('Великий метеорит', 'great_meteorite', 10, 5, 1, 'Выпал с мирового босса.', 6)
-        for user, amount in [(members[12], 15), (self.member, 25)]:
+        for user, amount in [(members[12], 15), (members[14], 25)]:
             self.bid(meteor, user, amount)
         for lot in (opal, meteor):
             lot.process_auction_end(ended_by_user=self.admin)
@@ -334,10 +303,3 @@ class Command(BaseCommand):
             Guild.objects.create(name=name)
         for name, cls in [('Вор_Лута', 'sin'), ('Злыдень', 'var'), ('Кидала', 'mag'), ('Гриферша', 'luk')]:
             Player.objects.create(name=name, player_class=cls)
-
-    def welcome(self):
-        for user in (self.member, self.admin, self.candidate):
-            send_notification(user, '👋 Добро пожаловать в демо!',
-                              'Здесь можно отметиться на ивенты, сделать ставку на аукционе, '
-                              'проголосовать за заявку или подать свою. Данные периодически сбрасываются.',
-                              notification_type='info')
