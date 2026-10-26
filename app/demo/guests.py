@@ -58,7 +58,9 @@ def fill_profile(user, player_class, rng):
 def admin_group():
     group, created = Group.objects.get_or_create(name=ADMIN_GROUP)
     if created:
-        group.permissions.set(Permission.objects.filter(content_type__app_label__in=ADMIN_APPS))
+        # Просмотр игроков — для выбора участников отрядов в ивентах; сами разделы пользователей закрыты в демо.
+        group.permissions.set(Permission.objects.filter(content_type__app_label__in=ADMIN_APPS)
+                              | Permission.objects.filter(content_type__app_label='auth', codename='view_user'))
     return group
 
 
