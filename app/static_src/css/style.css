@@ -1335,3 +1335,96 @@ html.theme-transition *::after {
     .stat-bar { flex-wrap: wrap; }
     .stat-bar .stat-label { min-width: 100%; margin-bottom: 5px; }
 }
+
+/* Демо-сайт (DEMO_MODE) */
+.demo-banner {
+    max-width: 1600px;
+    margin: 0 auto 20px;
+    padding: 12px 0;
+    background: rgba(255, 193, 7, 0.12);
+    border-left: 3px solid #ffc107;
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.demo-banner .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+}
+
+.demo-banner a {
+    color: var(--accent);
+}
+
+.demo-banner-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.demo-banner-label {
+    color: var(--text-secondary);
+}
+
+.demo-roles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.demo-role-btn {
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid rgba(var(--accent-rgb), 0.4);
+    border-radius: 6px;
+    color: var(--text-strong);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.demo-role-btn:hover,
+.demo-role-btn.current {
+    border-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.15);
+}
+
+.demo-roles-detailed {
+    flex-direction: column;
+    gap: 10px;
+}
+
+.demo-roles-detailed form,
+.demo-roles-detailed .demo-role-btn {
+    width: 100%;
+}
+
+.demo-roles-detailed .demo-role-btn {
+    padding: 12px 15px;
+}
+
+.demo-role-title {
+    font-weight: 600;
+}
+
+.demo-role-description {
+    display: block;
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.demo-admin-link {
+    font-weight: 600;
+}
+
+.demo-login-hint {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 15px;
+}

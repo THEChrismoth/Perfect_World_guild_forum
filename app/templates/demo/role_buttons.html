@@ -1,0 +1,13 @@
+{# Кнопки входа в демо-роли. detailed — с описанием ролей (страница входа). #}
+<div class="demo-roles{% if detailed %} demo-roles-detailed{% endif %}">
+    {% for key, role in demo_roles.items %}
+        <form method="post" action="{% url 'demo:login' key %}">
+            {% csrf_token %}
+            <button type="submit" class="demo-role-btn{% if key == demo_current_role %} current{% endif %}"
+                    {% if not detailed %}title="{{ role.description }}"{% endif %}>
+                <span class="demo-role-title">{{ role.title }}</span>
+                {% if detailed %}<span class="demo-role-description">{{ role.description }}</span>{% endif %}
+            </button>
+        </form>
+    {% endfor %}
+</div>

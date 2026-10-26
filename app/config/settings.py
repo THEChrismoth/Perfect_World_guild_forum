@@ -1,4 +1,5 @@
 import os
+import tempfile
 from dotenv import load_dotenv
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
@@ -53,6 +54,7 @@ INSTALLED_APPS = [
     'events',
     'backups',
     'teamspeak',
+    'demo',
 ]
 
 MIDDLEWARE = [
@@ -64,6 +66,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'forum.middleware.UserActivityMiddleware',
+    # Ограничения демо-сайта. При выключенном DEMO_MODE ничего не делает.
+    'demo.middleware.DemoModeMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -80,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'notifications.context_processors.notifications_context',
                 'core.context_processors.site_settings',
+                'demo.context_processors.demo',
             ],
         },
     },
@@ -175,6 +180,18 @@ CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS') or [
     f"{'https' if USE_HTTPS else 'http'}://{host.lstrip('.')}"
     for host in ALLOWED_HOSTS if host != '*'
 ]
+
+# Демо-сайт с вымышленной гильдией (docker/demo/). На обычном сайте не включайте:
+# появляются кнопки входа без пароля, а команда demo_seed стирает базу.
+DEMO_MODE = os.getenv('DEMO_MODE', 'False') == 'True'
+if DEMO_MODE:
+    # В демо нет Caddy — статику раздает сам Django через WhiteNoise (ставится только в образ демо).
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    # Общий для всех процессов gunicorn кэш: в нем лимит гостевых аккаунтов с одного IP (demo/limits.py).
+    CACHES = {'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(tempfile.gettempdir(), 'guild-demo-cache'),
+    }}
 
 # Почта (SMTP), подтверждение email и капча настраиваются в админ-панели: Настройки сайта.
 # Письма сайта отправляет core.mail; пока почта не настроена, они печатаются в консоль.
