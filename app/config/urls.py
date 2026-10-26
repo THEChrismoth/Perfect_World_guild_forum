@@ -18,5 +18,7 @@ urlpatterns = [
     path('teamspeak/', include('teamspeak.urls')),
     # API для бота TeamSpeak (авторизация по TSBOT_API_TOKEN).
     path('api/tsbot/', include('teamspeak.api_urls')),
+    # Вход в демо-роли. Без DEMO_MODE отвечает 404.
+    path('demo/', include('demo.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

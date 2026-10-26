@@ -88,13 +88,19 @@
                 {% else %}
                     <div class="auth-buttons">
                         {% include 'includes/theme_toggle.html' %}
-                        <a href="{% url 'register' %}" class="register-btn">Регистрация</a>
+                        {% if not demo_mode %}
+                            <a href="{% url 'register' %}" class="register-btn">Регистрация</a>
+                        {% endif %}
                         <a href="{% url 'login' %}" class="login-btn">Вход</a>
                     </div>
                 {% endif %}
             </div>
         </div>
     </header>
+
+    {% if demo_mode %}
+        {% include 'demo/banner.html' %}
+    {% endif %}
 
     <main>
         <div class="container">

@@ -3,6 +3,11 @@
 
 {% block content %}
 <div class="auth-container">
+    {% if demo_mode %}
+        <h2>Демо-сайт</h2>
+        <p class="demo-login-hint">Выберите роль — пароль не нужен:</p>
+        {% include 'demo/role_buttons.html' with detailed=True %}
+    {% else %}
     <h2>Вход в систему</h2>
     <form method="post">
         {% csrf_token %}
@@ -19,5 +24,6 @@
         {% endif %}
         <button type="submit" class="btn-submit">Войти</button>
     </form>
+    {% endif %}
 </div>
 {% endblock %}
