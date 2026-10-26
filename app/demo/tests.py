@@ -1,10 +1,14 @@
+import datetime
 from io import StringIO
+from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from auction.models import AuctionLot
 from events.models import EventNotification
@@ -13,6 +17,7 @@ from reception.models import Application
 from teamspeak.models import GUILD_GROUP
 
 from .accounts import DEMO_ROLES, GUEST_GROUP
+from . import limits
 from .guests import create_guest
 
 
@@ -47,6 +52,10 @@ class DemoModeOffTests(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False, DEMO_MODE=True)
 class DemoModeOnTests(TestCase):
+    def setUp(self):
+        # Лимит аккаунтов с IP хранится в кэше — он общий для всех тестов.
+        cache.clear()
+
     def test_banner_with_roles(self):
         response = self.client.get('/')
         self.assertContains(response, 'demo-banner')
@@ -139,6 +148,7 @@ class DemoModeOnTests(TestCase):
 @override_settings(SECURE_SSL_REDIRECT=False, DEMO_MODE=True)
 class DemoSeedTests(TestCase):
     def test_seed(self):
+        cache.clear()
         User.objects.create_superuser('real_admin')
         call_command('demo_seed', stdout=StringIO())
 
@@ -200,3 +210,54 @@ class AutoResetRuleTests(TestCase):
     def test_refuses_without_demo_mode(self):
         with self.assertRaises(CommandError):
             call_command('demo_autoreset')
+
+
+@override_settings(SECURE_SSL_REDIRECT=False, DEMO_MODE=True)
+class GuestLimitTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def login(self, ip='10.0.0.1'):
+        """Вход новым посетителем (без cookie). Возвращает созданного пользователя или None."""
+        client = self.client_class(REMOTE_ADDR=ip)
+        client.post(reverse('demo:login', args=['member']))
+        user_id = client.session.get('_auth_user_id')
+        return User.objects.get(pk=user_id) if user_id else None
+
+    def test_limit_per_ip(self):
+        with mock.patch.object(limits, 'GUESTS_PER_IP', 2):
+            self.assertIsNotNone(self.login())
+            self.assertIsNotNone(self.login())
+            self.assertIsNone(self.login())
+            # Другой адрес — свой лимит.
+            self.assertIsNotNone(self.login(ip='10.0.0.2'))
+        self.assertEqual(User.objects.count(), 3)
+
+    def test_returning_visitor_not_counted(self):
+        with mock.patch.object(limits, 'GUESTS_PER_IP', 1):
+            self.client.post(reverse('demo:login', args=['member']))
+            for _ in range(3):
+                self.client.post(reverse('demo:login', args=['member']))
+        self.assertEqual(User.objects.count(), 1)
+
+    def test_ip_behind_proxy(self):
+        request = mock.Mock(META={'HTTP_X_FORWARDED_FOR': '1.1.1.1, 2.2.2.2', 'REMOTE_ADDR': '10.0.0.9'})
+        self.assertEqual(limits.client_ip(request), '2.2.2.2')
+
+    def test_full_demo_removes_oldest_inactive_guest(self):
+        with mock.patch.object(limits, 'MAX_GUESTS', 2):
+            old = self.login(ip='10.0.0.1')
+            active = self.login(ip='10.0.0.2')
+            old.profile.last_activity = timezone.now() - datetime.timedelta(hours=1)
+            old.profile.save()
+            new = self.login(ip='10.0.0.3')
+        self.assertIsNotNone(new)
+        self.assertFalse(User.objects.filter(pk=old.pk).exists())
+        self.assertTrue(User.objects.filter(pk=active.pk).exists())
+
+    def test_full_demo_with_active_guests_refuses(self):
+        with mock.patch.object(limits, 'MAX_GUESTS', 2):
+            self.login(ip='10.0.0.1')
+            self.login(ip='10.0.0.2')
+            self.assertIsNone(self.login(ip='10.0.0.3'))
+        self.assertEqual(User.objects.count(), 2)

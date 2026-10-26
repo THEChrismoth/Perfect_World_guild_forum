@@ -1,4 +1,5 @@
 import os
+import tempfile
 from dotenv import load_dotenv
 import dj_database_url
 from django.core.exceptions import ImproperlyConfigured
@@ -186,6 +187,11 @@ DEMO_MODE = os.getenv('DEMO_MODE', 'False') == 'True'
 if DEMO_MODE:
     # В демо нет Caddy — статику раздает сам Django через WhiteNoise (ставится только в образ демо).
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    # Общий для всех процессов gunicorn кэш: в нем лимит гостевых аккаунтов с одного IP (demo/limits.py).
+    CACHES = {'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(tempfile.gettempdir(), 'guild-demo-cache'),
+    }}
 
 # Почта (SMTP), подтверждение email и капча настраиваются в админ-панели: Настройки сайта.
 # Письма сайта отправляет core.mail; пока почта не настроена, они печатаются в консоль.
