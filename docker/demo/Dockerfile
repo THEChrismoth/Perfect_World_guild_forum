@@ -3,6 +3,7 @@
 #   docker build -f docker/demo/Dockerfile -t guild-demo .
 #   docker run --rm -p 8000:8000 -e USE_HTTPS=False guild-demo
 # База (SQLite) заполняется при каждом запуске контейнера заново — перезапуск сбрасывает демо.
+# Работающее демо само сбрасывается раз в DEMO_RESET_HOURS часов, когда нет посетителей (0 — не сбрасывать).
 FROM python:3.13-slim-trixie
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -23,7 +24,8 @@ COPY app/ app/
 ENV DEMO_MODE=True \
     USE_HTTPS=True \
     ALLOWED_HOSTS=* \
-    GUNICORN_WORKERS=2
+    GUNICORN_WORKERS=2 \
+    DEMO_RESET_HOURS=6
 
 RUN useradd --create-home --uid 1000 app \
     && cd app && DJANGO_SECRET_KEY=build python manage.py collectstatic --noinput \

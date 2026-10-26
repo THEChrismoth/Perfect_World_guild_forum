@@ -15,4 +15,9 @@ python manage.py migrate --noinput
 echo "Заполняю демо-данные..."
 python manage.py demo_seed
 
+# Сброс к исходным данным по расписанию, в фоне. DEMO_RESET_HOURS=0 — не сбрасывать.
+if [ "${DEMO_RESET_HOURS:-0}" != "0" ]; then
+    python manage.py demo_autoreset --hours "$DEMO_RESET_HOURS" &
+fi
+
 exec "$@"

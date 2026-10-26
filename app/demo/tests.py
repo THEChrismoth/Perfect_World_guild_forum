@@ -166,3 +166,37 @@ class DemoSeedTests(TestCase):
                     continue
                 with self.subTest(role=role, url=url):
                     self.assertEqual(self.client.get(url).status_code, 200)
+
+
+class AutoResetRuleTests(TestCase):
+    def test_should_reset(self):
+        from datetime import timedelta
+
+        from .management.commands.demo_autoreset import should_reset
+
+        hour = timedelta(hours=1)
+        cases = [
+            (timedelta(minutes=30), False, False),  # интервал не прошел
+            (hour, False, True),                    # прошел, посетителей нет
+            (hour, True, False),                    # прошел, но кто-то сидит — ждем
+            (2 * hour, True, True),                 # двойной интервал — сбрасываем в любом случае
+        ]
+        for elapsed, active, expected in cases:
+            with self.subTest(elapsed=elapsed, active=active):
+                self.assertEqual(should_reset(elapsed, hour, active), expected)
+
+    @override_settings(DEMO_MODE=True)
+    def test_visitors_active_counts_only_guests(self):
+        from datetime import timedelta
+
+        from .management.commands.demo_autoreset import visitors_active
+
+        User.objects.create_user('player')  # вымышленный игрок с «свежей» активностью — не посетитель
+        self.assertFalse(visitors_active(timedelta(minutes=10)))
+        create_guest('member')
+        self.assertTrue(visitors_active(timedelta(minutes=10)))
+
+    @override_settings(DEMO_MODE=False)
+    def test_refuses_without_demo_mode(self):
+        with self.assertRaises(CommandError):
+            call_command('demo_autoreset')

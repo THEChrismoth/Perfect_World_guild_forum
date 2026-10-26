@@ -67,12 +67,14 @@ class Command(BaseCommand):
         if not settings.DEMO_MODE:
             raise CommandError('Команда стирает всю базу, поэтому работает только при DEMO_MODE=True')
 
-        call_command('flush', interactive=False, verbosity=0)
         self.random = random.Random(42)
         self.now = timezone.now()
         self.today = timezone.localdate()
 
+        # Очистка и заполнение — одна транзакция: при сбросе работающего демо
+        # посетители видят старые данные до последнего момента, а не пустую базу.
         with transaction.atomic():
+            call_command('flush', interactive=False, verbosity=0)
             SiteSettings.objects.update_or_create(pk=1, defaults={'site_name': f'{GUILD_NAME} · демо'})
             self.create_users()
             self.create_forum()
