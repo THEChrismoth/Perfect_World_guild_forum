@@ -1419,10 +1419,6 @@ html.theme-transition *::after {
     color: var(--text-secondary);
 }
 
-.demo-admin-link {
-    font-weight: 600;
-}
-
 .demo-login-hint {
     color: var(--text-secondary);
     text-align: center;

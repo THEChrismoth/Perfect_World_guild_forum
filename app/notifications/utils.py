@@ -92,9 +92,13 @@ def send_notification_to_all(title, message, notification_type='info', link=None
     return len(notifications)
 
 
-def send_notification_to_admins(title, message, notification_type='info', link=None):
-    """Отправляет уведомление всем администраторам."""
-    admins = User.objects.filter(is_superuser=True)
+def send_notification_to_admins(title, message, notification_type='info', link=None, perm=None):
+    """Отправляет уведомление всем администраторам.
+
+    perm — право вида 'reception.change_application': тогда уведомление получат и модераторы
+    с этим правом (суперпользователи — в любом случае).
+    """
+    admins = User.objects.with_perm(perm) if perm else User.objects.filter(is_superuser=True)
     notifications = []
     message_html = build_message_html(message, link)
     

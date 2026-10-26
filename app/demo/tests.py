@@ -39,6 +39,7 @@ class DemoModeOffTests(TestCase):
     def test_register_open(self):
         self.assertEqual(self.client.get(reverse('register')).status_code, 200)
 
+
     def test_login_page_has_password_form(self):
         response = self.client.get(reverse('login'))
         self.assertContains(response, 'id_password')
@@ -94,7 +95,12 @@ class DemoModeOnTests(TestCase):
         self.login('admin')
         response = self.client.get('/')
         self.assertContains(response, 'demo-role-btn current')
-        self.assertContains(response, 'Панель управления')
+
+    def test_admin_link_in_menu_only_for_admin(self):
+        self.login('member')
+        self.assertNotContains(self.client.get('/'), 'class="admin-link"')
+        self.login('admin')
+        self.assertContains(self.client.get('/'), 'class="admin-link"')
 
     def test_stale_cookie_creates_new_account(self):
         user = self.login('member')

@@ -8,9 +8,6 @@
         <div class="demo-banner-actions">
             <span class="demo-banner-label">{% if demo_current_role %}Сменить роль:{% else %}Войти как:{% endif %}</span>
             {% include 'demo/role_buttons.html' with detailed=False %}
-            {% if user.is_staff %}
-                <a href="/admin/" class="demo-admin-link">Панель управления →</a>
-            {% endif %}
         </div>
     </div>
 </div>

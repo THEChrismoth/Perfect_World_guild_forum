@@ -43,13 +43,14 @@ def application_form(request):
             app = form.save()
             messages.success(request, 'Заявка отправлена! Ожидайте проверки.')
 
-            # Уведомление администраторам.
+            # Уведомление администраторам и модераторам, которые рассматривают заявки.
             from notifications.utils import send_notification_to_admins
             send_notification_to_admins(
                 title='📝 Новая заявка',
                 message=f'Пользователь {request.user.username} подал новую заявку на вступление в гильдию.',
                 notification_type='application',
-                link=reverse('admin:reception_application_changelist')
+                link=reverse('admin:reception_application_changelist'),
+                perm='reception.change_application',
             )
             return redirect('reception:application_success')
     else:

@@ -210,3 +210,105 @@ class SiteSettingsTests(TestCase):
 
         self.assertEqual(SiteSettings.objects.count(), 1)
         self.assertEqual(SiteSettings.load().site_name, 'Вторая')
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ModeratorRoleTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import Group
+
+        from .roles import MODERATOR_GROUP
+
+        # Группу создает post_migrate — в тестовой базе она уже есть.
+        self.group = Group.objects.get(name=MODERATOR_GROUP)
+        self.user = User.objects.create_user('mod', password='pass')
+
+    def test_group_permissions(self):
+        self.user.groups.add(self.group)
+        user = User.objects.get(pk=self.user.pk)
+        for perm in ['auction.change_auctionlot', 'reception.change_application', 'events.add_eventnotification',
+                     'auth.view_user']:
+            with self.subTest(perm=perm):
+                self.assertTrue(user.has_perm(perm))
+        for perm in ['auth.change_user', 'core.change_sitesettings', 'backups.view_backuprecord', 'forum.delete_post']:
+            with self.subTest(perm=perm):
+                self.assertFalse(user.has_perm(perm))
+
+    def test_permissions_restored_and_custom_kept(self):
+        from django.contrib.auth.models import Permission
+
+        from .roles import ensure_moderator_group
+
+        custom = Permission.objects.get(codename='change_post')
+        self.group.permissions.set([custom])
+        ensure_moderator_group()
+        self.assertTrue(self.group.permissions.filter(codename='change_auctionlot').exists())
+        self.assertTrue(self.group.permissions.filter(pk=custom.pk).exists())
+
+    def test_staff_follows_group(self):
+        self.user.groups.add(self.group)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_staff)
+        self.user.groups.remove(self.group)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_staff)
+
+    def test_staff_follows_group_from_group_side(self):
+        self.group.user_set.add(self.user)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_staff)
+        self.group.user_set.clear()
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_staff)
+
+    def test_clear_groups(self):
+        self.user.groups.add(self.group)
+        self.user.groups.clear()
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.is_staff)
+
+    def test_other_groups_do_not_touch_staff(self):
+        from django.contrib.auth.models import Group
+
+        other = Group.objects.create(name='Член гильдии')
+        self.user.is_staff = True
+        self.user.save()
+        self.user.groups.add(other)
+        self.user.groups.remove(other)
+        self.user.groups.clear()
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_staff)
+
+    def test_superuser_keeps_staff(self):
+        admin = User.objects.create_superuser('admin', password='pass')
+        admin.groups.add(self.group)
+        admin.groups.remove(self.group)
+        admin.refresh_from_db()
+        self.assertTrue(admin.is_staff)
+
+    def test_menu_link_and_admin_sections(self):
+        self.client.login(username='mod', password='pass')
+        self.assertNotContains(self.client.get('/'), 'class="admin-link"')
+        self.user.groups.add(self.group)
+        self.assertContains(self.client.get('/'), 'class="admin-link"')
+        self.assertEqual(self.client.get(reverse('admin:auction_auctionlot_changelist')).status_code, 200)
+        # Поиск игроков при записи в отряд ивента.
+        autocomplete = self.client.get(reverse('admin:autocomplete'), {
+            'app_label': 'events', 'model_name': 'partymember', 'field_name': 'user', 'term': 'mo'})
+        self.assertEqual(autocomplete.status_code, 200)
+        settings_url = reverse('admin:core_sitesettings_change', args=[SiteSettings.load().pk])
+        self.assertEqual(self.client.get(settings_url).status_code, 403)
+
+    def test_moderator_notified_about_application(self):
+        from notifications.models import Notification
+        from notifications.utils import send_notification_to_admins
+
+        self.user.groups.add(self.group)
+        User.objects.create_user('player')
+        admin = User.objects.create_superuser('admin')
+        send_notification_to_admins('t', 'm', perm='reception.change_application')
+        self.assertEqual(set(Notification.objects.values_list('user__username', flat=True)), {'mod', 'admin'})
+        # Без perm — как раньше, только суперпользователям.
+        Notification.objects.all().delete()
+        send_notification_to_admins('t', 'm')
+        self.assertEqual(list(Notification.objects.values_list('user', flat=True)), [admin.pk])
