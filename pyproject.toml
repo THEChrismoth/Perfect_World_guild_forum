@@ -1,6 +1,6 @@
 [project]
 name = "perfect-world-guild-forum"
-version = "1.0.1"
+version = "1.1.0"
 description = "Сайт гильдии Perfect World: форум, приём заявок, аукцион, ивенты и кос-лист"
 readme = "README.md"
 requires-python = ">=3.13"
