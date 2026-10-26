@@ -10,6 +10,16 @@ class CoreConfig(AppConfig):
     name = 'core'
     verbose_name = 'Сайт'
 
+    def ready(self):
+        from django.db.models.signals import post_migrate
+
+        from . import signals  # noqa: F401
+        from .roles import ensure_moderator_group
+
+        # Без sender: права приложений создаются после миграций каждого из них,
+        # группа дополняется на каждом шаге (повторно ничего не дублируется).
+        post_migrate.connect(ensure_moderator_group, dispatch_uid='core.ensure_moderator_group')
+
 
 class GuildAdminConfig(admin_apps.AdminConfig):
     """Подключается в INSTALLED_APPS вместо django.contrib.admin — админка с дашбордом."""

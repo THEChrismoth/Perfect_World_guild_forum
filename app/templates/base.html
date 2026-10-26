@@ -31,7 +31,8 @@
                     <a href="/">Главная</a>
                     <a href="/koslist">Кос-лист</a>
                     <a href="/">Форум</a>
-                    {% if user.is_superuser %}
+                    {# Администраторы и модераторы: модератор видит в панели только свои разделы. #}
+                    {% if user.is_staff %}
                         <a href="/admin/" class="admin-link">Панель управления</a>
                     {% endif %}
                 </nav>
