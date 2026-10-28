@@ -231,10 +231,13 @@ body {
     flex-shrink: 0;
 }
 
+/* У Django #container высотой ровно в экран, а содержимое вылезает за него — тогда «липкие»
+   меню и шапка доезжают до низа контейнера и уходят вверх. Растягиваем контейнер по содержимому. */
 #container:has(> .ga-sidebar) {
     display: grid;
     grid-template-columns: var(--ga-sidebar-width) minmax(0, 1fr);
     grid-template-rows: auto 1fr auto;
+    height: auto;
     min-height: 100vh;
     transition: grid-template-columns 0.2s ease;
 }
@@ -257,6 +260,7 @@ html.ga-sidebar-collapsed .ga-sidebar {
 .ga-sidebar {
     grid-column: 1;
     grid-row: 1 / -1;
+    align-self: start;
     position: sticky;
     top: 0;
     height: 100vh;
