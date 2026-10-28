@@ -1214,24 +1214,38 @@ a.ga-stat:hover {
 .ga-trend.is-up { color: var(--ga-success); }
 .ga-trend.is-down { color: var(--ga-danger); }
 
-/* Сетки карточек */
-.ga-grid-main {
+/* Раскладка: основная часть и колонка справа с действиями и служебными блоками */
+.ga-layout {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
+    grid-template-columns: minmax(0, 1fr) 320px;
     gap: 16px;
-    margin-bottom: 16px;
-    align-items: stretch;
+    align-items: start;
 }
 
-.ga-grid-main > :only-child {
-    grid-column: 1 / -1;
+.ga-layout-main,
+.ga-layout-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
 }
 
-.ga-grid-bottom {
+.ga-layout-main > .ga-alerts,
+.ga-layout-main > .ga-stats {
+    margin-bottom: 0;
+}
+
+.ga-grid-pair {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 16px;
     align-items: start;
+}
+
+/* В узкой колонке быстрые действия идут списком */
+.ga-layout-side .ga-actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
 }
 
 .ga-card {
@@ -1786,11 +1800,20 @@ a.ga-stat:hover {
    Узкие экраны: меню выезжает поверх страницы
    ===================================================================== */
 
-@media (max-width: 1199px) {
-    .ga-grid-main {
+/* Колонка справа уходит под основную часть, её карточки встают в ряд */
+@media (max-width: 1279px) {
+    .ga-layout {
         grid-template-columns: minmax(0, 1fr);
     }
 
+    .ga-layout-side {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        align-items: start;
+    }
+}
+
+@media (max-width: 1199px) {
     .ga-stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }

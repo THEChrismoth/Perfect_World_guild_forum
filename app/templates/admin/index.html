@@ -20,215 +20,220 @@
         <span class="ga-chip-date">{% ga_icon "calendar" %}{% now "j E Y, l" %}</span>
     </section>
 
-    {% if dashboard.alerts %}
-        <section class="ga-alerts" aria-label="Требует внимания">
-            <h2 class="ga-section-title">Требует внимания</h2>
-            <ul>
-                {% for alert in dashboard.alerts %}
-                    <li class="ga-alert ga-alert-{{ alert.level }}">
-                        <span class="ga-alert-icon">{% if alert.level == "info" %}{% ga_icon "info" %}{% else %}{% ga_icon "alert" %}{% endif %}</span>
-                        <span class="ga-alert-text">{{ alert.text }}</span>
-                        {% if alert.url %}<a class="ga-alert-action" href="{{ alert.url }}">{{ alert.action|default:"Открыть" }} →</a>{% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        </section>
-    {% endif %}
+    {# Слева — показатели и графики, справа — колонка с действиями и служебными блоками #}
+    <div class="ga-layout">
+        <div class="ga-layout-main">
+            {% if dashboard.alerts %}
+                <section class="ga-alerts" aria-label="Требует внимания">
+                    <h2 class="ga-section-title">Требует внимания</h2>
+                    <ul>
+                        {% for alert in dashboard.alerts %}
+                            <li class="ga-alert ga-alert-{{ alert.level }}">
+                                <span class="ga-alert-icon">{% if alert.level == "info" %}{% ga_icon "info" %}{% else %}{% ga_icon "alert" %}{% endif %}</span>
+                                <span class="ga-alert-text">{{ alert.text }}</span>
+                                {% if alert.url %}<a class="ga-alert-action" href="{{ alert.url }}">{{ alert.action|default:"Открыть" }} →</a>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </section>
+            {% endif %}
 
-    <section class="ga-stats" aria-label="Ключевые показатели">
-        {% for stat in dashboard.stats %}
-            {% if stat.url %}<a class="ga-stat" href="{{ stat.url }}">{% else %}<div class="ga-stat">{% endif %}
-                <span class="ga-stat-label">{{ stat.label }}</span>
-                <span class="ga-stat-icon">{% ga_icon stat.icon %}</span>
-                <span class="ga-stat-value">{{ stat.value }}</span>
-                {% if stat.hint %}<span class="ga-stat-hint">{{ stat.hint }}</span>{% endif %}
-                {% if stat.trend is not None %}
-                    <span class="ga-trend {% if stat.trend < 0 %}is-down{% else %}is-up{% endif %}" title="Неделя к прошлой неделе">
-                        {% if stat.trend < 0 %}{% ga_icon "trending-down" %}{{ stat.trend }}%{% else %}{% ga_icon "trending-up" %}+{{ stat.trend }}%{% endif %}
-                    </span>
-                {% endif %}
-            {% if stat.url %}</a>{% else %}</div>{% endif %}
-        {% endfor %}
-    </section>
-
-    <div class="ga-grid-main">
-        {% if dashboard.activity_chart %}
-            {% with chart=dashboard.activity_chart %}
-                <section class="ga-card ga-chart-card" data-ga-tabs>
-                    <div class="ga-card-head">
-                        <h2 class="ga-card-title">Активность за 14 дней</h2>
-                        {% if chart.panels|length > 1 %}
-                            <div class="ga-tabs" role="tablist">
-                                {% for panel in chart.panels %}
-                                    <button type="button" role="tab" class="ga-tab" id="ga-tab-{{ panel.key }}" aria-controls="ga-panel-{{ panel.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ panel.label }}</button>
-                                {% endfor %}
-                            </div>
+            <section class="ga-stats" aria-label="Ключевые показатели">
+                {% for stat in dashboard.stats %}
+                    {% if stat.url %}<a class="ga-stat" href="{{ stat.url }}">{% else %}<div class="ga-stat">{% endif %}
+                        <span class="ga-stat-label">{{ stat.label }}</span>
+                        <span class="ga-stat-icon">{% ga_icon stat.icon %}</span>
+                        <span class="ga-stat-value">{{ stat.value }}</span>
+                        {% if stat.hint %}<span class="ga-stat-hint">{{ stat.hint }}</span>{% endif %}
+                        {% if stat.trend is not None %}
+                            <span class="ga-trend {% if stat.trend < 0 %}is-down{% else %}is-up{% endif %}" title="Неделя к прошлой неделе">
+                                {% if stat.trend < 0 %}{% ga_icon "trending-down" %}{{ stat.trend }}%{% else %}{% ga_icon "trending-up" %}+{{ stat.trend }}%{% endif %}
+                            </span>
                         {% endif %}
-                    </div>
+                    {% if stat.url %}</a>{% else %}</div>{% endif %}
+                {% endfor %}
+            </section>
 
-                    {% for panel in chart.panels %}
-                        <div class="ga-chart-panel" id="ga-panel-{{ panel.key }}" role="tabpanel" aria-labelledby="ga-tab-{{ panel.key }}"{% if not forloop.first %} hidden{% endif %}>
-                            <div class="ga-chart-summary">
-                                <span class="ga-chart-total">{{ panel.total }}</span>
-                                <span class="ga-muted-text">{{ panel.label|lower }} за 14 дней</span>
-                                {% if panel.trend is not None %}
-                                    <span class="ga-trend {% if panel.trend < 0 %}is-down{% else %}is-up{% endif %}">
-                                        {% if panel.trend < 0 %}{% ga_icon "trending-down" %}{{ panel.trend }}%{% else %}{% ga_icon "trending-up" %}+{{ panel.trend }}%{% endif %}
-                                    </span>
-                                {% endif %}
-                                <span class="ga-legend">
-                                    <span class="ga-legend-item"><i class="ga-legend-current"></i>Последние 14 дней</span>
-                                    <span class="ga-legend-item"><i class="ga-legend-previous"></i>Предыдущие 14 дней ({{ panel.previous_total }})</span>
-                                </span>
-                            </div>
-
-                            <div class="ga-chart">
-                                <div class="ga-chart-y" aria-hidden="true">
-                                    {% for tick in panel.ticks %}<span style="top: {{ tick.top|stringformat:'.2f' }}%">{{ tick.value }}</span>{% endfor %}
-                                </div>
-                                <div class="ga-chart-plot">
-                                    <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" preserveAspectRatio="none" role="img" aria-label="{{ panel.label }} по дням: всего {{ panel.total }}">
-                                        <defs>
-                                            <linearGradient id="ga-fill-{{ panel.key }}" x1="0" x2="0" y1="0" y2="1">
-                                                <stop offset="0%" class="ga-fill-start"/>
-                                                <stop offset="100%" class="ga-fill-end"/>
-                                            </linearGradient>
-                                        </defs>
-                                        {% for tick in panel.ticks %}
-                                            <line class="ga-grid-line" x1="0" x2="{{ chart.width }}" y1="{{ tick.y|stringformat:'.1f' }}" y2="{{ tick.y|stringformat:'.1f' }}" vector-effect="non-scaling-stroke"/>
-                                        {% endfor %}
-                                        <path class="ga-line-previous" d="{{ panel.previous_line }}" vector-effect="non-scaling-stroke"/>
-                                        <path d="{{ panel.area }}" fill="url(#ga-fill-{{ panel.key }})"/>
-                                        <path class="ga-line-current" d="{{ panel.line }}" vector-effect="non-scaling-stroke"/>
-                                    </svg>
-                                    {% for dot in panel.dots %}
-                                        <span class="ga-dot" style="left: {{ dot.left|stringformat:'.2f' }}%; top: {{ dot.top|stringformat:'.2f' }}%" tabindex="0">
-                                            <span class="ga-dot-tip">{{ dot.day|date:"j E" }}: <b>{{ dot.value }}</b></span>
-                                        </span>
+            {% if dashboard.activity_chart %}
+                {% with chart=dashboard.activity_chart %}
+                    <section class="ga-card ga-chart-card" data-ga-tabs>
+                        <div class="ga-card-head">
+                            <h2 class="ga-card-title">Активность за 14 дней</h2>
+                            {% if chart.panels|length > 1 %}
+                                <div class="ga-tabs" role="tablist">
+                                    {% for panel in chart.panels %}
+                                        <button type="button" role="tab" class="ga-tab" id="ga-tab-{{ panel.key }}" aria-controls="ga-panel-{{ panel.key }}" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">{{ panel.label }}</button>
                                     {% endfor %}
                                 </div>
-                                <div class="ga-chart-x" aria-hidden="true">
-                                    {% for label in chart.labels %}<span style="left: {{ label.left|stringformat:'.2f' }}%">{{ label.day|date:"d.m" }}</span>{% endfor %}
+                            {% endif %}
+                        </div>
+
+                        {% for panel in chart.panels %}
+                            <div class="ga-chart-panel" id="ga-panel-{{ panel.key }}" role="tabpanel" aria-labelledby="ga-tab-{{ panel.key }}"{% if not forloop.first %} hidden{% endif %}>
+                                <div class="ga-chart-summary">
+                                    <span class="ga-chart-total">{{ panel.total }}</span>
+                                    <span class="ga-muted-text">{{ panel.label|lower }} за 14 дней</span>
+                                    {% if panel.trend is not None %}
+                                        <span class="ga-trend {% if panel.trend < 0 %}is-down{% else %}is-up{% endif %}">
+                                            {% if panel.trend < 0 %}{% ga_icon "trending-down" %}{{ panel.trend }}%{% else %}{% ga_icon "trending-up" %}+{{ panel.trend }}%{% endif %}
+                                        </span>
+                                    {% endif %}
+                                    <span class="ga-legend">
+                                        <span class="ga-legend-item"><i class="ga-legend-current"></i>Последние 14 дней</span>
+                                        <span class="ga-legend-item"><i class="ga-legend-previous"></i>Предыдущие 14 дней ({{ panel.previous_total }})</span>
+                                    </span>
+                                </div>
+
+                                <div class="ga-chart">
+                                    <div class="ga-chart-y" aria-hidden="true">
+                                        {% for tick in panel.ticks %}<span style="top: {{ tick.top|stringformat:'.2f' }}%">{{ tick.value }}</span>{% endfor %}
+                                    </div>
+                                    <div class="ga-chart-plot">
+                                        <svg viewBox="0 0 {{ chart.width }} {{ chart.height }}" preserveAspectRatio="none" role="img" aria-label="{{ panel.label }} по дням: всего {{ panel.total }}">
+                                            <defs>
+                                                <linearGradient id="ga-fill-{{ panel.key }}" x1="0" x2="0" y1="0" y2="1">
+                                                    <stop offset="0%" class="ga-fill-start"/>
+                                                    <stop offset="100%" class="ga-fill-end"/>
+                                                </linearGradient>
+                                            </defs>
+                                            {% for tick in panel.ticks %}
+                                                <line class="ga-grid-line" x1="0" x2="{{ chart.width }}" y1="{{ tick.y|stringformat:'.1f' }}" y2="{{ tick.y|stringformat:'.1f' }}" vector-effect="non-scaling-stroke"/>
+                                            {% endfor %}
+                                            <path class="ga-line-previous" d="{{ panel.previous_line }}" vector-effect="non-scaling-stroke"/>
+                                            <path d="{{ panel.area }}" fill="url(#ga-fill-{{ panel.key }})"/>
+                                            <path class="ga-line-current" d="{{ panel.line }}" vector-effect="non-scaling-stroke"/>
+                                        </svg>
+                                        {% for dot in panel.dots %}
+                                            <span class="ga-dot" style="left: {{ dot.left|stringformat:'.2f' }}%; top: {{ dot.top|stringformat:'.2f' }}%" tabindex="0">
+                                                <span class="ga-dot-tip">{{ dot.day|date:"j E" }}: <b>{{ dot.value }}</b></span>
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="ga-chart-x" aria-hidden="true">
+                                        {% for label in chart.labels %}<span style="left: {{ label.left|stringformat:'.2f' }}%">{{ label.day|date:"d.m" }}</span>{% endfor %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    {% endfor %}
-                </section>
-            {% endwith %}
-        {% endif %}
-
-        <section class="ga-card ga-feed-card">
-            <div class="ga-card-head">
-                <h2 class="ga-card-title">Последние события</h2>
-            </div>
-            {% if dashboard.feed %}
-                <ul class="ga-feed">
-                    {% for item in dashboard.feed %}
-                        <li>
-                            <span class="ga-feed-icon">{% ga_icon item.icon %}</span>
-                            <span class="ga-feed-body">
-                                <a href="{{ item.url }}">{{ item.text }}</a>
-                                <span class="ga-feed-meta">{{ item.time|timesince }} назад{% if item.note %} · {{ item.note }}{% endif %}</span>
-                            </span>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="ga-empty">Пока ничего не произошло</p>
+                        {% endfor %}
+                    </section>
+                {% endwith %}
             {% endif %}
-        </section>
-    </div>
 
-    <div class="ga-grid-bottom">
-        {% if dashboard.applications_chart %}
-            {% with chart=dashboard.applications_chart %}
+            <div class="ga-grid-pair">
                 <section class="ga-card">
                     <div class="ga-card-head">
-                        <h2 class="ga-card-title">Заявки по статусам</h2>
-                        <a class="ga-card-link" href="{% url 'admin:reception_application_changelist' %}">Все заявки →</a>
+                        <h2 class="ga-card-title">Последние события</h2>
                     </div>
-                    <div class="ga-donut-wrap">
-                        <svg class="ga-donut" viewBox="0 0 42 42" role="img" aria-label="Всего заявок: {{ chart.total }}">
-                            <circle class="ga-donut-track" cx="21" cy="21" r="15.915"/>
-                            {% for segment in chart.segments %}{% if segment.count %}
-                                <circle class="ga-donut-segment ga-status-{{ segment.status }}" cx="21" cy="21" r="15.915"
-                                        stroke-dasharray="{{ segment.dash|stringformat:'.3f' }} 100" stroke-dashoffset="{{ segment.offset|stringformat:'.3f' }}"/>
-                            {% endif %}{% endfor %}
-                            <text x="21" y="21" class="ga-donut-total">{{ chart.total }}</text>
-                            <text x="21" y="26.5" class="ga-donut-caption">всего</text>
-                        </svg>
-                        <ul class="ga-donut-legend">
-                            {% for segment in chart.segments %}
+                    {% if dashboard.feed %}
+                        <ul class="ga-feed">
+                            {% for item in dashboard.feed %}
                                 <li>
-                                    <i class="ga-status-{{ segment.status }}"></i>
-                                    <a href="{% url 'admin:reception_application_changelist' %}?status__exact={{ segment.status }}">{{ segment.label }}</a>
-                                    <b>{{ segment.count }}</b>
-                                    <span>{{ segment.share }}%</span>
+                                    <span class="ga-feed-icon">{% ga_icon item.icon %}</span>
+                                    <span class="ga-feed-body">
+                                        <a href="{{ item.url }}">{{ item.text }}</a>
+                                        <span class="ga-feed-meta">{{ item.time|timesince }} назад{% if item.note %} · {{ item.note }}{% endif %}</span>
+                                    </span>
                                 </li>
                             {% endfor %}
                         </ul>
-                    </div>
-                </section>
-            {% endwith %}
-        {% endif %}
-
-        <section class="ga-card">
-            <div class="ga-card-head">
-                <h2 class="ga-card-title">Быстрые действия</h2>
-            </div>
-            <div class="ga-actions">
-                {% for action in dashboard.actions %}
-                    {% if action.post %}
-                        <form method="post" action="{{ action.url }}">
-                            {% csrf_token %}
-                            <button type="submit" class="ga-action"><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</button>
-                        </form>
                     {% else %}
-                        <a class="ga-action" href="{{ action.url }}"{% if action.external %} target="_blank" rel="noopener"{% endif %}><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</a>
+                        <p class="ga-empty">Пока ничего не произошло</p>
                     {% endif %}
-                {% endfor %}
-            </div>
-        </section>
-
-        {% if dashboard.backup %}
-            {% with b=dashboard.backup %}
-                <section class="ga-card">
-                    <div class="ga-card-head">
-                        <h2 class="ga-card-title">Резервные копии</h2>
-                        <a class="ga-card-link" href="{{ b.settings_url }}">Настройки →</a>
-                    </div>
-                    <ul class="ga-facts">
-                        <li><span>Расписание</span><strong class="{% if b.enabled %}is-ok{% else %}is-bad{% endif %}">{% if b.enabled %}включено{% else %}выключено{% endif %}</strong></li>
-                        <li><span>Шифрование</span><strong class="{% if b.encrypted %}is-ok{% else %}is-bad{% endif %}">{% if b.encrypted %}включено{% else %}выключено{% endif %}</strong></li>
-                        <li><span>Яндекс Диск</span><strong class="{% if b.yandex %}is-ok{% endif %}">{% if b.yandex %}подключён{% else %}не подключён{% endif %}</strong></li>
-                        <li><span>Последняя удачная</span><strong>{% if b.last_ok %}{{ b.last_ok.created_at|date:"d.m.Y H:i" }}{% else %}ещё не было{% endif %}</strong></li>
-                    </ul>
-                    <p class="ga-links"><a href="{{ b.journal_url }}">Журнал копий →</a></p>
                 </section>
-            {% endwith %}
-        {% endif %}
 
-        <section class="ga-card">
-            <div class="ga-card-head">
-                <h2 class="ga-card-title">Мои последние действия</h2>
+                {% if dashboard.applications_chart %}
+                    {% with chart=dashboard.applications_chart %}
+                        <section class="ga-card">
+                            <div class="ga-card-head">
+                                <h2 class="ga-card-title">Заявки по статусам</h2>
+                                <a class="ga-card-link" href="{% url 'admin:reception_application_changelist' %}">Все заявки →</a>
+                            </div>
+                            <div class="ga-donut-wrap">
+                                <svg class="ga-donut" viewBox="0 0 42 42" role="img" aria-label="Всего заявок: {{ chart.total }}">
+                                    <circle class="ga-donut-track" cx="21" cy="21" r="15.915"/>
+                                    {% for segment in chart.segments %}{% if segment.count %}
+                                        <circle class="ga-donut-segment ga-status-{{ segment.status }}" cx="21" cy="21" r="15.915"
+                                                stroke-dasharray="{{ segment.dash|stringformat:'.3f' }} 100" stroke-dashoffset="{{ segment.offset|stringformat:'.3f' }}"/>
+                                    {% endif %}{% endfor %}
+                                    <text x="21" y="21" class="ga-donut-total">{{ chart.total }}</text>
+                                    <text x="21" y="26.5" class="ga-donut-caption">всего</text>
+                                </svg>
+                                <ul class="ga-donut-legend">
+                                    {% for segment in chart.segments %}
+                                        <li>
+                                            <i class="ga-status-{{ segment.status }}"></i>
+                                            <a href="{% url 'admin:reception_application_changelist' %}?status__exact={{ segment.status }}">{{ segment.label }}</a>
+                                            <b>{{ segment.count }}</b>
+                                            <span>{{ segment.share }}%</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </section>
+                    {% endwith %}
+                {% endif %}
             </div>
-            {% get_admin_log 6 as admin_log for_user user %}
-            {% if admin_log %}
-                <ul class="ga-feed">
-                    {% for entry in admin_log %}
-                        <li>
-                            <span class="ga-feed-icon">{% if entry.is_addition %}{% ga_icon "plus" %}{% elif entry.is_change %}{% ga_icon "pencil" %}{% else %}{% ga_icon "trash" %}{% endif %}</span>
-                            <span class="ga-feed-body">
-                                {% if entry.is_deletion or not entry.get_admin_url %}<span>{{ entry.object_repr }}</span>{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}
-                                <span class="ga-feed-meta">{% if entry.content_type %}{{ entry.content_type.name|capfirst }} · {% endif %}{{ entry.action_time|timesince }} назад</span>
-                            </span>
-                        </li>
+        </div>
+
+        <aside class="ga-layout-side" aria-label="Действия и служебное">
+            <section class="ga-card">
+                <div class="ga-card-head">
+                    <h2 class="ga-card-title">Быстрые действия</h2>
+                </div>
+                <div class="ga-actions">
+                    {% for action in dashboard.actions %}
+                        {% if action.post %}
+                            <form method="post" action="{{ action.url }}">
+                                {% csrf_token %}
+                                <button type="submit" class="ga-action"><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</button>
+                            </form>
+                        {% else %}
+                            <a class="ga-action" href="{{ action.url }}"{% if action.external %} target="_blank" rel="noopener"{% endif %}><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</a>
+                        {% endif %}
                     {% endfor %}
-                </ul>
-            {% else %}
-                <p class="ga-empty">Пока нет</p>
+                </div>
+            </section>
+
+            {% if dashboard.backup %}
+                {% with b=dashboard.backup %}
+                    <section class="ga-card">
+                        <div class="ga-card-head">
+                            <h2 class="ga-card-title">Резервные копии</h2>
+                            <a class="ga-card-link" href="{{ b.settings_url }}">Настройки →</a>
+                        </div>
+                        <ul class="ga-facts">
+                            <li><span>Расписание</span><strong class="{% if b.enabled %}is-ok{% else %}is-bad{% endif %}">{% if b.enabled %}включено{% else %}выключено{% endif %}</strong></li>
+                            <li><span>Шифрование</span><strong class="{% if b.encrypted %}is-ok{% else %}is-bad{% endif %}">{% if b.encrypted %}включено{% else %}выключено{% endif %}</strong></li>
+                            <li><span>Яндекс Диск</span><strong class="{% if b.yandex %}is-ok{% endif %}">{% if b.yandex %}подключён{% else %}не подключён{% endif %}</strong></li>
+                            <li><span>Последняя удачная</span><strong>{% if b.last_ok %}{{ b.last_ok.created_at|date:"d.m.Y H:i" }}{% else %}ещё не было{% endif %}</strong></li>
+                        </ul>
+                        <p class="ga-links"><a href="{{ b.journal_url }}">Журнал копий →</a></p>
+                    </section>
+                {% endwith %}
             {% endif %}
-        </section>
+
+            <section class="ga-card">
+                <div class="ga-card-head">
+                    <h2 class="ga-card-title">Мои последние действия</h2>
+                </div>
+                {% get_admin_log 6 as admin_log for_user user %}
+                {% if admin_log %}
+                    <ul class="ga-feed">
+                        {% for entry in admin_log %}
+                            <li>
+                                <span class="ga-feed-icon">{% if entry.is_addition %}{% ga_icon "plus" %}{% elif entry.is_change %}{% ga_icon "pencil" %}{% else %}{% ga_icon "trash" %}{% endif %}</span>
+                                <span class="ga-feed-body">
+                                    {% if entry.is_deletion or not entry.get_admin_url %}<span>{{ entry.object_repr }}</span>{% else %}<a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>{% endif %}
+                                    <span class="ga-feed-meta">{% if entry.content_type %}{{ entry.content_type.name|capfirst }} · {% endif %}{{ entry.action_time|timesince }} назад</span>
+                                </span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="ga-empty">Пока нет</p>
+                {% endif %}
+            </section>
+        </aside>
     </div>
 </div>
 {% endblock %}
