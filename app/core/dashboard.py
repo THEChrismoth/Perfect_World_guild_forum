@@ -100,6 +100,15 @@ def build_dashboard(request):
             alerts.append(_alert('warning', f'Время торгов истекло, лоты ждут завершения: {expired}',
                                  _url('admin:auction_auctionlot_changelist', 'status__exact=active'), 'Завершить'))
 
+    if can('auction.view_auctionbid'):
+        from auction.models import AuctionBid
+
+        bids_week = AuctionBid.objects.filter(created_at__gte=week_ago)
+        bids_prev = AuctionBid.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago).count()
+        bidders = bids_week.values('bidder').distinct().count()
+        stats.append(_stat('trending-up', 'Ставки за неделю', bids_week.count(), _url('admin:auction_auctionbid_changelist'),
+                           f'участников: {bidders}' if bidders else 'ставок не было', _trend(bids_week.count(), bids_prev)))
+
     # ----- Форум -----
     if can('forum.view_post'):
         from forum.models import Post, Topic
