@@ -15,7 +15,7 @@
     <section class="ga-hero">
         <div>
             <h1 class="ga-hero-title">Обзор гильдии</h1>
-            <p class="ga-hero-sub">Добро пожаловать, {% firstof user.get_short_name user.get_username %}! Вот что происходит в {{ site_header }}.</p>
+            <p class="ga-hero-sub">Добро пожаловать, {% firstof user.get_short_name user.get_username %}! Вот что происходит в гильдии.</p>
         </div>
         <span class="ga-chip-date">{% ga_icon "calendar" %}{% now "j E Y, l" %}</span>
     </section>
