@@ -1,5 +1,5 @@
 {% extends "admin/base.html" %}
-{% load static %}
+{% load static ga_admin %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
 
@@ -15,19 +15,101 @@
     {% else %}
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     {% endif %}
+    {# Свёрнутое меню запоминается; класс ставим до отрисовки, чтобы меню не «прыгало» #}
+    <script>if (localStorage.getItem('gaSidebar') === 'collapsed') document.documentElement.classList.add('ga-sidebar-collapsed');</script>
 {% endblock %}
 
-{% block branding %}
-    <div id="site-name">
-        <a href="{% url 'admin:index' %}">
-            <span class="brand-mark" aria-hidden="true">🛡️</span>
-            <span class="brand-text">{{ site_header }}</span>
-            <span class="brand-sub">управление</span>
-        </a>
-    </div>
-    {% if user.is_anonymous %}
-        {% include "admin/color_theme_toggle.html" %}
+{# Шапка: боковое меню слева, сверху — кнопка меню, хлебные крошки и пользователь. #}
+{# Хлебные крошки перенесены из-под шапки в неё, поэтому nav-breadcrumbs пустой. #}
+{% block header %}
+    {% if has_permission %}
+        {% include "admin/includes/sidebar.html" %}
+    {% endif %}
+    <header id="header"{% if has_permission %} class="ga-topbar"{% endif %}>
+        {% if has_permission %}
+            <button type="button" class="ga-icon-btn ga-burger" data-ga-sidebar-toggle aria-controls="ga-sidebar" aria-label="Показать или скрыть меню">
+                {% ga_icon "menu" %}
+            </button>
+            <nav class="ga-topbar-crumbs" aria-label="Хлебные крошки">
+                {% block breadcrumbs %}
+                    <div class="breadcrumbs">
+                        <a href="{% url 'admin:index' %}">Дашборд</a>
+                        {% if title %} &rsaquo; {{ title }}{% endif %}
+                    </div>
+                {% endblock %}
+            </nav>
+        {% else %}
+            <div id="branding">{% block branding %}
+                <div id="site-name">
+                    <a href="{% url 'admin:index' %}">
+                        <span class="brand-mark" aria-hidden="true">{% ga_icon "shield" %}</span>
+                        <span class="brand-text">{{ site_header }}</span>
+                        <span class="brand-sub">управление</span>
+                    </a>
+                </div>
+            {% endblock %}</div>
+            {# На странице входа блок usertools пустой — переключатель темы показываем здесь #}
+            {% if user.is_anonymous %}
+                {% include "admin/color_theme_toggle.html" %}
+            {% endif %}
+        {% endif %}
+
+        {% block usertools %}
+            {% if has_permission %}
+                <div id="user-tools" class="ga-usertools">
+                    {% include "admin/color_theme_toggle.html" %}
+                    <details class="ga-user-menu">
+                        <summary>
+                            <span class="ga-avatar" aria-hidden="true">{% firstof user.get_short_name user.get_username as display_name %}{{ display_name|slice:":1"|upper }}</span>
+                            <span class="ga-user-name">{{ display_name }}</span>
+                            {% ga_icon "chevron-down" %}
+                        </summary>
+                        <div class="ga-user-dropdown">
+                            <a href="{% firstof site_url '/' %}" target="_blank" rel="noopener">{% ga_icon "globe" %}Открыть сайт</a>
+                            {% if user.has_usable_password %}
+                                <a href="{% url 'admin:password_change' %}">{% ga_icon "key" %}Сменить пароль</a>
+                            {% endif %}
+                            <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit">{% ga_icon "log-out" %}Выйти</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            {% endif %}
+        {% endblock %}
+    </header>
+    {% if has_permission %}
+        <script>
+            (function () {
+                // На широком экране кнопка сворачивает меню (и запоминает выбор), на узком — выдвигает его поверх страницы.
+                var root = document.documentElement;
+                var backdrop = document.querySelector('.ga-sidebar-backdrop');
+                var narrow = window.matchMedia('(max-width: 1023px)');
+                function setOpen(open) {
+                    root.classList.toggle('ga-sidebar-open', open);
+                    backdrop.hidden = !open;
+                }
+                document.querySelector('[data-ga-sidebar-toggle]').addEventListener('click', function () {
+                    if (narrow.matches) {
+                        setOpen(!root.classList.contains('ga-sidebar-open'));
+                    } else {
+                        var collapsed = root.classList.toggle('ga-sidebar-collapsed');
+                        localStorage.setItem('gaSidebar', collapsed ? 'collapsed' : 'expanded');
+                    }
+                });
+                backdrop.addEventListener('click', function () { setOpen(false); });
+                narrow.addEventListener('change', function () { setOpen(false); });
+                // Меню пользователя закрывается кликом мимо него.
+                document.addEventListener('click', function (event) {
+                    var menu = document.querySelector('.ga-user-menu[open]');
+                    if (menu && !menu.contains(event.target)) menu.removeAttribute('open');
+                });
+            })();
+        </script>
     {% endif %}
 {% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
 
 {% block nav-global %}{% endblock %}

@@ -1,0 +1,51 @@
+{% load ga_admin %}
+{# Боковое меню админ-панели. Группы и разделы готовит GuildAdminSite._build_nav (core/admin_site.py). #}
+{% url 'admin:index' as dashboard_url %}
+<aside class="ga-sidebar" id="ga-sidebar" aria-label="Разделы админ-панели">
+    <a class="ga-brand" href="{{ dashboard_url }}">
+        <span class="brand-mark">{% if site_settings.favicon %}<img src="{{ site_settings.favicon.url }}" alt="">{% else %}{% ga_icon "shield" %}{% endif %}</span>
+        <span class="ga-brand-name">
+            <span class="brand-text">{{ site_header }}</span>
+            <span class="brand-sub">управление</span>
+        </span>
+    </a>
+
+    <nav class="ga-nav">
+        <a class="ga-nav-link{% if request.path == dashboard_url %} is-current{% endif %}" href="{{ dashboard_url }}"{% if request.path == dashboard_url %} aria-current="page"{% endif %}>
+            {% ga_icon "dashboard" %}<span>Дашборд</span>
+        </a>
+
+        {% for group in ga_nav %}
+            <p class="ga-nav-title">{{ group.title }}</p>
+            {% for item in group.items %}
+                {% if item.models %}
+                    <details class="ga-nav-group"{% if item.current %} open{% endif %}>
+                        <summary class="ga-nav-link{% if item.current %} is-active{% endif %}">
+                            {% ga_icon item.icon %}<span>{{ item.name }}</span>{% ga_icon "chevron-down" "ga-nav-chevron" %}
+                        </summary>
+                        <ul class="ga-nav-sub">
+                            {% for model in item.models %}
+                                <li>
+                                    {% if model.url %}
+                                        <a class="{% if model.current %}is-current{% endif %}" href="{{ model.url }}"{% if model.current %} aria-current="page"{% endif %}>{{ model.name }}</a>
+                                    {% else %}
+                                        <span>{{ model.name }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                {% elif item.url %}
+                    <a class="ga-nav-link{% if item.current %} is-current{% endif %}" href="{{ item.url }}"{% if item.current %} aria-current="page"{% endif %}>
+                        {% ga_icon item.icon %}<span>{{ item.name }}</span>
+                    </a>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </nav>
+
+    <a class="ga-nav-link ga-nav-site" href="{% firstof site_url '/' %}" target="_blank" rel="noopener">
+        {% ga_icon "globe" %}<span>Открыть сайт</span>
+    </a>
+</aside>
+<div class="ga-sidebar-backdrop" data-ga-sidebar-close hidden></div>

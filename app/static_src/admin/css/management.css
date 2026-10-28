@@ -10,8 +10,8 @@
 
 /* Шапка */
 .table-header {
-    background: var(--ga-header-bg);
-    color: #ffffff;
+    background: var(--ga-card-bg);
+    border: 1px solid var(--hairline-color);
     padding: 18px 22px;
     margin-bottom: 22px;
     border-radius: 16px;
@@ -22,7 +22,7 @@
     margin: 0;
     font-size: 20px;
     font-weight: 700;
-    color: #ffffff !important;
+    color: var(--body-loud-color) !important;
 }
 
 /* Секции классов */
@@ -38,7 +38,7 @@
 .class-header {
     background: var(--darkened-bg);
     padding: 12px 20px;
-    border-bottom: 2px solid var(--ga-accent);
+    border-bottom: 1px solid var(--hairline-color);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -88,7 +88,7 @@
 }
 
 .members-table tbody tr:hover {
-    background: var(--ga-soft);
+    background: var(--ga-hover);
 }
 
 /* Поля ввода очков */
@@ -143,18 +143,15 @@
 
 /* Цвета колонок: начислено / потрачено / текущие */
 .earned-points .points-input {
-    border-left: 3px solid var(--ga-info);
     font-weight: 600;
-    color: var(--ga-info);
+    color: var(--link-fg);
 }
 
 .spent-points .points-input {
-    border-left: 3px solid var(--ga-danger);
     color: var(--ga-danger);
 }
 
 .current-points .points-input {
-    border-left: 3px solid var(--ga-success);
     font-weight: 600;
     color: var(--ga-success);
 }
@@ -186,7 +183,6 @@
     padding: 14px 18px;
     background: var(--message-warning-bg);
     border: 1px solid var(--hairline-color);
-    border-left: 4px solid var(--ga-warning);
     border-radius: 12px;
     color: var(--body-fg);
     font-size: 14px;
