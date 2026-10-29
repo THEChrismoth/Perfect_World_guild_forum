@@ -10,7 +10,7 @@ from django.urls import reverse
 # Иконки — имена из core/templatetags/ga_admin.py.
 APP_ORDER = [
     ('reception', 'file-text'),
-    ('profiles', 'star'),
+    ('profiles', 'table'),
     ('events', 'swords'),
     ('auction', 'gavel'),
     ('koslist', 'skull'),
@@ -58,9 +58,9 @@ class GuildAdminSite(admin.AdminSite):
     def _build_nav(self, request, available_apps):
         """Группы бокового меню с отметкой раздела, в котором сейчас находимся."""
         path = request.path
-        # Таблица активности лежит внутри адресов профилей — подсвечиваем только её, а не «Профили».
-        activity_url = reverse('admin:activity_management')
-        on_activity = path.startswith(activity_url)
+        # Таблица активности открывается из раздела профилей, но её адрес лежит внутри пользователей
+        # (profiles/admin.py) — на ней подсвечиваем профили, а не «Пользователи».
+        on_activity = path.startswith(reverse('admin:activity_management'))
 
         def is_current(url):
             return bool(url) and not on_activity and path.startswith(url)
@@ -76,13 +76,12 @@ class GuildAdminSite(admin.AdminSite):
                 'models': models if len(models) > 1 else [],
                 'current': is_current(app['app_url']),
             }
+        if on_activity and 'profiles' in apps:
+            apps['profiles']['current'] = True
 
         groups = []
         for title, labels in NAV_GROUPS:
             items = [apps.pop(label) for label in labels if label in apps]
-            if title == 'Гильдия':
-                items.insert(0, {'name': 'Таблица активности', 'icon': 'table', 'url': activity_url,
-                                 'models': [], 'current': on_activity})
             if items:
                 groups.append({'title': title, 'items': items})
         if apps:
