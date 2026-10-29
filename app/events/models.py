@@ -117,7 +117,7 @@ class Event(models.Model):
 
 class Party(models.Model):
     """Отряд в ивенте."""
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='parties')
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='parties', verbose_name='Ивент')
     number = models.PositiveIntegerField('Номер отряда')
     leader = models.ForeignKey(
         User,
@@ -152,9 +152,9 @@ class Party(models.Model):
 
 class PartyMember(models.Model):
     """Участник отряда (не лидер)."""
-    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='members')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_memberships')
-    joined_at = models.DateTimeField(auto_now_add=True)
+    party = models.ForeignKey(Party, on_delete=models.CASCADE, related_name='members', verbose_name='Отряд')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_memberships', verbose_name='Игрок')
+    joined_at = models.DateTimeField('Добавлен', auto_now_add=True)
     
     class Meta:
         verbose_name = 'Участник отряда'
