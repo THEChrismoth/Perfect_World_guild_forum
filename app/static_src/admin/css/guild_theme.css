@@ -826,11 +826,60 @@ tfoot td,
     vertical-align: middle;
 }
 
+/* Список. У Django #changelist — это .module, внутри ещё контейнер формы и фильтр: если
+   карточками сделать все три, они вкладываются друг в друга и фильтр наезжает на таблицу.
+   Поэтому обёртки прозрачные, а карточки — только таблица и фильтр, рядом через отступ.
+   changelists.css подключается после этой темы, поэтому селекторы здесь с #changelist.module. */
+#changelist.module,
+#changelist.module .changelist-form-container {
+    background: none;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+}
+
+.change-list #changelist.filtered {
+    min-height: 0;
+}
+
+#changelist.module .changelist-form-container {
+    gap: 16px;
+}
+
+#changelist.module .changelist-form-container > div {
+    background: var(--ga-card-bg);
+    border: 1px solid var(--hairline-color);
+    border-radius: 14px;
+    box-shadow: var(--ga-card-shadow);
+    overflow: hidden;
+}
+
+#changelist.module .changelist-form-container:has(#changelist-filter) > div {
+    max-width: calc(100% - 256px);
+}
+
+#changelist.module .changelist-footer {
+    border-bottom: none;
+    padding: 12px 16px;
+}
+
 /* Список: панель поиска и действия */
 #changelist #toolbar {
     background: transparent;
     border: none;
-    padding: 0 0 14px;
+    border-bottom: 1px solid var(--hairline-color);
+    margin: 0;
+    padding: 14px 16px;
+}
+
+#changelist #toolbar #searchbar {
+    height: auto;
+}
+
+#changelist .xfull,
+#changelist .toplinks {
+    padding: 10px 16px;
 }
 
 #changelist #toolbar form input[type="text"] {
@@ -844,7 +893,9 @@ tfoot td,
 }
 
 /* Фильтры справа */
-#changelist-filter {
+#changelist #changelist-filter {
+    flex: 0 0 240px;
+    margin: 0;
     background: var(--ga-card-bg);
     border: 1px solid var(--hairline-color);
     border-radius: 14px;
@@ -918,6 +969,76 @@ a.button:hover {
     font-weight: 600;
     text-transform: none;
     letter-spacing: 0.2px;
+}
+
+/* «Добавить …» с плюсом справа: оставляем плюсу место, иначе он налезает на текст */
+.object-tools a.addlink {
+    padding-right: 32px;
+    background-position: right 12px center;
+}
+
+/* Inline-блоки (отряды, голоса, ставки): рамка у самого блока, внутренний .module без своей карточки */
+.inline-group .module,
+.inline-group .inline-related {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
+}
+
+/* Значения в списках и формах: статусы, голоса, скриншоты */
+.ga-text-ok { color: var(--ga-success); font-weight: 600; }
+.ga-text-warn { color: var(--ga-warning); font-weight: 600; }
+.ga-text-bad { color: var(--ga-danger) !important; font-weight: 600; }
+.ga-text-muted { color: var(--body-quiet-color); }
+
+.ga-select-wide {
+    min-width: 300px;
+}
+
+.ga-votes-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 10px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: var(--darkened-bg);
+}
+
+table.ga-votes {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table.ga-votes th,
+table.ga-votes td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.ga-shots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.ga-shots img {
+    display: block;
+    max-height: 110px;
+    border-radius: 8px;
+    border: 1px solid var(--hairline-color);
+}
+
+.ga-lot-preview {
+    display: block;
+    max-width: 96px;
+    max-height: 96px;
+    padding: 8px;
+    border-radius: 12px;
+    background: var(--darkened-bg);
+    border: 1px solid var(--hairline-color);
 }
 
 /* Кнопки собственных страниц и действий (используются в шаблонах проекта) */
@@ -1826,6 +1947,15 @@ a.ga-stat:hover {
 }
 
 @media (max-width: 1023px) {
+    #changelist.module .changelist-form-container:has(#changelist-filter) > div {
+        max-width: 100%;
+    }
+
+    #changelist #changelist-filter {
+        flex-basis: auto;
+        margin: 0;
+    }
+
     #container:has(> .ga-sidebar),
     html.ga-sidebar-collapsed #container:has(> .ga-sidebar) {
         grid-template-columns: minmax(0, 1fr);

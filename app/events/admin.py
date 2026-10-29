@@ -1,43 +1,42 @@
 from django.contrib import admin
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.shortcuts import redirect
 from django.contrib import messages
 from django import forms
 from django.contrib.auth.models import Group
+
+from core.admin_mixins import NoRelatedPopupsMixin, related_hint
 from .models import EventType, Event, Party, PartyMember, EventNotification, EventAttendance
 
 
-class PartyMemberInline(admin.TabularInline):
+def _parties_button(url):
+    return format_html('<a class="btn btn-outline-primary" href="{}">Управление отрядами</a>', url)
+
+
+class PartyMemberInline(NoRelatedPopupsMixin, admin.TabularInline):
     model = PartyMember
     extra = 1
-    raw_id_fields = ['user']
-    autocomplete_fields = ['user']
     fields = ['user', 'joined_at']
     readonly_fields = ['joined_at']
-    
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'user':
-            kwargs['widget'] = forms.Select(attrs={
-                'style': 'min-width: 250px; width: auto; padding: 5px;'
-            })
+            kwargs['widget'] = forms.Select(attrs={'class': 'ga-select-wide'})
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 @admin.register(Party)
-class PartyAdmin(admin.ModelAdmin):
+class PartyAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ['event_link', 'number', 'leader_link', 'members_count_display', 'is_full_display', 'edit_link']
     list_filter = ['event__event_type', 'event']
     search_fields = ['leader__username', 'event__event_type__name']
-    raw_id_fields = ['leader']
-    autocomplete_fields = ['leader']
     inlines = [PartyMemberInline]
-    
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'leader':
-            kwargs['widget'] = forms.Select(attrs={
-                'style': 'min-width: 300px; width: auto; padding: 8px; border: 1px solid #ccc; border-radius: 4px;'
-            })
+            kwargs['widget'] = forms.Select(attrs={'class': 'ga-select-wide'})
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     def event_link(self, obj):
@@ -59,32 +58,60 @@ class PartyAdmin(admin.ModelAdmin):
     
     def is_full_display(self, obj):
         if obj.is_full:
-            return format_html('<span style="color: green;">✅ Полный</span>')
-        return format_html('<span style="color: orange;">❌ {}/{} мест</span>', obj.available_slots, obj.event.event_type.party_size)
+            return format_html('<span class="ga-text-ok">{}</span>', 'Полный')
+        return format_html('<span class="ga-text-warn">Свободно {} из {}</span>', obj.available_slots, obj.event.event_type.party_size)
     is_full_display.short_description = 'Статус'
-    
+
     def edit_link(self, obj):
         url = reverse('admin:events_party_change', args=[obj.id])
-        return format_html('<a href="{}" style="background: #417690; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none;">✏️ Редактировать отряд</a>', url)
+        return format_html('<a class="btn btn-outline-primary" href="{}">Редактировать отряд</a>', url)
     edit_link.short_description = 'Действие'
 
 
+class EventTypeForm(forms.ModelForm):
+    class Meta:
+        model = EventType
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'forum_subcategory' in self.fields:
+            self.fields['forum_subcategory'].help_text = related_hint(
+                'Раздел форума, где обсуждают этот ивент. Нужного раздела нет?',
+                'admin:forum_subcategory_changelist', 'Разделы форума')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        for field in ('parties_count', 'party_size'):
+            if cleaned_data.get(field) == 0:
+                self.add_error(field, 'Должно быть хотя бы 1')
+        if (cleaned_data.get('ts_channels') or '').strip() \
+                and not cleaned_data.get('points_present') and not cleaned_data.get('points_absent'):
+            self.add_error('points_present', 'Каналы TeamSpeak указаны, но очков за участие и штрафа нет — '
+                                             'учёт посещения ничего не изменит')
+        return cleaned_data
+
+
 @admin.register(EventType)
-class EventTypeAdmin(admin.ModelAdmin):
+class EventTypeAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
+    form = EventTypeForm
     list_display = ['icon', 'name', 'parties_count', 'party_size', 'is_active', 'order', 'view_parties_link']
     list_filter = ['is_active']
     search_fields = ['name', 'description']
     list_editable = ['order', 'is_active']
-    
+
     fieldsets = (
-        ('Основная информация', {
-            'fields': ('name', 'icon', 'description', 'is_active', 'order')
+        ('Ивент', {
+            'fields': ('name', 'icon', 'description', 'is_active', 'order'),
+            'description': 'Тип ивента — постоянный шаблон (например, МТВ или ГВГ). Иконка — эмодзи перед названием, '
+                           'порядок задаёт место в списке ивентов на сайте. Неактивные типы на сайте не показываются.',
         }),
-        ('Структура ивента', {
+        ('Отряды', {
             'fields': ('parties_count', 'party_size'),
-            'description': 'Количество отрядов и размер каждого отряда (включая лидера)'
+            'description': 'Отряды создаются автоматически. Размер отряда считается вместе с лидером. '
+                           'При уменьшении числа отрядов удаляются только пустые.',
         }),
-        ('Связь с форумом', {
+        ('Форум', {
             'fields': ('forum_subcategory',),
         }),
         ('Очки активности за посещение', {
@@ -95,29 +122,43 @@ class EventTypeAdmin(admin.ModelAdmin):
         }),
     )
     readonly_fields = ['slug']
-    
+
     def view_parties_link(self, obj):
         try:
             event = Event.objects.get(event_type=obj)
-            url = reverse('admin:events_party_changelist') + f'?event__id__exact={event.id}'
-            return format_html('<a href="{}" style="background: #417690; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none;">📋 Управление отрядами</a>', url)
         except Event.DoesNotExist:
             return '—'
+        return _parties_button(reverse('admin:events_party_changelist') + f'?event__id__exact={event.id}')
     view_parties_link.short_description = 'Отряды'
 
 
+class EventForm(forms.ModelForm):
+    class Meta:
+        model = Event
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'event_type' in self.fields:
+            self.fields['event_type'].help_text = related_hint(
+                'Нужного типа нет?', 'admin:events_eventtype_add', 'Создать тип ивента')
+
+
 @admin.register(Event)
-class EventAdmin(admin.ModelAdmin):
+class EventAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
+    form = EventForm
     list_display = ['__str__', 'event_type_link', 'is_active', 'parties_info_short', 'manage_parties_link']
     list_filter = ['event_type', 'is_active']
     search_fields = ['event_type__name', 'notes']
-    
+
     fieldsets = (
-        ('Основная информация', {
-            'fields': ('event_type', 'is_active', 'notes')
+        ('Ивент', {
+            'fields': ('event_type', 'is_active', 'notes'),
+            'description': 'Ивент с отрядами создаётся сам вместе с типом ивента. Примечания видны игрокам '
+                           'на странице ивента — например, особенности этой недели.',
         }),
     )
-    
+
     def event_type_link(self, obj):
         url = reverse('admin:events_eventtype_change', args=[obj.event_type.id])
         return format_html('<a href="{}">{}</a>', url, obj.event_type.name)
@@ -132,23 +173,19 @@ class EventAdmin(admin.ModelAdmin):
     parties_info_short.short_description = 'Заполнение'
     
     def manage_parties_link(self, obj):
-        url = reverse('admin:events_party_changelist') + f'?event__id__exact={obj.id}'
-        return format_html('<a href="{}" style="background: #417690; color: white; padding: 4px 8px; border-radius: 4px; text-decoration: none;">📋 Управление отрядами</a>', url)
+        return _parties_button(reverse('admin:events_party_changelist') + f'?event__id__exact={obj.id}')
     manage_parties_link.short_description = 'Действие'
 
 
 @admin.register(PartyMember)
-class PartyMemberAdmin(admin.ModelAdmin):
+class PartyMemberAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ['user_link', 'party_link', 'joined_at', 'delete_link']
     list_filter = ['party__event__event_type', 'party__event']
     search_fields = ['user__username', 'party__event__event_type__name']
-    raw_id_fields = ['user']
-    
+
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == 'user':
-            kwargs['widget'] = forms.Select(attrs={
-                'style': 'min-width: 300px; width: auto; padding: 8px; border: 1px solid #ccc; border-radius: 4px;'
-            })
+            kwargs['widget'] = forms.Select(attrs={'class': 'ga-select-wide'})
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     def user_link(self, obj):
@@ -163,25 +200,57 @@ class PartyMemberAdmin(admin.ModelAdmin):
     
     def delete_link(self, obj):
         url = reverse('admin:events_partymember_delete', args=[obj.id])
-        return format_html('<a href="{}" style="color: #ba2121;" onclick="return confirm(\'Удалить участника?\')">🗑️ Удалить</a>', url)
+        return format_html('<a class="ga-text-bad" href="{}" onclick="return confirm(\'Удалить участника?\')">Удалить</a>', url)
     delete_link.short_description = 'Действие'
 
 
+class EventNotificationForm(forms.ModelForm):
+    class Meta:
+        model = EventNotification
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'event_type' in self.fields:
+            self.fields['event_type'].help_text = related_hint(
+                'Нужного типа нет?', 'admin:events_eventtype_add', 'Создать тип ивента')
+        if 'recipient_groups' in self.fields:
+            self.fields['recipient_groups'].help_text = related_hint(
+                'Если ничего не выбрано, приглашение получат все члены гильдии.',
+                'admin:auth_group_changelist', 'Группы')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        event_type, event_date = cleaned_data.get('event_type'), cleaned_data.get('event_date')
+        if not self.instance.pk and event_date and event_date < timezone.localdate():
+            self.add_error('event_date', 'Эта дата уже прошла')
+        if event_type and event_type.ts_channels.strip() and not cleaned_data.get('start_time'):
+            self.add_error('start_time', f'У типа «{event_type.name}» включён учёт посещения в TeamSpeak — '
+                                         'без времени начала очки не начислятся')
+        return cleaned_data
+
+
 @admin.register(EventNotification)
-class EventNotificationAdmin(admin.ModelAdmin):
+class EventNotificationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
+    form = EventNotificationForm
     list_display = ['event_type', 'event_date', 'subject', 'send_status', 'recipient_groups_display', 'sent_at']
     list_filter = ['event_type', 'event_date', 'recipient_groups']
     search_fields = ['subject', 'message']
     readonly_fields = ['sent_at', 'responses_count', 'points_processed_at']
-    filter_horizontal = ['recipient_groups']  # Убрали sent_to_users отсюда
-    
+    filter_horizontal = ['recipient_groups']
+
     fieldsets = (
-        ('Основная информация', {
-            'fields': ('event_type', 'event_date', 'start_time', 'duration_minutes', 'subject', 'message')
+        ('Когда', {
+            'fields': ('event_type', 'event_date', 'start_time', 'duration_minutes'),
+            'description': 'Время — по Москве. По нему бот TeamSpeak засчитывает посещение: присутствие считается '
+                           'от начала до конца ивента (начало + длительность).',
+        }),
+        ('Приглашение', {
+            'fields': ('subject', 'message'),
+            'description': 'Игроки получат уведомление на сайте и смогут ответить «Приду», «Не приду» или «Возможно».',
         }),
         ('Получатели', {
             'fields': ('recipient_groups',),
-            'description': 'Выберите группы пользователей, которые получат уведомление. Если не выбрано - отправляется всем членам гильдии'
         }),
         ('Статистика', {
             'fields': ('sent_at', 'responses_count', 'points_processed_at'),
@@ -203,9 +272,9 @@ class EventNotificationAdmin(admin.ModelAdmin):
     def send_status(self, obj):
         if obj.sent_at:
             sent_count = obj.sent_to_users.count()
-            return format_html('<span style="color: green;">✅ Отправлено {} ({})</span>', 
-                             obj.sent_at.strftime('%d.%m.%Y %H:%M'), sent_count)
-        return format_html('<span style="color: orange;">⏳ Не отправлено</span>')
+            return format_html('<span class="ga-text-ok">Отправлено {} ({})</span>',
+                               timezone.localtime(obj.sent_at).strftime('%d.%m.%Y %H:%M'), sent_count)
+        return format_html('<span class="ga-text-warn">{}</span>', 'Не отправлено')
     send_status.short_description = 'Статус'
     
     actions = ['send_selected_notifications']
@@ -268,11 +337,10 @@ class EventNotificationAdmin(admin.ModelAdmin):
 
 
 @admin.register(EventAttendance)
-class EventAttendanceAdmin(admin.ModelAdmin):
+class EventAttendanceAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ['user', 'notification_link', 'status', 'updated_at']
     list_filter = ['status', 'notification__event_type', 'notification__event_date']
     search_fields = ['user__username', 'comment']
-    raw_id_fields = ['user']
     readonly_fields = ['created_at', 'updated_at']
     
     def notification_link(self, obj):

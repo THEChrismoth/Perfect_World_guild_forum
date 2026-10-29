@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.utils import timezone
 from django.contrib import messages
@@ -5,7 +6,30 @@ from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.template.response import TemplateResponse
 from django.http import HttpResponseRedirect
+from django.utils.html import format_html
+
+from core.admin_mixins import NoRelatedPopupsMixin
 from .models import AuctionLot, AuctionBid, PointsTransaction
+
+
+class AuctionLotForm(forms.ModelForm):
+    class Meta:
+        model = AuctionLot
+        fields = '__all__'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('icon_choice') == 'custom' and not cleaned_data.get('custom_image'):
+            self.add_error('custom_image', 'Загрузите картинку или выберите готовую иконку')
+        start, end = cleaned_data.get('start_date'), cleaned_data.get('end_date')
+        if start and end and end <= start:
+            self.add_error('end_date', 'Окончание должно быть позже начала')
+        if not self.instance.pk and end and end <= timezone.now():
+            self.add_error('end_date', 'Дата окончания уже прошла — ставки по лоту сразу будут закрыты')
+        initial_price, min_step = cleaned_data.get('initial_price'), cleaned_data.get('min_step')
+        if initial_price and min_step and min_step > initial_price:
+            self.add_error('min_step', 'Шаг ставки больше начальной цены — проверьте числа')
+        return cleaned_data
 
 
 class AuctionBidInline(admin.TabularInline):
@@ -21,24 +45,42 @@ class AuctionBidInline(admin.TabularInline):
 
 
 @admin.register(AuctionLot)
-class AuctionLotAdmin(admin.ModelAdmin):
+class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
+    form = AuctionLotForm
     list_display = ('name', 'icon_choice', 'initial_price', 'current_price', 'status', 'ended_at', 'total_bids')
     list_filter = ('status', 'icon_choice', 'created_at', 'ended_at')
     search_fields = ('name', 'slug', 'description')
-    readonly_fields = ('current_price', 'ended_at', 'ended_by')
-    
-    fieldsets = (
-        ('Основная информация', {
-            'fields': ('name', 'description', 'icon_choice', 'custom_image')
+    readonly_fields = ('icon_preview', 'current_price', 'ended_at', 'ended_by')
+
+    main_fieldsets = (
+        ('Лот', {
+            'fields': ('name', 'description', 'icon_choice', 'custom_image', 'icon_preview'),
+            'description': 'Так лот будет выглядеть на странице аукциона. Готовые иконки — предметы из игры; '
+                           'для другого предмета выберите «Своя картинка» и загрузите изображение.',
         }),
-        ('Аукционные параметры', {
-            'fields': ('initial_price', 'min_step', 'start_date', 'end_date')
-        }),
-        ('Статус', {
-            'fields': ('status', 'current_price', 'ended_by', 'ended_at')
+        ('Ставки', {
+            'fields': ('initial_price', 'min_step', 'start_date', 'end_date'),
+            'description': 'Цены — в очках активности. После даты окончания ставки закрываются, а победителя '
+                           'выбирает администратор кнопкой «Завершить аукцион» вверху страницы лота.',
         }),
     )
-    
+    status_fieldset = ('Состояние торгов', {
+        'fields': ('status', 'current_price', 'ended_by', 'ended_at'),
+        'description': 'Завершайте и отменяйте лот кнопками вверху страницы: тогда очки списываются и возвращаются '
+                       'участникам автоматически. Ручная смена статуса очки не трогает.',
+    })
+
+    def get_fieldsets(self, request, obj=None):
+        # Новый лот всегда начинается активным — состояние торгов показываем только у созданных.
+        return self.main_fieldsets + ((self.status_fieldset,) if obj else ())
+
+    @admin.display(description='Как выглядит')
+    def icon_preview(self, obj):
+        url = obj.get_image_url() if obj and obj.pk else ''
+        if not url:
+            return 'появится после сохранения'
+        return format_html('<img class="ga-lot-preview" src="{}" alt="">', url)
+
     actions = ['force_end_auction', 'cancel_selected_auctions']
     inlines = [AuctionBidInline]
     
@@ -187,7 +229,7 @@ class AuctionLotAdmin(admin.ModelAdmin):
 
 
 @admin.register(AuctionBid)
-class AuctionBidAdmin(admin.ModelAdmin):
+class AuctionBidAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
     list_filter = ('is_winner', 'is_frozen', 'status', 'created_at')
     search_fields = ('bidder__username', 'lot__name')
@@ -201,7 +243,7 @@ class AuctionBidAdmin(admin.ModelAdmin):
 
 
 @admin.register(PointsTransaction)
-class PointsTransactionAdmin(admin.ModelAdmin):
+class PointsTransactionAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ('user', 'amount', 'transaction_type', 'description', 'created_at')
     list_filter = ('transaction_type', 'created_at')
     search_fields = ('user__username', 'description')
