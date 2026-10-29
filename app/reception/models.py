@@ -20,7 +20,7 @@ class Application(models.Model):
         ('abstain', 'Воздержался'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications', verbose_name='Кандидат')
     player_class = models.CharField('Класс персонажа', max_length=20)
 
     previous_nicknames = models.TextField('Прошлые никнеймы', blank=True)
@@ -115,8 +115,8 @@ class ApplicationVote(models.Model):
         ('abstain', 'Воздержался'),
     ]
 
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='votes')
-    voter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_votes')
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='votes', verbose_name='Заявка')
+    voter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_votes', verbose_name='Голосующий')
     vote = models.CharField('Голос', max_length=10, choices=VOTE_CHOICES)
     comment = models.TextField('Комментарий', blank=True)
     created_at = models.DateTimeField('Дата голосования', auto_now_add=True)
