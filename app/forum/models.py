@@ -36,7 +36,7 @@ def _check_visibility(obj, user):
 
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField('Адрес в ссылке', unique=True)
     # Только для авторизованных пользователей.
     require_auth = models.BooleanField(
         'Только для авторизованных',
@@ -70,7 +70,7 @@ class Category(models.Model):
 
 class SubCategory(models.Model):
     title = models.CharField('Название подкатегории', max_length=100)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField('Адрес в ссылке', unique=True)
     category = models.ForeignKey(
         Category, 
         on_delete=models.CASCADE,
@@ -141,15 +141,15 @@ class SubCategory(models.Model):
 
 class Topic(models.Model):
     title = models.CharField('Название темы', max_length=100)
-    slug = models.SlugField(unique=True, blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topics')
+    slug = models.SlugField('Адрес в ссылке', unique=True, blank=True)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topics', verbose_name='Автор')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     subcategory = models.ForeignKey(
         SubCategory, 
         on_delete=models.CASCADE,
         related_name='topics',
-        verbose_name='Подкатегории'
+        verbose_name='Подкатегория'
     )
 
     class Meta:
@@ -191,7 +191,7 @@ class PostImage(models.Model):
 
 class Post(models.Model):
     content = models.TextField('Содержание', blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', verbose_name='Автор')
     topic = models.ForeignKey(
         Topic, 
         on_delete=models.CASCADE,
