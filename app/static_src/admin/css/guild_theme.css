@@ -954,9 +954,32 @@ a.button:hover {
     padding: 9px 16px;
 }
 
-/* Кнопки над формами и списками */
+/* Кнопки над формами и списками — в одну строку справа. У Django ссылки там с float,
+   а свои кнопки-формы (тестовое письмо, резервная копия) без него и вставали ниже. */
 .object-tools {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
     margin-top: -6px;
+}
+
+.object-tools li {
+    list-style: none;
+}
+
+.object-tools li + li {
+    margin-left: 0;
+}
+
+.object-tools a:link,
+.object-tools a:visited {
+    float: none;
+}
+
+.object-tools form {
+    margin: 0;
 }
 
 .object-tools a,
