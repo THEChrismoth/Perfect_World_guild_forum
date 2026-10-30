@@ -15,8 +15,11 @@
     {% else %}
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     {% endif %}
-    {# Свёрнутое меню запоминается; класс ставим до отрисовки, чтобы меню не «прыгало» #}
-    <script>if (localStorage.getItem('gaSidebar') === 'collapsed') document.documentElement.classList.add('ga-sidebar-collapsed');</script>
+    {# Цвет оформления из профиля и свёрнутое меню — до отрисовки, чтобы страница не «прыгала» #}
+    <script>
+        document.documentElement.dataset.accent = '{{ ga_accent|default:"indigo"|escapejs }}';
+        if (localStorage.getItem('gaSidebar') === 'collapsed') document.documentElement.classList.add('ga-sidebar-collapsed');
+    </script>
 {% endblock %}
 
 {# Шапка: боковое меню слева, сверху — кнопка меню, хлебные крошки и пользователь. #}
@@ -65,6 +68,17 @@
                             {% ga_icon "chevron-down" %}
                         </summary>
                         <div class="ga-user-dropdown">
+                            <form class="ga-accent-picker" method="post" action="{% url 'admin:set_accent' %}" data-ga-accent-form>
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <span class="ga-accent-title">Цвет оформления</span>
+                                <span class="ga-accent-swatches">
+                                    {% for value, label in ga_accent_choices %}
+                                        <button type="submit" name="accent" value="{{ value }}" class="ga-swatch" data-accent-swatch="{{ value }}"
+                                                title="{{ label }}" aria-label="{{ label }}" aria-pressed="{% if value == ga_accent %}true{% else %}false{% endif %}"></button>
+                                    {% endfor %}
+                                </span>
+                            </form>
                             <a href="{% firstof site_url '/' %}" target="_blank" rel="noopener">{% ga_icon "globe" %}Открыть сайт</a>
                             {% if user.has_usable_password %}
                                 <a href="{% url 'admin:password_change' %}">{% ga_icon "key" %}Сменить пароль</a>
@@ -100,6 +114,20 @@
                 });
                 backdrop.addEventListener('click', function () { setOpen(false); });
                 narrow.addEventListener('change', function () { setOpen(false); });
+                // Цвет оформления: перекрашиваем сразу, а в профиль сохраняем фоном.
+                var accentForm = document.querySelector('[data-ga-accent-form]');
+                accentForm.addEventListener('submit', function (event) {
+                    var swatch = event.submitter;
+                    if (!swatch || !window.fetch) return;
+                    event.preventDefault();
+                    root.dataset.accent = swatch.value;
+                    accentForm.querySelectorAll('[data-accent-swatch]').forEach(function (button) {
+                        button.setAttribute('aria-pressed', button === swatch ? 'true' : 'false');
+                    });
+                    var data = new FormData(accentForm);
+                    data.set('accent', swatch.value);
+                    fetch(accentForm.action, {method: 'POST', body: data, headers: {'X-Requested-With': 'fetch'}});
+                });
                 // Меню пользователя закрывается кликом мимо него.
                 document.addEventListener('click', function (event) {
                     var menu = document.querySelector('.ga-user-menu[open]');

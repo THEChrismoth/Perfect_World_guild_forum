@@ -85,6 +85,29 @@ class DashboardTests(TestCase):
 
         self.assertContains(response, '<span class="brand-text">Ermitage</span>', html=True)
 
+    def test_accent_color_saved_to_profile(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'teal', 'next': '/admin/'})
+
+        self.assertRedirects(response, '/admin/')
+        self.admin.profile.refresh_from_db()
+        self.assertEqual(self.admin.profile.accent_color, 'teal')
+        self.assertContains(self.client.get(reverse('admin:index')), "dataset.accent = 'teal'")
+
+    def test_accent_color_background_request_and_bad_values(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'pink'}, headers={'X-Requested-With': 'fetch'})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.client.post(reverse('admin:set_accent'), {'accent': 'red'}).status_code, 400)
+        self.assertEqual(self.client.get(reverse('admin:set_accent')).status_code, 405)
+        # Чужой адрес возврата не принимаем — возвращаем на главную админки.
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'blue', 'next': 'https://evil.example/'})
+        self.assertRedirects(response, reverse('admin:index'))
+        self.admin.profile.refresh_from_db()
+        self.assertEqual(self.admin.profile.accent_color, 'blue')
+
     def test_cancel_auction_page_renders(self):
         from auction.models import AuctionLot
 

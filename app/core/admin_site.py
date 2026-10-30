@@ -4,7 +4,11 @@
 @admin.register и admin.site в проекте работают с этим классом без изменений.
 """
 from django.contrib import admin
-from django.urls import reverse
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import redirect
+from django.urls import path, reverse
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 # Порядок разделов в меню: сначала повседневные дела гильдии, в конце — служебное.
 # Иконки — имена из core/templatetags/ga_admin.py.
@@ -38,6 +42,7 @@ class GuildAdminSite(admin.AdminSite):
     enable_nav_sidebar = False
 
     def each_context(self, request):
+        from profiles.models import ACCENT_CHOICES
         from .models import SiteSettings
 
         context = super().each_context(request)
@@ -46,7 +51,35 @@ class GuildAdminSite(admin.AdminSite):
         context['site_title'] = f'{site_name} · управление'
         if context.get('available_apps'):
             context['ga_nav'] = self._build_nav(request, context['available_apps'])
+        context['ga_accent'] = self._accent(request.user)
+        context['ga_accent_choices'] = ACCENT_CHOICES
         return context
+
+    @staticmethod
+    def _accent(user):
+        profile = getattr(user, 'profile', None) if user.is_authenticated else None
+        return profile.accent_color if profile else 'indigo'
+
+    def get_urls(self):
+        return [
+            path('accent/', self.admin_view(require_POST(self.set_accent_view)), name='set_accent'),
+        ] + super().get_urls()
+
+    def set_accent_view(self, request):
+        """Сохраняет цвет оформления в профиль. Меню в шапке шлёт запрос фоном, без перезагрузки."""
+        from profiles.models import ACCENT_CHOICES, Profile
+
+        color = request.POST.get('accent')
+        if color not in dict(ACCENT_CHOICES):
+            return HttpResponseBadRequest('Неизвестный цвет')
+        Profile.objects.update_or_create(user=request.user, defaults={'accent_color': color})
+        if request.headers.get('X-Requested-With') == 'fetch':
+            return HttpResponse(status=204)
+        # Без JavaScript форма отправляется обычным образом — возвращаем на ту же страницу.
+        next_url = request.POST.get('next', '')
+        if not url_has_allowed_host_and_scheme(next_url, {request.get_host()}, require_https=request.is_secure()):
+            next_url = reverse('admin:index')
+        return redirect(next_url)
 
     def get_app_list(self, request, app_label=None):
         app_list = super().get_app_list(request, app_label)

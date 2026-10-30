@@ -19,6 +19,14 @@ TIMEZONE_CHOICES = [
     ('UTC+12', 'UTC+12:00 (Камчатка)'),
 ]
 
+ACCENT_CHOICES = [
+    ('indigo', 'Индиго'),
+    ('blue', 'Синий'),
+    ('teal', 'Бирюзовый'),
+    ('pink', 'Розовый'),
+    ('orange', 'Оранжевый'),
+]
+
 
 class Profile(models.Model):
     CLASS_CHOICES = [
@@ -77,6 +85,9 @@ class Profile(models.Model):
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
     last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
+
+    # Цвет оформления (пока — в админ-панели). Палитры в static_src/admin/css/guild_theme.css.
+    accent_color = models.CharField('Цвет оформления', max_length=10, choices=ACCENT_CHOICES, default='indigo')
 
     def save(self, *args, **kwargs):
         # Автоматически поддерживаем консистентность при сохранении.

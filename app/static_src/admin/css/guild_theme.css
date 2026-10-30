@@ -2,16 +2,92 @@
    Тема админ-панели гильдии поверх стандартной админки Django.
    Цвета — через CSS-переменные Django, поэтому работают все страницы
    и встроенный переключатель темы (светлая / тёмная / как в системе).
-   Акцент в обеих темах один — индиго.
    Подключается в templates/admin/base_site.html.
+
+   Цвет оформления каждый выбирает себе сам (профиль → accent_color, по умолчанию индиго).
+   Палитра задаёт оттенки акцента отдельно для светлой (--ga-l-*) и тёмной (--ga-d-*) темы,
+   а темы ниже берут акцент только из этих переменных.
    ===================================================================== */
+
+/* ---------- Палитры цвета оформления ---------- */
+:root,
+html[data-accent="indigo"] {
+    --ga-l-accent: #4f46e5;
+    --ga-l-rgb: 79, 70, 229;
+    --ga-l-strong: #4338ca;
+    --ga-l-deep: #3730a3;
+    --ga-d-accent: #6366f1;
+    --ga-d-rgb: 99, 102, 241;
+    --ga-d-strong: #818cf8;
+    --ga-d-light: #a5b4fc;
+    --ga-d-fg: #ffffff;
+    --ga-d-button: #4f46e5;
+    --ga-d-button-hover: #6366f1;
+}
+
+html[data-accent="blue"] {
+    --ga-l-accent: #2563eb;
+    --ga-l-rgb: 37, 99, 235;
+    --ga-l-strong: #1d4ed8;
+    --ga-l-deep: #1e40af;
+    --ga-d-accent: #3b82f6;
+    --ga-d-rgb: 59, 130, 246;
+    --ga-d-strong: #60a5fa;
+    --ga-d-light: #93c5fd;
+    --ga-d-fg: #ffffff;
+    --ga-d-button: #2563eb;
+    --ga-d-button-hover: #3b82f6;
+}
+
+/* Светлые бирюзовый и оранжевый в тёмной теме — с тёмным текстом поверх: белый на них не читается */
+html[data-accent="teal"] {
+    --ga-l-accent: #0f766e;
+    --ga-l-rgb: 15, 118, 110;
+    --ga-l-strong: #115e59;
+    --ga-l-deep: #134e4a;
+    --ga-d-accent: #14b8a6;
+    --ga-d-rgb: 20, 184, 166;
+    --ga-d-strong: #2dd4bf;
+    --ga-d-light: #5eead4;
+    --ga-d-fg: #042f2e;
+    --ga-d-button: #0f766e;
+    --ga-d-button-hover: #0d9488;
+}
+
+html[data-accent="pink"] {
+    --ga-l-accent: #db2777;
+    --ga-l-rgb: 219, 39, 119;
+    --ga-l-strong: #be185d;
+    --ga-l-deep: #9d174d;
+    --ga-d-accent: #ec4899;
+    --ga-d-rgb: 236, 72, 153;
+    --ga-d-strong: #f472b6;
+    --ga-d-light: #f9a8d4;
+    --ga-d-fg: #ffffff;
+    --ga-d-button: #db2777;
+    --ga-d-button-hover: #ec4899;
+}
+
+html[data-accent="orange"] {
+    --ga-l-accent: #c2410c;
+    --ga-l-rgb: 194, 65, 12;
+    --ga-l-strong: #9a3412;
+    --ga-l-deep: #7c2d12;
+    --ga-d-accent: #f97316;
+    --ga-d-rgb: 249, 115, 22;
+    --ga-d-strong: #fb923c;
+    --ga-d-light: #fdba74;
+    --ga-d-fg: #431407;
+    --ga-d-button: #c2410c;
+    --ga-d-button-hover: #ea580c;
+}
 
 /* ---------- Светлая тема ---------- */
 html[data-theme="light"],
 :root {
-    --ga-accent: #4f46e5;
-    --ga-accent-rgb: 79, 70, 229;
-    --ga-accent-strong: #4338ca;
+    --ga-accent: var(--ga-l-accent);
+    --ga-accent-rgb: var(--ga-l-rgb);
+    --ga-accent-strong: var(--ga-l-strong);
     --ga-accent-fg: #ffffff;
     --ga-page-bg: #f4f5fb;
     --ga-card-bg: #ffffff;
@@ -19,8 +95,8 @@ html[data-theme="light"],
     --ga-hover: #f1f2f9;
     --ga-card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
     --ga-popup-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-    --ga-card-glow: rgba(79, 70, 229, 0.035);
-    --ga-soft: rgba(79, 70, 229, 0.09);
+    --ga-card-glow: rgba(var(--ga-accent-rgb), 0.035);
+    --ga-soft: rgba(var(--ga-accent-rgb), 0.09);
     --ga-success: #16a34a;
     --ga-success-rgb: 22, 163, 74;
     --ga-warning: #d97706;
@@ -28,9 +104,9 @@ html[data-theme="light"],
     --ga-danger: #dc2626;
     --ga-danger-rgb: 220, 38, 38;
 
-    --primary: #4f46e5;
-    --secondary: #4338ca;
-    --accent: #c7d2fe;
+    --primary: var(--ga-accent);
+    --secondary: var(--ga-accent-strong);
+    --accent: rgba(var(--ga-accent-rgb), 0.3);
     --primary-fg: #ffffff;
 
     --body-fg: #2b2f3a;
@@ -48,9 +124,9 @@ html[data-theme="light"],
     --breadcrumbs-link-fg: #6b7180;
     --breadcrumbs-bg: transparent;
 
-    --link-fg: #4f46e5;
-    --link-hover-color: #3730a3;
-    --link-selected-fg: #3730a3;
+    --link-fg: var(--ga-accent);
+    --link-hover-color: var(--ga-l-deep);
+    --link-selected-fg: var(--ga-l-deep);
 
     --hairline-color: #e8eaf2;
     --border-color: #d7dae6;
@@ -59,26 +135,26 @@ html[data-theme="light"],
     --message-success-bg: #dcfce7;
     --message-warning-bg: #fef3c7;
     --message-error-bg: #fee2e2;
-    --message-info-bg: #e0e7ff;
+    --message-info-bg: rgba(var(--ga-accent-rgb), 0.12);
     --message-debug-bg: #f1f5f9;
 
     --darkened-bg: #f6f7fc;
-    --selected-bg: #e0e7ff;
-    --selected-row: #eef2ff;
+    --selected-bg: rgba(var(--ga-accent-rgb), 0.16);
+    --selected-row: rgba(var(--ga-accent-rgb), 0.07);
 
     --button-fg: #ffffff;
-    --button-bg: #4f46e5;
-    --button-hover-bg: #4338ca;
-    --default-button-bg: #4338ca;
-    --default-button-hover-bg: #3730a3;
+    --button-bg: var(--ga-accent);
+    --button-hover-bg: var(--ga-accent-strong);
+    --default-button-bg: var(--ga-accent-strong);
+    --default-button-hover-bg: var(--ga-l-deep);
     --close-button-bg: #94a3b8;
     --close-button-hover-bg: #64748b;
     --delete-button-bg: #dc2626;
     --delete-button-hover-bg: #b91c1c;
 
     --object-tools-fg: #ffffff;
-    --object-tools-bg: #4f46e5;
-    --object-tools-hover-bg: #4338ca;
+    --object-tools-bg: var(--ga-accent);
+    --object-tools-hover-bg: var(--ga-accent-strong);
 
     --font-family-primary: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
 
@@ -88,18 +164,18 @@ html[data-theme="light"],
 /* ---------- Тёмная тема: те же значения для «как в системе» и для явного выбора ---------- */
 @media (prefers-color-scheme: dark) {
     :root {
-        --ga-accent: #6366f1;
-        --ga-accent-rgb: 99, 102, 241;
-        --ga-accent-strong: #818cf8;
-        --ga-accent-fg: #ffffff;
+        --ga-accent: var(--ga-d-accent);
+        --ga-accent-rgb: var(--ga-d-rgb);
+        --ga-accent-strong: var(--ga-d-strong);
+        --ga-accent-fg: var(--ga-d-fg);
         --ga-page-bg: #0b1120;
         --ga-card-bg: #111a2e;
         --ga-sidebar-bg: #0e1627;
         --ga-hover: #17223a;
         --ga-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
         --ga-popup-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-        --ga-card-glow: rgba(99, 102, 241, 0.07);
-        --ga-soft: rgba(99, 102, 241, 0.16);
+        --ga-card-glow: rgba(var(--ga-accent-rgb), 0.07);
+        --ga-soft: rgba(var(--ga-accent-rgb), 0.16);
         --ga-success: #34d399;
         --ga-success-rgb: 52, 211, 153;
         --ga-warning: #fbbf24;
@@ -107,9 +183,9 @@ html[data-theme="light"],
         --ga-danger: #f87171;
         --ga-danger-rgb: 248, 113, 113;
 
-        --primary: #6366f1;
-        --secondary: #4f46e5;
-        --accent: #6366f1;
+        --primary: var(--ga-accent);
+        --secondary: var(--ga-d-button);
+        --accent: var(--ga-accent);
         --primary-fg: #ffffff;
         --body-fg: #d4d9e6;
         --body-bg: #111a2e;
@@ -123,48 +199,48 @@ html[data-theme="light"],
         --breadcrumbs-fg: #f5f7ff;
         --breadcrumbs-link-fg: #8590a8;
         --breadcrumbs-bg: transparent;
-        --link-fg: #8b93f8;
-        --link-hover-color: #a5b4fc;
-        --link-selected-fg: #a5b4fc;
+        --link-fg: var(--ga-d-strong);
+        --link-hover-color: var(--ga-d-light);
+        --link-selected-fg: var(--ga-d-light);
         --hairline-color: #1c2740;
         --border-color: #293655;
         --error-fg: #f87171;
         --message-success-bg: rgba(52, 211, 153, 0.12);
         --message-warning-bg: rgba(251, 191, 36, 0.12);
         --message-error-bg: rgba(248, 113, 113, 0.14);
-        --message-info-bg: rgba(99, 102, 241, 0.16);
+        --message-info-bg: rgba(var(--ga-accent-rgb), 0.16);
         --message-debug-bg: #17223a;
         --darkened-bg: #0d1526;
-        --selected-bg: rgba(99, 102, 241, 0.2);
-        --selected-row: rgba(99, 102, 241, 0.14);
+        --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
+        --selected-row: rgba(var(--ga-accent-rgb), 0.14);
         --button-fg: #ffffff;
-        --button-bg: #4f46e5;
-        --button-hover-bg: #6366f1;
-        --default-button-bg: #6366f1;
-        --default-button-hover-bg: #818cf8;
+        --button-bg: var(--ga-d-button);
+        --button-hover-bg: var(--ga-d-button-hover);
+        --default-button-bg: var(--ga-d-button);
+        --default-button-hover-bg: var(--ga-d-button-hover);
         --close-button-bg: #334160;
         --close-button-hover-bg: #43527a;
         --delete-button-bg: #dc2626;
         --delete-button-hover-bg: #ef4444;
         --object-tools-fg: #ffffff;
-        --object-tools-bg: #4f46e5;
-        --object-tools-hover-bg: #6366f1;
+        --object-tools-bg: var(--ga-d-button);
+        --object-tools-hover-bg: var(--ga-d-button-hover);
     }
 }
 
 html[data-theme="dark"] {
-    --ga-accent: #6366f1;
-    --ga-accent-rgb: 99, 102, 241;
-    --ga-accent-strong: #818cf8;
-    --ga-accent-fg: #ffffff;
+    --ga-accent: var(--ga-d-accent);
+    --ga-accent-rgb: var(--ga-d-rgb);
+    --ga-accent-strong: var(--ga-d-strong);
+    --ga-accent-fg: var(--ga-d-fg);
     --ga-page-bg: #0b1120;
     --ga-card-bg: #111a2e;
     --ga-sidebar-bg: #0e1627;
     --ga-hover: #17223a;
     --ga-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
     --ga-popup-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-    --ga-card-glow: rgba(99, 102, 241, 0.07);
-    --ga-soft: rgba(99, 102, 241, 0.16);
+    --ga-card-glow: rgba(var(--ga-accent-rgb), 0.07);
+    --ga-soft: rgba(var(--ga-accent-rgb), 0.16);
     --ga-success: #34d399;
     --ga-success-rgb: 52, 211, 153;
     --ga-warning: #fbbf24;
@@ -172,9 +248,9 @@ html[data-theme="dark"] {
     --ga-danger: #f87171;
     --ga-danger-rgb: 248, 113, 113;
 
-    --primary: #6366f1;
-    --secondary: #4f46e5;
-    --accent: #6366f1;
+    --primary: var(--ga-accent);
+    --secondary: var(--ga-d-button);
+    --accent: var(--ga-accent);
     --primary-fg: #ffffff;
     --body-fg: #d4d9e6;
     --body-bg: #111a2e;
@@ -188,32 +264,32 @@ html[data-theme="dark"] {
     --breadcrumbs-fg: #f5f7ff;
     --breadcrumbs-link-fg: #8590a8;
     --breadcrumbs-bg: transparent;
-    --link-fg: #8b93f8;
-    --link-hover-color: #a5b4fc;
-    --link-selected-fg: #a5b4fc;
+    --link-fg: var(--ga-d-strong);
+    --link-hover-color: var(--ga-d-light);
+    --link-selected-fg: var(--ga-d-light);
     --hairline-color: #1c2740;
     --border-color: #293655;
     --error-fg: #f87171;
     --message-success-bg: rgba(52, 211, 153, 0.12);
     --message-warning-bg: rgba(251, 191, 36, 0.12);
     --message-error-bg: rgba(248, 113, 113, 0.14);
-    --message-info-bg: rgba(99, 102, 241, 0.16);
+    --message-info-bg: rgba(var(--ga-accent-rgb), 0.16);
     --message-debug-bg: #17223a;
     --darkened-bg: #0d1526;
-    --selected-bg: rgba(99, 102, 241, 0.2);
-    --selected-row: rgba(99, 102, 241, 0.14);
+    --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
+    --selected-row: rgba(var(--ga-accent-rgb), 0.14);
     --button-fg: #ffffff;
-    --button-bg: #4f46e5;
-    --button-hover-bg: #6366f1;
-    --default-button-bg: #6366f1;
-    --default-button-hover-bg: #818cf8;
+    --button-bg: var(--ga-d-button);
+    --button-hover-bg: var(--ga-d-button-hover);
+    --default-button-bg: var(--ga-d-button);
+    --default-button-hover-bg: var(--ga-d-button-hover);
     --close-button-bg: #334160;
     --close-button-hover-bg: #43527a;
     --delete-button-bg: #dc2626;
     --delete-button-hover-bg: #ef4444;
     --object-tools-fg: #ffffff;
-    --object-tools-bg: #4f46e5;
-    --object-tools-hover-bg: #6366f1;
+    --object-tools-bg: var(--ga-d-button);
+    --object-tools-hover-bg: var(--ga-d-button-hover);
 }
 
 /* =====================================================================
@@ -674,6 +750,53 @@ html.ga-sidebar-collapsed .ga-sidebar {
     margin: 0;
 }
 
+/* Выбор цвета оформления в меню пользователя */
+.ga-accent-picker {
+    margin: 0 0 6px;
+    padding: 8px 12px 12px;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.ga-accent-title {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--body-quiet-color);
+}
+
+.ga-accent-swatches {
+    display: flex;
+    gap: 8px;
+}
+
+#header .ga-accent-picker .ga-swatch {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid var(--ga-card-bg);
+    background: var(--ga-swatch);
+    box-shadow: 0 0 0 1px var(--hairline-color);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+#header .ga-accent-picker .ga-swatch:hover {
+    background: var(--ga-swatch);
+    transform: scale(1.1);
+}
+
+#header .ga-accent-picker .ga-swatch[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px var(--ga-swatch);
+}
+
+.ga-swatch[data-accent-swatch="indigo"] { --ga-swatch: #6366f1; }
+.ga-swatch[data-accent-swatch="blue"] { --ga-swatch: #3b82f6; }
+.ga-swatch[data-accent-swatch="teal"] { --ga-swatch: #14b8a6; }
+.ga-swatch[data-accent-swatch="pink"] { --ga-swatch: #ec4899; }
+.ga-swatch[data-accent-swatch="orange"] { --ga-swatch: #f97316; }
+
 /* Шапка страниц без меню (вход в админку) */
 #site-name a {
     display: inline-flex;
@@ -1079,10 +1202,13 @@ table.ga-votes td {
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.btn-primary,
 .btn-success,
 .btn-danger {
     color: #ffffff !important;
+}
+
+.btn-primary {
+    color: var(--ga-accent-fg) !important;
 }
 
 .btn-primary { background: var(--ga-accent); }
