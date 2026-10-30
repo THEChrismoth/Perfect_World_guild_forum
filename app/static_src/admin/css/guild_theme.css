@@ -390,13 +390,18 @@ html.ga-sidebar-collapsed .ga-sidebar {
     min-width: 0;
 }
 
+/* Название гильдии переносится на вторую строку; многоточие — только если не влезло и в две */
 .brand-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
     font-size: 16px;
     font-weight: 700;
+    line-height: 1.25;
     color: var(--body-loud-color);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
 }
 
 .brand-sub {

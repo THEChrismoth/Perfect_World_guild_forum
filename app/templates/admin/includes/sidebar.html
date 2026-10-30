@@ -2,7 +2,7 @@
 {# Боковое меню админ-панели. Группы и разделы готовит GuildAdminSite._build_nav (core/admin_site.py). #}
 {% url 'admin:index' as dashboard_url %}
 <aside class="ga-sidebar" id="ga-sidebar" aria-label="Разделы админ-панели">
-    <a class="ga-brand" href="{{ dashboard_url }}">
+    <a class="ga-brand" href="{{ dashboard_url }}" title="{{ site_header }}">
         <span class="brand-mark">{% if site_settings.favicon %}<img src="{{ site_settings.favicon.url }}" alt="">{% else %}{% ga_icon "shield" %}{% endif %}</span>
         <span class="ga-brand-name">
             <span class="brand-text">{{ site_header }}</span>
