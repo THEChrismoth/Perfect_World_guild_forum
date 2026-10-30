@@ -3,6 +3,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.urls import path
 from django.db import models
+
+from core.admin_mixins import NoRelatedPopupsMixin
 from .models import Profile
 from . import admin_views
 
@@ -33,7 +35,7 @@ class ProfileInline(admin.StackedInline):
     min_num = 1
 
 
-class UserAdmin(BaseUserAdmin):
+class UserAdmin(NoRelatedPopupsMixin, BaseUserAdmin):
     inlines = [ProfileInline]
 
     def get_urls(self):
