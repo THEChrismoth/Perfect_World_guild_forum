@@ -14,6 +14,19 @@ from .models import SiteSettings
 from .secrets import SECRET_PREFIX
 
 
+class PluralTests(SimpleTestCase):
+    def test_russian_plural_forms(self):
+        from .dashboard import _plural
+
+        forms = ('сообщение', 'сообщения', 'сообщений')
+        expected = {0: 'сообщений', 1: 'сообщение', 2: 'сообщения', 4: 'сообщения', 5: 'сообщений',
+                    11: 'сообщений', 12: 'сообщений', 14: 'сообщений', 21: 'сообщение', 22: 'сообщения',
+                    111: 'сообщений', 101: 'сообщение'}
+        for number, word in expected.items():
+            with self.subTest(number=number):
+                self.assertEqual(_plural(number, *forms), word)
+
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class DashboardTests(TestCase):
     def setUp(self):
@@ -48,6 +61,8 @@ class DashboardTests(TestCase):
         self.assertIn('ждут завершения', alert_texts)
         self.assertIn('копии выключены', alert_texts)
         self.assertIsNotNone(dashboard['backup'])
+        hints = {stat['label']: stat['hint'] for stat in dashboard['stats']}
+        self.assertEqual(hints['Активные лоты'], '1 ждёт завершения')
         self.assertContains(response, 'Требует внимания')
         self.assertContains(response, 'candidate')
 

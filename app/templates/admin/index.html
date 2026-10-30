@@ -72,7 +72,7 @@
                             <div class="ga-chart-panel" id="ga-panel-{{ panel.key }}" role="tabpanel" aria-labelledby="ga-tab-{{ panel.key }}"{% if not forloop.first %} hidden{% endif %}>
                                 <div class="ga-chart-summary">
                                     <span class="ga-chart-total">{{ panel.total }}</span>
-                                    <span class="ga-muted-text">{{ panel.label|lower }} за 14 дней</span>
+                                    <span class="ga-muted-text">{{ panel.unit }} за 14 дней</span>
                                     {% if panel.trend is not None %}
                                         <span class="ga-trend {% if panel.trend < 0 %}is-down{% else %}is-up{% endif %}">
                                             {% if panel.trend < 0 %}{% ga_icon "trending-down" %}{{ panel.trend }}%{% else %}{% ga_icon "trending-up" %}+{{ panel.trend }}%{% endif %}

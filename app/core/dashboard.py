@@ -24,6 +24,15 @@ def _url(name, query=''):
     return reverse(name) + (f'?{query}' if query else '')
 
 
+def _plural(number, one, few, many):
+    """Слово в форме для числа: 1 сообщение, 2 сообщения, 5 сообщений, 11 сообщений, 21 сообщение."""
+    if number % 10 == 1 and number % 100 != 11:
+        return one
+    if 2 <= number % 10 <= 4 and not 12 <= number % 100 <= 14:
+        return few
+    return many
+
+
 def _trend(current, previous):
     """Изменение за неделю к прошлой неделе в процентах: None, если сравнивать не с чем."""
     if not previous:
@@ -62,7 +71,8 @@ def build_dashboard(request):
         guild_url = _url('admin:auth_user_changelist', f'groups__id__exact={guild_group.pk}') if guild_group else None
         stats.append(_stat('shield', 'Члены гильдии', guild, guild_url,
                            '' if guild_group else f'создайте группу «{GUILD_GROUP}»'))
-        series.append(_series('users', 'Регистрации', User.objects.all(), 'date_joined', now))
+        series.append(_series('users', 'Регистрации', ('регистрация', 'регистрации', 'регистраций'),
+                              User.objects.all(), 'date_joined', now))
         for new_user in User.objects.order_by('-date_joined')[:5]:
             feed.append(_feed('user-plus', f'Новый пользователь {new_user.username}', new_user.date_joined,
                               reverse('admin:auth_user_change', args=[new_user.pk]),
@@ -80,7 +90,8 @@ def build_dashboard(request):
         if pending:
             alerts.append(_alert('warning', f'Новые заявки в гильдию ждут проверки: {pending}',
                                  _url('admin:reception_application_changelist', 'status__exact=pending'), 'Проверить'))
-        series.append(_series('applications', 'Заявки', Application.objects.all(), 'created_at', now))
+        series.append(_series('applications', 'Заявки', ('заявка', 'заявки', 'заявок'),
+                              Application.objects.all(), 'created_at', now))
         applications_chart = _applications_chart(Application)
         for application in Application.objects.select_related('user').order_by('-created_at')[:5]:
             feed.append(_feed('file-text', f'Заявка от {application.user.username}', application.created_at,
@@ -95,7 +106,7 @@ def build_dashboard(request):
         expired = active.filter(end_date__lte=now).count()
         stats.append(_stat('gavel', 'Активные лоты', active.count(),
                            _url('admin:auction_auctionlot_changelist', 'status__exact=active'),
-                           f'{expired} ждут завершения' if expired else 'идут торги'))
+                           f'{expired} {_plural(expired, "ждёт", "ждут", "ждут")} завершения' if expired else 'идут торги'))
         if expired:
             alerts.append(_alert('warning', f'Время торгов истекло, лоты ждут завершения: {expired}',
                                  _url('admin:auction_auctionlot_changelist', 'status__exact=active'), 'Завершить'))
@@ -116,8 +127,10 @@ def build_dashboard(request):
         posts_week = Post.objects.filter(created_at__gte=week_ago).count()
         posts_prev = Post.objects.filter(created_at__gte=two_weeks_ago, created_at__lt=week_ago).count()
         stats.append(_stat('message', 'Темы на форуме', Topic.objects.count(), _url('admin:forum_topic_changelist'),
-                           f'{posts_week} сообщений за неделю', _trend(posts_week, posts_prev)))
-        series.append(_series('posts', 'Сообщения', Post.objects.all(), 'created_at', now))
+                           f'{posts_week} {_plural(posts_week, "сообщение", "сообщения", "сообщений")} за неделю',
+                           _trend(posts_week, posts_prev)))
+        series.append(_series('posts', 'Сообщения', ('сообщение', 'сообщения', 'сообщений'),
+                              Post.objects.all(), 'created_at', now))
         for topic in Topic.objects.select_related('author').order_by('-created_at')[:5]:
             feed.append(_feed('message', f'Новая тема «{topic.title}»', topic.created_at,
                               reverse('admin:forum_topic_change', args=[topic.pk]), topic.author.username))
@@ -170,8 +183,11 @@ def _feed(icon, text, time, url, note=''):
 
 # ----- Графики -----
 
-def _series(key, label, queryset, field, now):
-    """Количество записей по дням: текущие CHART_DAYS дней и столько же до них — для сравнения."""
+def _series(key, label, forms, queryset, field, now):
+    """Количество записей по дням: текущие CHART_DAYS дней и столько же до них — для сравнения.
+
+    forms — слово для подписи под графиком в трёх формах: «1 заявка», «2 заявки», «5 заявок».
+    """
     today = timezone.localdate(now)
     start = today - timedelta(days=CHART_DAYS * 2 - 1)
     counts = dict(
@@ -183,6 +199,7 @@ def _series(key, label, queryset, field, now):
     return {
         'key': key,
         'label': label,
+        'forms': forms,
         'days': days[CHART_DAYS:],
         'current': values[CHART_DAYS:],
         'previous': values[:CHART_DAYS],
@@ -232,6 +249,7 @@ def _activity_chart(series, now):
             'key': item['key'],
             'label': item['label'],
             'total': sum(item['current']),
+            'unit': _plural(sum(item['current']), *item['forms']),
             'previous_total': sum(item['previous']),
             'trend': _trend(sum(item['current']), sum(item['previous'])),
             'line': line,
