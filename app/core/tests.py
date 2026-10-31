@@ -61,6 +61,9 @@ class DashboardTests(TestCase):
         self.assertIn('ждут завершения', alert_texts)
         self.assertIn('копии выключены', alert_texts)
         self.assertIsNotNone(dashboard['backup'])
+        # Штрих и пробел каждого сегмента кольца — ровно один круг, иначе сегмент уезжает за его пределы.
+        for segment in dashboard['applications_chart']['segments']:
+            self.assertAlmostEqual(segment['dash'] + segment['gap'], 100)
         hints = {stat['label']: stat['hint'] for stat in dashboard['stats']}
         self.assertEqual(hints['Активные лоты'], '1 ждёт завершения')
         self.assertContains(response, 'Требует внимания')

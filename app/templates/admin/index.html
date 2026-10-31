@@ -153,7 +153,7 @@
                                     <circle class="ga-donut-track" cx="21" cy="21" r="15.915"/>
                                     {% for segment in chart.segments %}{% if segment.count %}
                                         <circle class="ga-donut-segment ga-status-{{ segment.status }}" cx="21" cy="21" r="15.915"
-                                                stroke-dasharray="{{ segment.dash|stringformat:'.3f' }} 100" stroke-dashoffset="{{ segment.offset|stringformat:'.3f' }}"/>
+                                                stroke-dasharray="{{ segment.dash|stringformat:'.3f' }} {{ segment.gap|stringformat:'.3f' }}" stroke-dashoffset="{{ segment.offset|stringformat:'.3f' }}"/>
                                     {% endif %}{% endfor %}
                                     <text x="21" y="21" class="ga-donut-total">{{ chart.total }}</text>
                                     <text x="21" y="26.5" class="ga-donut-caption">всего</text>

@@ -281,10 +281,11 @@ def _applications_chart(Application):
     for status in APPLICATION_STATUS_ORDER:
         count = counts.get(status, 0)
         share = count * 100 / total if total else 0
-        # Окружность r=15.915 имеет длину 100, поэтому доли в процентах сразу идут в stroke-dasharray.
+        # Окружность r=15.915 имеет длину 100, поэтому доли в процентах сразу идут в stroke-dasharray:
+        # штрих длиной в долю и пробел до конца круга, чтобы шаблон повторялся ровно раз в круг.
         # Отсчёт от 12 часов: смещение 25.
         segments.append({'status': status, 'label': names[status], 'count': count,
-                         'share': round(share), 'dash': share, 'offset': 25 - offset})
+                         'share': round(share), 'dash': share, 'gap': 100 - share, 'offset': 25 - offset})
         offset += share
     return {'total': total, 'segments': segments}
 
