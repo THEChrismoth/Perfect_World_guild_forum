@@ -1510,11 +1510,21 @@ a.ga-stat:hover {
     margin-bottom: 0;
 }
 
+/* Лента событий и заявки по статусам — одной высоты; диаграмма по центру своей карточки */
 .ga-grid-pair {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
+}
+
+.ga-grid-pair > .ga-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.ga-grid-pair .ga-donut-wrap {
+    flex: 1;
 }
 
 /* В узкой колонке быстрые действия идут списком */
