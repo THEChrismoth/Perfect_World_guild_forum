@@ -60,6 +60,7 @@ def register(request):
                     user = form.save(commit=False)
                     user.is_active = False  # Пользователь неактивен до подтверждения
                     user.save()
+                    form.save_profile(user)
                     send_verification_email(user, request, site_settings)
             except Exception:
                 logger.exception('Не удалось отправить письмо подтверждения регистрации')

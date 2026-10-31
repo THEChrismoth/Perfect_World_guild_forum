@@ -71,6 +71,7 @@ class RegistrationTests(TestCase):
     FORM = {
         'username': 'newbie',
         'email': 'newbie@example.com',
+        'player_class': 'mag',
         'password1': 'Very-Strong-Pass-42',
         'password2': 'Very-Strong-Pass-42',
     }
@@ -91,6 +92,22 @@ class RegistrationTests(TestCase):
         user = User.objects.get(username='newbie')
         self.assertTrue(user.is_active)
         self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+        self.assertEqual(user.profile.player_class, 'mag')
+
+    def test_class_required_and_shown_with_icons(self):
+        page = self.client.get(reverse('register'))
+        self.assertContains(page, 'class_icon/priest.png')
+        self.assertContains(page, 'Выберите класс')
+
+        response = self.register(player_class='')
+        self.assertContains(response, 'Выберите класс персонажа')
+        self.assertFalse(User.objects.filter(username='newbie').exists())
+
+        response = self.register(player_class='hacker')
+        self.assertFalse(User.objects.filter(username='newbie').exists())
+        # Выбранный класс не теряется, если в форме другая ошибка.
+        response = self.register(player_class='dru', password2='different')
+        self.assertContains(response, 'value="dru" checked')
 
     @mock.patch('core.mail.get_mail_connection', locmem_connection)
     def test_with_verification_email_sent_and_link_activates(self):
@@ -104,6 +121,8 @@ class RegistrationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ['newbie@example.com'])
         self.assertEqual(mail.outbox[0].from_email, 'Гильдия <noreply@example.com>')
+
+        self.assertEqual(user.profile.player_class, 'mag')
 
         link = re.search(r'https?://\S+', mail.outbox[0].body).group(0)
         self.client.get(link)

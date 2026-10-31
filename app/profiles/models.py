@@ -19,6 +19,33 @@ TIMEZONE_CHOICES = [
     ('UTC+12', 'UTC+12:00 (Камчатка)'),
 ]
 
+# Иконки классов персонажей (static_src/class_icon/).
+CLASS_ICONS = {
+    'var': 'class_icon/var.png',
+    'mag': 'class_icon/mag.png',
+    'luk': 'class_icon/luk.png',
+    'zhrec': 'class_icon/priest.png',
+    'obor': 'class_icon/tank.png',
+    'dru': 'class_icon/dru.png',
+    'sin': 'class_icon/sin.png',
+    'sham': 'class_icon/sham.png',
+    'mist': 'class_icon/mist.png',
+    'strazh': 'class_icon/sik.png',
+    'pal': 'class_icon/pal.png',
+    'strel': 'class_icon/gun.png',
+    'priz': 'class_icon/gost.png',
+    'zhnec': 'class_icon/koas.png',
+    'makaka': 'class_icon/mk.png',
+    'bard': 'class_icon/bard.png',
+    'dk': 'class_icon/dk.png',
+}
+
+
+def class_icon_url(player_class):
+    path = CLASS_ICONS.get(player_class)
+    return static(path) if path else ''
+
+
 ACCENT_CHOICES = [
     ('indigo', 'Индиго'),
     ('blue', 'Синий'),
@@ -163,29 +190,7 @@ class Profile(models.Model):
     
     def get_icon_url(self):
         """Возвращает URL иконки для класса персонажа."""
-        icons = {
-            'var': 'class_icon/var.png',
-            'mag': 'class_icon/mag.png',
-            'luk': 'class_icon/luk.png',
-            'zhrec': 'class_icon/priest.png',
-            'obor': 'class_icon/tank.png',
-            'dru': 'class_icon/dru.png',
-            'sin': 'class_icon/sin.png',
-            'sham': 'class_icon/sham.png',
-            'mist': 'class_icon/mist.png',
-            'strazh': 'class_icon/sik.png',
-            'pal': 'class_icon/pal.png',
-            'strel': 'class_icon/gun.png',
-            'priz': 'class_icon/gost.png',
-            'zhnec': 'class_icon/koas.png',
-            'makaka': 'class_icon/mk.png',
-            'bard': 'class_icon/bard.png',
-            'dk': 'class_icon/dk.png',
-        }
-        icon_path = icons.get(self.player_class, '')
-        if icon_path:
-            return static(icon_path)
-        return ''
+        return class_icon_url(self.player_class)
     
     def age(self):
         """Возвращает возраст пользователя."""

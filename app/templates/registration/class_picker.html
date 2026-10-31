@@ -1,0 +1,42 @@
+{# Выбор класса при регистрации: раскрывающийся список с иконками. Внутри — обычные радиокнопки, #}
+{# поэтому форма отправляется и без JavaScript; скрипт только обновляет подпись и закрывает список. #}
+{% with field=form.player_class %}
+<div class="form-group">
+    <span class="form-label" id="class-picker-label">{{ field.label }}</span>
+    <details class="class-picker{% if field.errors %} has-error{% endif %}" data-class-picker>
+        <summary class="class-picker-toggle" aria-labelledby="class-picker-label">
+            <span class="class-picker-current">
+                {% with selected=form.selected_class %}
+                    {% if selected %}<img src="{{ selected.icon }}" alt="">{{ selected.label }}{% else %}<span class="class-picker-placeholder">Выберите класс</span>{% endif %}
+                {% endwith %}
+            </span>
+            <svg class="class-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="class-picker-list" role="radiogroup" aria-labelledby="class-picker-label">
+            {% for option in form.class_options %}
+                <label class="class-option">
+                    <input type="radio" name="{{ field.html_name }}" value="{{ option.value }}"{% if option.selected %} checked{% endif %}>
+                    <img src="{{ option.icon }}" alt="">
+                    <span>{{ option.label }}</span>
+                </label>
+            {% endfor %}
+        </div>
+    </details>
+    {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+</div>
+{% endwith %}
+<script>
+    document.querySelectorAll('[data-class-picker]').forEach(function (picker) {
+        var current = picker.querySelector('.class-picker-current');
+        picker.addEventListener('change', function (event) {
+            var option = event.target.closest('.class-option');
+            current.replaceChildren(option.querySelector('img').cloneNode(), option.querySelector('span').textContent);
+            picker.open = false;
+        });
+        // Клик мимо списка закрывает его.
+        document.addEventListener('click', function (event) {
+            if (picker.open && !picker.contains(event.target)) picker.open = false;
+        });
+    });
+</script>
