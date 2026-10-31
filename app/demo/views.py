@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_not_required
 from django.http import Http404
 from django.shortcuts import redirect
 from django.views.decorators.http import require_POST
@@ -10,6 +11,7 @@ from .guests import create_guest, find_guest, read_guests, remember_guest
 from .limits import make_room, take_ip_slot
 
 
+@login_not_required
 @require_POST
 def demo_login(request, role):
     """Вход в демо-роль без пароля: в личный аккаунт этого браузера или в новый. Только при DEMO_MODE."""

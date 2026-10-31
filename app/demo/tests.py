@@ -26,7 +26,7 @@ class DemoModeOffTests(TestCase):
     """Без DEMO_MODE сайт работает как обычно."""
 
     def test_no_banner_and_register_link_shown(self):
-        response = self.client.get('/')
+        response = self.client.get(reverse('login'))
         self.assertNotContains(response, 'demo-banner')
         self.assertContains(response, reverse('register'))
 
@@ -58,7 +58,7 @@ class DemoModeOnTests(TestCase):
         cache.clear()
 
     def test_banner_with_roles(self):
-        response = self.client.get('/')
+        response = self.client.get(reverse('login'))
         self.assertContains(response, 'demo-banner')
         self.assertContains(response, reverse('demo:login', args=['admin']))
         self.assertNotContains(response, f'href="{reverse("register")}"')

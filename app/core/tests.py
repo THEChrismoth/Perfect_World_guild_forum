@@ -227,6 +227,9 @@ class HashedStaticTests(SimpleTestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsTests(TestCase):
+    def setUp(self):
+        self.client.force_login(User.objects.create_user('member', password='pass'))
+
     def test_default_name_shown(self):
         response = self.client.get('/')
 

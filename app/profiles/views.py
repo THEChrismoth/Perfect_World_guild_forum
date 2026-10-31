@@ -2,7 +2,7 @@ import logging
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -38,7 +38,10 @@ def send_verification_email(user, request, site_settings):
     send_site_mail(subject, message, [user.email], site_settings)
 
 
+@login_not_required
 def register(request):
+    if request.user.is_authenticated:
+        return redirect('/')
     site_settings = SiteSettings.load()
     if request.method == 'POST':
         form = RegistrationForm(request.POST, site_settings=site_settings)
@@ -85,6 +88,7 @@ def register(request):
     })
 
 
+@login_not_required
 def verify_email(request, uidb64, token):
     try:
         uid = force_str(urlsafe_base64_decode(uidb64))

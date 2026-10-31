@@ -16,6 +16,7 @@ import logging
 from functools import wraps
 
 from django.conf import settings
+from django.contrib.auth.decorators import login_not_required
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
@@ -33,6 +34,8 @@ STALE_TASK_AFTER = datetime.timedelta(minutes=10)
 
 
 def bot_api(view):
+    # Бот не входит в аккаунт — его пускает токен, а не сессия, поэтому вход на сайт здесь не нужен.
+    @login_not_required
     @csrf_exempt
     @wraps(view)
     def wrapper(request, *args, **kwargs):

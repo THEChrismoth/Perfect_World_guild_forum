@@ -15,6 +15,35 @@ from notifications.models import Notification
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+class ClosedSiteTests(TestCase):
+    """Без входа сайт не виден: открываются только вход, регистрация и служебные адреса."""
+
+    def test_guest_redirected_to_login(self):
+        for url in ['/', '/koslist/', reverse('auction:auction_index'), reverse('events:event_index'),
+                    reverse('notifications:notification_list')]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertRedirects(response, f'{reverse("login")}?next={url}', fetch_redirect_response=False)
+
+    def test_login_and_register_open_for_guest(self):
+        self.assertEqual(self.client.get(reverse('login')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('register')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('admin:login')).status_code, 200)
+
+    def test_bot_api_checks_token_not_login(self):
+        # Бот не входит в аккаунт: без токена API отвечает отказом, а не уводит на страницу входа.
+        response = self.client.get('/api/tsbot/state/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_logged_in_user_sees_site_and_skips_login(self):
+        self.client.force_login(User.objects.create_user('member', password='pass'))
+
+        self.assertEqual(self.client.get('/').status_code, 200)
+        self.assertRedirects(self.client.get(reverse('login')), '/', fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(reverse('register')), '/', fetch_redirect_response=False)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ActivityMenuTests(TestCase):
     def test_menu_item_opens_activity_page(self):
         admin = User.objects.create_superuser('admin', password='pass')
