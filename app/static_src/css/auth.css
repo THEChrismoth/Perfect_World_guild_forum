@@ -334,15 +334,11 @@ html.theme-transition *::after {
     color: var(--auth-loud);
 }
 
+/* Активная вкладка — цвета кнопки «Войти», чтобы не сливалась с фоном */
 .auth-tabs a.is-active {
-    background: var(--auth-card);
-    color: var(--auth-loud);
-    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
-}
-
-html[data-theme="light"] .auth-tabs a.is-active {
     background: var(--auth-accent);
     color: #ffffff;
+    box-shadow: 0 4px 12px rgba(var(--auth-accent-rgb), 0.3);
 }
 
 .auth-title {
