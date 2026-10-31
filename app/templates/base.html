@@ -129,31 +129,8 @@
         </div>
     </footer>
 
+    {% include 'includes/theme_script.html' %}
     <script>
-        function currentTheme() {
-            return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-        }
-
-        function updateThemeButtons() {
-            const label = currentTheme() === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему';
-            document.querySelectorAll('.theme-toggle').forEach(function (button) {
-                button.setAttribute('aria-label', label);
-                button.setAttribute('title', label);
-            });
-        }
-
-        function toggleTheme() {
-            const root = document.documentElement;
-            const next = currentTheme() === 'light' ? 'dark' : 'light';
-            root.classList.add('theme-transition');
-            root.setAttribute('data-theme', next);
-            try { localStorage.setItem('theme', next); } catch (e) {}
-            updateThemeButtons();
-            setTimeout(function () { root.classList.remove('theme-transition'); }, 350);
-        }
-
-        updateThemeButtons();
-
         function toggleNotifications() {
             const menu = document.getElementById('notificationsMenu');
             menu.classList.toggle('show');

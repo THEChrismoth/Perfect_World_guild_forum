@@ -1,12 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
+{% extends 'registration/auth_base.html' %}
+{% load ga_admin %}
+{% block title %}Регистрация | {{ site_settings.site_name }}{% endblock %}
 
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}">{% endblock %}
+{% block auth_title %}Создание аккаунта{% endblock %}
+{% block auth_subtitle %}Займёт пару минут. Остальное о персонаже можно заполнить потом в профиле.{% endblock %}
 
-{% block content %}
-<div class="auth-container">
-    <h2>✨ Регистрация</h2>
-    <form method="post" id="register-form">
+{% block auth_content %}
+    <form method="post" id="register-form" class="auth-form">
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -37,12 +37,13 @@
             </div>
         {% endif %}
 
-        <button type="submit" class="btn-submit">🚀 Зарегистрироваться</button>
+        <button type="submit" class="btn-submit">{% ga_icon "user-plus" %}Зарегистрироваться</button>
     </form>
-    <p>Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
-</div>
+    <p class="auth-switch">Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a></p>
+{% endblock %}
 
-{% if captcha_active %}
-    <script src="{{ captcha_script_url }}" defer></script>
-{% endif %}
+{% block extra_js %}
+    {% if captcha_active %}
+        <script src="{{ captcha_script_url }}" defer></script>
+    {% endif %}
 {% endblock %}

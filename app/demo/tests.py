@@ -58,8 +58,9 @@ class DemoModeOnTests(TestCase):
         cache.clear()
 
     def test_banner_with_roles(self):
+        # Гостю сайт закрыт: про демо и роли рассказывает страница входа.
         response = self.client.get(reverse('login'))
-        self.assertContains(response, 'demo-banner')
+        self.assertContains(response, 'auth-demo-note')
         self.assertContains(response, reverse('demo:login', args=['admin']))
         self.assertNotContains(response, f'href="{reverse("register")}"')
 

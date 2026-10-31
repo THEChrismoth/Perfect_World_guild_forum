@@ -1,0 +1,93 @@
+{% load static ga_admin %}<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
+    <script>
+        // Тема как на сайте: применяется до загрузки стилей, чтобы страница не мигала.
+        (function () {
+            var theme = null;
+            try { theme = localStorage.getItem('theme'); } catch (e) {}
+            if (theme === 'light' || theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        })();
+    </script>
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    {% if site_settings.favicon %}
+        <link rel="icon" href="{{ site_settings.favicon.url }}">
+    {% else %}
+        <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    {% endif %}
+</head>
+{# Каркас страниц входа и регистрации. Сайт закрыт для гостей, поэтому шапки с меню здесь нет. #}
+<body class="auth-page">
+<div class="auth-shell">
+    <aside class="auth-brand">
+        <div class="auth-logo">
+            <span class="auth-logo-mark">{% if site_settings.favicon %}<img src="{{ site_settings.favicon.url }}" alt="">{% else %}{% ga_icon "shield" %}{% endif %}</span>
+            <span class="auth-logo-text">
+                <span class="auth-logo-name">{{ site_settings.site_name }}</span>
+                <span class="auth-logo-sub">Сайт гильдии</span>
+            </span>
+        </div>
+
+        <div class="auth-brand-body">
+            <h1 class="auth-brand-title">Всё о жизни гильдии — в одном месте</h1>
+            <ul class="auth-features">
+                <li>{% ga_icon "message" %}<span><b>Форум</b>Обсуждения, новости и гайды гильдии</span></li>
+                <li>{% ga_icon "swords" %}<span><b>Ивенты и отряды</b>Приглашения, состав пати и учёт посещения</span></li>
+                <li>{% ga_icon "gavel" %}<span><b>Аукцион</b>Ставки очками активности за участие в жизни гильдии</span></li>
+                <li>{% ga_icon "file-text" %}<span><b>Приём в гильдию</b>Заявка, проверка и голосование участников</span></li>
+            </ul>
+            {% if demo_mode %}
+                <div class="auth-demo-note">
+                    <b>Демо-сайт.</b> Гильдия и игроки вымышленные, данные периодически сбрасываются.
+                    <a href="https://github.com/THEChrismoth/Perfect_World_guild_forum" target="_blank" rel="noopener">Проект на GitHub →</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="auth-brand-foot">
+            © 2026 <a href="https://github.com/THEChrismoth" target="_blank" rel="noopener">THEChrismoth</a>
+            · <a href="https://github.com/THEChrismoth/Perfect_World_guild_forum/issues" target="_blank" rel="noopener">Сообщить о проблеме</a>
+        </div>
+    </aside>
+
+    <main class="auth-main">
+        <div class="auth-toolbar">
+            <button type="button" class="theme-toggle auth-icon-btn" onclick="toggleTheme()">
+                <span class="icon-light">{% ga_icon "sun" %}</span>
+                <span class="icon-dark">{% ga_icon "moon" %}</span>
+            </button>
+        </div>
+
+        <div class="auth-card">
+            {% if not demo_mode %}
+                {% url 'login' as login_url %}{% url 'register' as register_url %}
+                <nav class="auth-tabs" aria-label="Вход или регистрация">
+                    <a href="{{ login_url }}"{% if request.path == login_url %} class="is-active" aria-current="page"{% endif %}>Вход</a>
+                    <a href="{{ register_url }}"{% if request.path == register_url %} class="is-active" aria-current="page"{% endif %}>Регистрация</a>
+                </nav>
+            {% endif %}
+
+            <h2 class="auth-title">{% block auth_title %}{% endblock %}</h2>
+            <p class="auth-subtitle">{% block auth_subtitle %}{% endblock %}</p>
+
+            {% if messages %}
+                <div class="auth-messages">
+                    {% for message in messages %}
+                        <div class="auth-alert auth-alert-{{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block auth_content %}{% endblock %}
+        </div>
+    </main>
+</div>
+{% include 'includes/theme_script.html' %}
+{% block extra_js %}{% endblock %}
+</body>
+</html>

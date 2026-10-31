@@ -1,6 +1,478 @@
 /* =====================================================================
-   Страницы входа и регистрации.
+   Страницы входа и регистрации (templates/registration/auth_base.html).
+   Оформление как у админ-панели: те же цвета, карточки и поля, акцент — индиго.
+   Тёмная тема по умолчанию, светлая — html[data-theme="light"] (переключатель сайта).
    ===================================================================== */
+
+:root {
+    --auth-page: #0b1120;
+    --auth-card: #111a2e;
+    --auth-side: #0e1627;
+    --auth-field: #0d1526;
+    --auth-hover: #17223a;
+    --auth-hairline: #1c2740;
+    --auth-border: #293655;
+    --auth-text: #d4d9e6;
+    --auth-loud: #f5f7ff;
+    --auth-medium: #b3bccf;
+    --auth-quiet: #8590a8;
+    --auth-accent: #6366f1;
+    --auth-accent-rgb: 99, 102, 241;
+    --auth-accent-strong: #4f46e5;
+    --auth-link: #818cf8;
+    --auth-danger: #f87171;
+    --auth-danger-rgb: 248, 113, 113;
+    --auth-success: #34d399;
+    --auth-success-rgb: 52, 211, 153;
+    --auth-warning: #fbbf24;
+    --auth-warning-rgb: 251, 191, 36;
+    --auth-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 16px 40px rgba(0, 0, 0, 0.35);
+    --auth-popup-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --auth-font: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color-scheme: dark;
+}
+
+html[data-theme="light"] {
+    --auth-page: #f4f5fb;
+    --auth-card: #ffffff;
+    --auth-side: #ffffff;
+    --auth-field: #ffffff;
+    --auth-hover: #f1f2f9;
+    --auth-hairline: #e8eaf2;
+    --auth-border: #d7dae6;
+    --auth-text: #2b2f3a;
+    --auth-loud: #12141c;
+    --auth-medium: #4b5161;
+    --auth-quiet: #6b7180;
+    --auth-accent: #4f46e5;
+    --auth-accent-rgb: 79, 70, 229;
+    --auth-accent-strong: #4338ca;
+    --auth-link: #4f46e5;
+    --auth-danger: #dc2626;
+    --auth-danger-rgb: 220, 38, 38;
+    --auth-success: #16a34a;
+    --auth-success-rgb: 22, 163, 74;
+    --auth-warning: #b45309;
+    --auth-warning-rgb: 217, 119, 6;
+    --auth-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 16px 40px rgba(15, 23, 42, 0.08);
+    --auth-popup-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+    color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+body.auth-page {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--auth-page);
+    color: var(--auth-text);
+    font: 15px/1.5 var(--auth-font);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: var(--auth-link);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.ga-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+/* Плавная смена цветов при переключении темы (класс ставит includes/theme_script.html) */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
+
+/* ---------- Каркас: слева о гильдии, справа форма ---------- */
+.auth-shell {
+    display: grid;
+    grid-template-columns: minmax(360px, 520px) minmax(0, 1fr);
+    min-height: 100vh;
+}
+
+.auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    padding: 36px 44px;
+    border-right: 1px solid var(--auth-hairline);
+    background:
+        radial-gradient(circle at 15% 0%, rgba(var(--auth-accent-rgb), 0.28), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(var(--auth-accent-rgb), 0.16), transparent 50%),
+        var(--auth-side);
+    overflow: hidden;
+}
+
+.auth-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.auth-logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--auth-accent);
+    color: #ffffff;
+    box-shadow: 0 8px 20px rgba(var(--auth-accent-rgb), 0.35);
+    overflow: hidden;
+}
+
+.auth-logo-mark img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+}
+
+.auth-logo-mark .ga-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.auth-logo-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.auth-logo-name {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--auth-loud);
+    overflow-wrap: anywhere;
+}
+
+.auth-logo-sub {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--auth-quiet);
+}
+
+.auth-brand-body {
+    margin: auto 0;
+}
+
+.auth-brand-title {
+    margin: 0 0 28px;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--auth-loud);
+}
+
+.auth-features {
+    display: grid;
+    gap: 18px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.auth-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.auth-features .ga-icon {
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    border-radius: 11px;
+    background: rgba(var(--auth-accent-rgb), 0.14);
+    color: var(--auth-link);
+}
+
+.auth-features span {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: var(--auth-quiet);
+}
+
+.auth-features b {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--auth-loud);
+}
+
+.auth-demo-note {
+    margin-top: 28px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--auth-hairline);
+    background: rgba(var(--auth-warning-rgb), 0.1);
+    font-size: 14px;
+    color: var(--auth-text);
+}
+
+.auth-demo-note a {
+    display: inline-block;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.auth-brand-foot {
+    font-size: 13px;
+    color: var(--auth-quiet);
+}
+
+.auth-brand-foot a {
+    color: var(--auth-quiet);
+}
+
+.auth-brand-foot a:hover {
+    color: var(--auth-link);
+}
+
+/* ---------- Правая часть с формой ---------- */
+.auth-main {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 72px 24px 48px;
+}
+
+.auth-toolbar {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+}
+
+.auth-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 11px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-card);
+    color: var(--auth-medium);
+    cursor: pointer;
+}
+
+.auth-icon-btn:hover {
+    background: var(--auth-hover);
+    color: var(--auth-loud);
+}
+
+.auth-icon-btn span {
+    display: inline-flex;
+}
+
+/* Показываем иконку той темы, на которую переключит кнопка */
+.theme-toggle .icon-dark,
+[data-theme="light"] .theme-toggle .icon-light {
+    display: none;
+}
+
+[data-theme="light"] .theme-toggle .icon-dark {
+    display: inline-flex;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 32px;
+    border-radius: 20px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-card);
+    box-shadow: var(--auth-shadow);
+}
+
+/* Вкладки «Вход / Регистрация» — как переключатель на графике дашборда */
+.auth-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 26px;
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-field);
+}
+
+.auth-tabs a {
+    padding: 8px 12px;
+    border-radius: 9px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--auth-quiet);
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.auth-tabs a:hover {
+    color: var(--auth-loud);
+}
+
+.auth-tabs a.is-active {
+    background: var(--auth-card);
+    color: var(--auth-loud);
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme="light"] .auth-tabs a.is-active {
+    background: var(--auth-accent);
+    color: #ffffff;
+}
+
+.auth-title {
+    margin: 0 0 6px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--auth-loud);
+}
+
+.auth-subtitle {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: var(--auth-quiet);
+}
+
+.auth-messages {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.auth-alert {
+    padding: 11px 14px;
+    border-radius: 10px;
+    font-size: 14px;
+    background: rgba(var(--auth-accent-rgb), 0.12);
+    color: var(--auth-text);
+}
+
+.auth-alert-success { background: rgba(var(--auth-success-rgb), 0.12); }
+.auth-alert-warning { background: rgba(var(--auth-warning-rgb), 0.14); }
+.auth-alert-error { background: rgba(var(--auth-danger-rgb), 0.14); }
+
+/* ---------- Поля формы ---------- */
+.auth-form {
+    display: grid;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.form-group label,
+.form-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--auth-medium);
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--auth-border);
+    background: var(--auth-field);
+    color: var(--auth-loud);
+    font: 15px var(--auth-font);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.auth-form input:focus {
+    border-color: var(--auth-accent);
+    box-shadow: 0 0 0 3px rgba(var(--auth-accent-rgb), 0.2);
+    outline: none;
+}
+
+.help-text {
+    font-size: 12px;
+    color: var(--auth-quiet);
+}
+
+/* Подсказка Django к паролю — список правил: показываем компактно */
+.help-text ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.form-error {
+    font-size: 13px;
+    color: var(--auth-danger);
+}
+
+.form-error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.btn-submit {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 11px;
+    background: var(--auth-accent);
+    color: #ffffff;
+    font: 600 15px var(--auth-font);
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(var(--auth-accent-rgb), 0.3);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.btn-submit:hover {
+    background: var(--auth-accent-strong);
+    transform: translateY(-1px);
+}
+
+.auth-switch {
+    margin: 22px 0 0;
+    text-align: center;
+    font-size: 14px;
+    color: var(--auth-quiet);
+}
+
+.auth-switch a {
+    font-weight: 600;
+}
+
+.captcha-group {
+    align-items: center;
+}
 
 /* ---------- Выбор класса: раскрывающийся список с иконками ---------- */
 .class-picker {
@@ -11,11 +483,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(var(--overlay-rgb), 0.15);
-    background: var(--bg);
-    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--auth-border);
+    background: var(--auth-field);
+    color: var(--auth-loud);
     cursor: pointer;
     list-style: none;
 }
@@ -24,8 +496,15 @@
     display: none;
 }
 
+.class-picker[open] .class-picker-toggle,
+.class-picker-toggle:focus-visible {
+    border-color: var(--auth-accent);
+    box-shadow: 0 0 0 3px rgba(var(--auth-accent-rgb), 0.2);
+    outline: none;
+}
+
 .class-picker.has-error .class-picker-toggle {
-    border-color: #dc2626;
+    border-color: var(--auth-danger);
 }
 
 .class-picker-current {
@@ -34,10 +513,11 @@
     gap: 10px;
     flex: 1;
     min-width: 0;
+    min-height: 26px;
 }
 
 .class-picker-placeholder {
-    color: var(--text-muted);
+    color: var(--auth-quiet);
 }
 
 .class-picker img {
@@ -49,7 +529,7 @@
 .class-picker-chevron {
     width: 18px;
     height: 18px;
-    color: var(--text-muted);
+    color: var(--auth-quiet);
     transition: transform 0.2s ease;
 }
 
@@ -69,30 +549,32 @@
     max-height: 300px;
     overflow-y: auto;
     padding: 6px;
-    border-radius: 10px;
-    border: 1px solid rgba(var(--overlay-rgb), 0.15);
-    background: var(--surface);
-    box-shadow: 0 12px 32px rgba(var(--shade-rgb), 0.35);
+    border-radius: 12px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-card);
+    box-shadow: var(--auth-popup-shadow);
 }
 
 .class-option {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
     padding: 8px 10px;
     border-radius: 8px;
-    color: var(--text);
+    font-size: 14px;
+    color: var(--auth-text);
     cursor: pointer;
 }
 
 .class-option:hover,
 .class-option:has(input:focus-visible) {
-    background: rgba(var(--accent-rgb), 0.12);
+    background: var(--auth-hover);
 }
 
 .class-option:has(input:checked) {
-    background: rgba(var(--accent-rgb), 0.18);
-    color: var(--text-strong);
+    background: rgba(var(--auth-accent-rgb), 0.16);
+    color: var(--auth-loud);
     font-weight: 600;
 }
 
@@ -101,4 +583,98 @@
     position: absolute;
     opacity: 0;
     pointer-events: none;
+}
+
+/* ---------- Демо: вход в роли ---------- */
+.demo-roles {
+    display: grid;
+    gap: 10px;
+}
+
+.demo-roles form {
+    margin: 0;
+}
+
+.demo-role-btn {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-field);
+    color: var(--auth-text);
+    font: 14px var(--auth-font);
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.demo-role-btn:hover {
+    background: var(--auth-hover);
+    border-color: var(--auth-border);
+}
+
+.demo-role-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--auth-loud);
+}
+
+.demo-role-description {
+    color: var(--auth-quiet);
+}
+
+/* ---------- Узкие экраны: о гильдии — коротко сверху ---------- */
+@media (max-width: 899px) {
+    .auth-shell {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 1fr;
+    }
+
+    .auth-brand {
+        gap: 0;
+        padding: 18px 20px;
+        border-right: none;
+        border-bottom: 1px solid var(--auth-hairline);
+    }
+
+    .auth-brand-title,
+    .auth-features,
+    .auth-brand-foot {
+        display: none;
+    }
+
+    .auth-brand-body {
+        margin: 0;
+    }
+
+    .auth-demo-note {
+        margin-top: 14px;
+    }
+
+    /* Кнопка темы — в правом верхнем углу страницы, на строке с названием гильдии */
+    .auth-shell {
+        position: relative;
+    }
+
+    .auth-main {
+        position: static;
+        justify-content: flex-start;
+        padding: 24px 16px 40px;
+    }
+
+    .auth-brand {
+        padding-right: 72px;
+    }
+
+    .auth-toolbar {
+        top: 19px;
+        right: 16px;
+    }
+
+    .auth-card {
+        padding: 24px 20px;
+    }
 }
