@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Prefetch
 from uuslug import uuslug
-from .models import Category, SubCategory, Topic, Post, PostImage, get_online_users, get_forum_stats, get_latest_posts
+from .models import Category, SubCategory, Topic, Post, PostImage
 from .forms import TopicForm, TopicEditForm, PostForm, validate_post_images, MAX_IMAGES_PER_POST
 from auction.models import AuctionLot
 from auction.views import check_auction_access
@@ -116,18 +116,7 @@ def forum_view(request):
                 'subcategories': visible_subcategories
             })
 
-    # Получаем данные для правого блока.
-    latest_posts = get_latest_posts(10)
-    online_users = get_online_users()
-    forum_stats = get_forum_stats()
-
-    context = {
-        'categories': categories,
-        'latest_posts': latest_posts,
-        'online_users': online_users,
-        'forum_stats': forum_stats,
-    }
-    return render(request, 'forum/forum_index.html', context)
+    return render(request, 'forum/forum_index.html', {'categories': categories})
 
 
 def subcategory_detail(request, slug):

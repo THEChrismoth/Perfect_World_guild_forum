@@ -226,22 +226,3 @@ def get_online_users():
     online_users = User.objects.filter(profile__in=online_profiles, is_active=True)
 
     return online_users
-
-def get_forum_stats():
-    """Возвращает статистику форума."""
-    topics_count = Topic.objects.count()
-    posts_count = Post.objects.count()
-    users_count = User.objects.count()
-    latest_user = User.objects.order_by('-date_joined').first()
-    
-    return {
-        'topics_count': topics_count,
-        'posts_count': posts_count,
-        'users_count': users_count,
-        'latest_user': latest_user,
-    }
-
-
-def get_latest_posts(limit=10):
-    """Возвращает последние сообщения."""
-    return Post.objects.select_related('author', 'topic').order_by('-created_at')[:limit]
