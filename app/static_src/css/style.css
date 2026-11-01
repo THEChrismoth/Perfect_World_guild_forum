@@ -131,21 +131,20 @@ body {
 
 /* =====================================================================
    Каркас (templates/base.html): меню слева на всю высоту, справа — верхняя
-   панель, содержимое и подвал. Как в админ-панели.
+   панель и содержимое. Как в админ-панели; подвал — только на страницах входа.
    ===================================================================== */
 
 .site-shell {
     --sidebar-width: 272px;
     display: grid;
     grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: auto 1fr;
     min-height: 100vh;
     transition: grid-template-columns 0.2s ease;
 }
 
 .site-shell > .site-topbar,
-.site-shell > .site-main,
-.site-shell > .site-footer {
+.site-shell > .site-main {
     grid-column: 2;
 }
 
@@ -524,33 +523,10 @@ html.site-sidebar-collapsed .site-sidebar {
     color: var(--accent-fg);
 }
 
-/* ---------- Содержимое и подвал ---------- */
+/* ---------- Содержимое ---------- */
 .site-main {
     min-width: 0;
     padding: 28px 32px;
-}
-
-.site-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px 20px;
-    padding: 18px 32px;
-    border-top: 1px solid var(--hairline);
-    font-size: 13px;
-    color: var(--text-muted);
-}
-
-/* Ссылки в подвале не меняют цвет после перехода */
-.site-footer a,
-.site-footer a:visited {
-    color: var(--text-muted);
-    text-decoration: none;
-}
-
-.site-footer a:hover {
-    color: var(--accent-light);
 }
 
 /* ========== Уведомления в верхней панели ========== */
@@ -1500,8 +1476,7 @@ html.theme-transition *::after {
     }
 
     .site-shell > .site-topbar,
-    .site-shell > .site-main,
-    .site-shell > .site-footer {
+    .site-shell > .site-main {
         grid-column: 1;
     }
 
@@ -1534,12 +1509,6 @@ html.theme-transition *::after {
 
     .site-main {
         padding: 18px 16px;
-    }
-
-    .site-footer {
-        flex-direction: column;
-        padding: 16px;
-        text-align: center;
     }
 
     .vote-options { flex-direction: column; }
