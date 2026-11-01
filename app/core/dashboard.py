@@ -162,7 +162,7 @@ def build_dashboard(request):
     if user.is_superuser:
         actions.append({'icon': 'database', 'label': 'Сделать резервную копию', 'url': _url('admin:backups_backup_run'), 'post': True})
         actions.append({'icon': 'settings', 'label': 'Настройки сайта', 'url': _url('admin:core_sitesettings_changelist')})
-    actions.append({'icon': 'globe', 'label': 'Открыть сайт', 'url': '/', 'external': True})
+    actions.append({'icon': 'globe', 'label': 'Вернуться на сайт', 'url': '/'})
 
     feed.sort(key=lambda item: item['time'], reverse=True)
 

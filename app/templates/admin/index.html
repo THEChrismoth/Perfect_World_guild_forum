@@ -188,7 +188,7 @@
                                 <button type="submit" class="ga-action"><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</button>
                             </form>
                         {% else %}
-                            <a class="ga-action" href="{{ action.url }}"{% if action.external %} target="_blank" rel="noopener"{% endif %}><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</a>
+                            <a class="ga-action" href="{{ action.url }}"><span class="ga-action-icon">{% ga_icon action.icon %}</span>{{ action.label }}</a>
                         {% endif %}
                     {% endfor %}
                 </div>

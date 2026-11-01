@@ -75,7 +75,7 @@ class DashboardTests(TestCase):
 
         urls = [stat['url'] for stat in dashboard['stats'] if stat['url']]
         urls += [alert['url'] for alert in dashboard['alerts'] if alert['url']]
-        urls += [action['url'] for action in dashboard['actions'] if not action.get('post') and not action.get('external')]
+        urls += [action['url'] for action in dashboard['actions'] if not action.get('post')]
         for url in urls:
             with self.subTest(url=url):
                 response = self.client.get(url, follow=True)

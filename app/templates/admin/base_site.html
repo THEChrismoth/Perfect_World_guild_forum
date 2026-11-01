@@ -100,7 +100,7 @@
                                     {% endfor %}
                                 </span>
                             </form>
-                            <a href="{% firstof site_url '/' %}" target="_blank" rel="noopener">{% ga_icon "globe" %}Открыть сайт</a>
+                            <a href="{% firstof site_url '/' %}">{% ga_icon "globe" %}Вернуться на сайт</a>
                             {% if user.has_usable_password %}
                                 <a href="{% url 'admin:password_change' %}">{% ga_icon "key" %}Сменить пароль</a>
                             {% endif %}

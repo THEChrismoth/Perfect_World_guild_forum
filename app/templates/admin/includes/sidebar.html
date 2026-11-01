@@ -44,8 +44,8 @@
         {% endfor %}
     </nav>
 
-    <a class="ga-nav-link ga-nav-site" href="{% firstof site_url '/' %}" target="_blank" rel="noopener">
-        {% ga_icon "globe" %}<span>Открыть сайт</span>
+    <a class="ga-nav-link ga-nav-site" href="{% firstof site_url '/' %}">
+        {% ga_icon "globe" %}<span>Вернуться на сайт</span>
     </a>
 </aside>
 <div class="ga-sidebar-backdrop" data-ga-sidebar-close hidden></div>
