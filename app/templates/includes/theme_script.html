@@ -1,26 +1,50 @@
 <script>
-    // Переключатель светлой и тёмной темы (кнопка — includes/theme_toggle.html). Выбор хранится в браузере.
-    function currentTheme() {
-        return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-    }
+    // Тема оформления (меню — includes/theme_menu.html). Выбор хранится в браузере под ключом theme:
+    // light, dark или auto («как в системе», по умолчанию) — тот же ключ и значения, что у админ-панели.
+    // На <html> data-theme — уже вычисленная тема (light/dark), data-theme-choice — сам выбор.
+    (function () {
+        var root = document.documentElement;
+        var systemDark = window.matchMedia('(prefers-color-scheme: dark)');
 
-    function updateThemeButtons() {
-        const label = currentTheme() === 'light' ? 'Включить тёмную тему' : 'Включить светлую тему';
-        document.querySelectorAll('.theme-toggle').forEach(function (button) {
-            button.setAttribute('aria-label', label);
-            button.setAttribute('title', label);
+        function storedChoice() {
+            var choice = null;
+            try { choice = localStorage.getItem('theme'); } catch (e) {}
+            return choice === 'light' || choice === 'dark' ? choice : 'auto';
+        }
+
+        function applyTheme(choice) {
+            var theme = choice === 'auto' ? (systemDark.matches ? 'dark' : 'light') : choice;
+            root.setAttribute('data-theme', theme);
+            root.dataset.themeChoice = choice;
+            document.querySelectorAll('[data-theme-choice-option]').forEach(function (option) {
+                option.setAttribute('aria-checked', option.dataset.themeChoiceOption === choice ? 'true' : 'false');
+            });
+        }
+
+        function setTheme(choice) {
+            root.classList.add('theme-transition');
+            try { localStorage.setItem('theme', choice); } catch (e) {}
+            applyTheme(choice);
+            setTimeout(function () { root.classList.remove('theme-transition'); }, 350);
+        }
+
+        document.querySelectorAll('[data-theme-choice-option]').forEach(function (option) {
+            option.addEventListener('click', function () {
+                setTheme(option.dataset.themeChoiceOption);
+                var menu = option.closest('details');
+                if (menu) menu.open = false;
+            });
         });
-    }
-
-    function toggleTheme() {
-        const root = document.documentElement;
-        const next = currentTheme() === 'light' ? 'dark' : 'light';
-        root.classList.add('theme-transition');
-        root.setAttribute('data-theme', next);
-        try { localStorage.setItem('theme', next); } catch (e) {}
-        updateThemeButtons();
-        setTimeout(function () { root.classList.remove('theme-transition'); }, 350);
-    }
-
-    updateThemeButtons();
+        // «Как в системе» следует за системой и после загрузки страницы.
+        systemDark.addEventListener('change', function () {
+            if (storedChoice() === 'auto') applyTheme('auto');
+        });
+        // Меню темы закрывается кликом мимо него.
+        document.addEventListener('click', function (event) {
+            document.querySelectorAll('.theme-menu[open]').forEach(function (menu) {
+                if (!menu.contains(event.target)) menu.open = false;
+            });
+        });
+        applyTheme(storedChoice());
+    })();
 </script>

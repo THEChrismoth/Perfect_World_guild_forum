@@ -7,12 +7,14 @@
     <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     <script>
         // Тема как на сайте: применяется до загрузки стилей, чтобы страница не мигала.
+        // Без выбора — «как в системе» (подробности в includes/theme_script.html).
         (function () {
-            var theme = null;
-            try { theme = localStorage.getItem('theme'); } catch (e) {}
-            if (theme === 'light' || theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', theme);
-            }
+            var choice = null;
+            try { choice = localStorage.getItem('theme'); } catch (e) {}
+            if (choice !== 'light' && choice !== 'dark') choice = 'auto';
+            var theme = choice === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : choice;
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.dataset.themeChoice = choice;
         })();
     </script>
     <link rel="stylesheet" href="{% static 'css/accents.css' %}">
@@ -59,10 +61,7 @@
 
     <main class="auth-main">
         <div class="auth-toolbar">
-            <button type="button" class="theme-toggle auth-icon-btn" onclick="toggleTheme()">
-                <span class="icon-light">{% ga_icon "sun" %}</span>
-                <span class="icon-dark">{% ga_icon "moon" %}</span>
-            </button>
+            {% include 'includes/theme_menu.html' with btn_class='auth-icon-btn' %}
         </div>
 
         <div class="auth-card">

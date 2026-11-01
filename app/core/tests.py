@@ -292,6 +292,14 @@ class SiteNavTests(TestCase):
         self.assertContains(response, '<span class="site-nav-badge">1</span>', html=True)
         self.assertContains(response, 'Уведомления: 1 новых')
 
+    def test_theme_menu_on_site_and_login(self):
+        # Выбор темы — в браузере; здесь проверяем, что меню с тремя режимами есть на сайте и на входе.
+        for url, client in (('/', self.client), (reverse('login'), self.client_class())):
+            html = client.get(url).content.decode()
+            with self.subTest(url=url):
+                for choice in ('light', 'dark', 'auto'):
+                    self.assertIn(f'data-theme-choice-option="{choice}"', html)
+
     def test_online_block_and_profile_menu(self):
         from datetime import timedelta
         from django.utils import timezone

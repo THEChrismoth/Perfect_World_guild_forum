@@ -1,0 +1,15 @@
+{% load ga_admin %}
+{# Кнопка темы с меню: светлая, тёмная или как в системе. Логика — includes/theme_script.html. #}
+{# btn_class — класс кнопки на сайте или на страницах входа. #}
+<details class="theme-menu">
+    <summary class="{{ btn_class }} theme-menu-toggle" aria-label="Тема оформления" title="Тема оформления">
+        <span class="theme-icon theme-icon-light">{% ga_icon "sun" %}</span>
+        <span class="theme-icon theme-icon-dark">{% ga_icon "moon" %}</span>
+        <span class="theme-icon theme-icon-auto">{% ga_icon "monitor" %}</span>
+    </summary>
+    <div class="theme-menu-options" role="menu">
+        <button type="button" role="menuitemradio" data-theme-choice-option="light">{% ga_icon "sun" %}Светлая</button>
+        <button type="button" role="menuitemradio" data-theme-choice-option="dark">{% ga_icon "moon" %}Тёмная</button>
+        <button type="button" role="menuitemradio" data-theme-choice-option="auto">{% ga_icon "monitor" %}Как в системе</button>
+    </div>
+</details>

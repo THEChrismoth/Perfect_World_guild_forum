@@ -8,11 +8,13 @@
     <script>
         // Тема и свёрнутое меню применяются до загрузки стилей, чтобы страница не мигала.
         (function () {
-            var theme = null;
-            try { theme = localStorage.getItem('theme'); } catch (e) {}
-            if (theme === 'light' || theme === 'dark') {
-                document.documentElement.setAttribute('data-theme', theme);
-            }
+            // Без выбора — «как в системе» (подробности в includes/theme_script.html).
+            var choice = null;
+            try { choice = localStorage.getItem('theme'); } catch (e) {}
+            if (choice !== 'light' && choice !== 'dark') choice = 'auto';
+            var theme = choice === 'auto' ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : choice;
+            document.documentElement.setAttribute('data-theme', theme);
+            document.documentElement.dataset.themeChoice = choice;
             try {
                 if (localStorage.getItem('siteSidebar') === 'collapsed') {
                     document.documentElement.classList.add('site-sidebar-collapsed');
@@ -92,10 +94,7 @@
                     </div>
                 </div>
             {% endif %}
-            <button type="button" class="site-icon-btn theme-toggle" onclick="toggleTheme()">
-                <span class="icon-light">{% ga_icon "sun" %}</span>
-                <span class="icon-dark">{% ga_icon "moon" %}</span>
-            </button>
+            {% include 'includes/theme_menu.html' with btn_class='site-icon-btn' %}
             {% if user.is_authenticated %}
                 {# Личный кабинет: аватар, ник и класс в меню по кнопке #}
                 {% with profile=user.profile %}

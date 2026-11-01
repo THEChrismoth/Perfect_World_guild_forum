@@ -289,14 +289,73 @@ html.theme-transition *::after {
     display: inline-flex;
 }
 
-/* Показываем иконку той темы, на которую переключит кнопка */
-.theme-toggle .icon-dark,
-[data-theme="light"] .theme-toggle .icon-light {
+/* ---------- Меню темы (includes/theme_menu.html), как на сайте ---------- */
+.theme-menu {
+    position: relative;
+}
+
+.theme-menu-toggle {
+    list-style: none;
+}
+
+.theme-menu-toggle::-webkit-details-marker {
     display: none;
 }
 
-[data-theme="light"] .theme-toggle .icon-dark {
+/* На кнопке — иконка выбранного режима: солнце, луна или монитор («как в системе») */
+.theme-menu .theme-icon {
+    display: none;
+}
+
+html[data-theme-choice="light"] .theme-icon-light,
+html[data-theme-choice="dark"] .theme-icon-dark,
+html[data-theme-choice="auto"] .theme-icon-auto {
     display: inline-flex;
+}
+
+.theme-menu-options {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 50;
+    width: 200px;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid var(--auth-hairline);
+    background: var(--auth-card);
+    box-shadow: var(--auth-popup-shadow);
+}
+
+.theme-menu-options button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    color: var(--auth-text);
+    font: 500 14px var(--auth-font);
+    text-align: left;
+    cursor: pointer;
+}
+
+.theme-menu-options button:hover {
+    background: var(--auth-hover);
+    color: var(--auth-loud);
+}
+
+.theme-menu-options .ga-icon {
+    width: 16px;
+    height: 16px;
+    color: var(--auth-quiet);
+}
+
+.theme-menu-options button[aria-checked="true"],
+.theme-menu-options button[aria-checked="true"] .ga-icon {
+    color: var(--auth-link);
+    font-weight: 600;
 }
 
 .auth-card {
