@@ -25,6 +25,14 @@ class ClosedSiteTests(TestCase):
                 response = self.client.get(url)
                 self.assertRedirects(response, f'{reverse("login")}?next={url}', fetch_redirect_response=False)
 
+    def test_auth_pages_use_guild_accent(self):
+        site = SiteSettings.load()
+        site.accent_color = 'teal'
+        site.save()
+
+        self.assertContains(self.client.get(reverse('login')), 'data-accent="teal"')
+        self.assertContains(self.client.get(reverse('register')), 'data-accent="teal"')
+
     def test_login_and_register_open_for_guest(self):
         self.assertEqual(self.client.get(reverse('login')).status_code, 200)
         self.assertEqual(self.client.get(reverse('register')).status_code, 200)

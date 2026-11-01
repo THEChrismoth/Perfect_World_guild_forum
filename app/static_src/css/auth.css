@@ -1,9 +1,69 @@
 /* =====================================================================
    Страницы входа и регистрации (templates/registration/auth_base.html).
-   Оформление как у админ-панели: те же цвета, карточки и поля, акцент — индиго.
+   Оформление как у админ-панели: те же цвета, карточки и поля.
    Тёмная тема по умолчанию, светлая — html[data-theme="light"] (переключатель сайта).
+   Акцент — цвет гильдии из настроек сайта: html[data-accent="…"], оттенки как в admin/css/guild_theme.css.
    ===================================================================== */
 
+/* ---------- Палитры: --auth-l-* для светлой темы, --auth-d-* для тёмной ---------- */
+:root,
+html[data-accent="indigo"] {
+    --auth-l-accent: #4f46e5;
+    --auth-l-rgb: 79, 70, 229;
+    --auth-l-strong: #4338ca;
+    --auth-d-accent: #6366f1;
+    --auth-d-rgb: 99, 102, 241;
+    --auth-d-strong: #4f46e5;
+    --auth-d-link: #818cf8;
+    --auth-d-fg: #ffffff;
+}
+
+html[data-accent="blue"] {
+    --auth-l-accent: #2563eb;
+    --auth-l-rgb: 37, 99, 235;
+    --auth-l-strong: #1d4ed8;
+    --auth-d-accent: #3b82f6;
+    --auth-d-rgb: 59, 130, 246;
+    --auth-d-strong: #2563eb;
+    --auth-d-link: #60a5fa;
+    --auth-d-fg: #ffffff;
+}
+
+/* Светлые бирюзовый и оранжевый в тёмной теме — с тёмным текстом поверх: белый на них не читается */
+html[data-accent="teal"] {
+    --auth-l-accent: #0f766e;
+    --auth-l-rgb: 15, 118, 110;
+    --auth-l-strong: #115e59;
+    --auth-d-accent: #14b8a6;
+    --auth-d-rgb: 20, 184, 166;
+    --auth-d-strong: #2dd4bf;
+    --auth-d-link: #2dd4bf;
+    --auth-d-fg: #042f2e;
+}
+
+html[data-accent="pink"] {
+    --auth-l-accent: #db2777;
+    --auth-l-rgb: 219, 39, 119;
+    --auth-l-strong: #be185d;
+    --auth-d-accent: #ec4899;
+    --auth-d-rgb: 236, 72, 153;
+    --auth-d-strong: #db2777;
+    --auth-d-link: #f472b6;
+    --auth-d-fg: #ffffff;
+}
+
+html[data-accent="orange"] {
+    --auth-l-accent: #c2410c;
+    --auth-l-rgb: 194, 65, 12;
+    --auth-l-strong: #9a3412;
+    --auth-d-accent: #f97316;
+    --auth-d-rgb: 249, 115, 22;
+    --auth-d-strong: #fb923c;
+    --auth-d-link: #fb923c;
+    --auth-d-fg: #431407;
+}
+
+/* ---------- Тёмная тема (по умолчанию) ---------- */
 :root {
     --auth-page: #0b1120;
     --auth-card: #111a2e;
@@ -16,10 +76,11 @@
     --auth-loud: #f5f7ff;
     --auth-medium: #b3bccf;
     --auth-quiet: #8590a8;
-    --auth-accent: #6366f1;
-    --auth-accent-rgb: 99, 102, 241;
-    --auth-accent-strong: #4f46e5;
-    --auth-link: #818cf8;
+    --auth-accent: var(--auth-d-accent);
+    --auth-accent-rgb: var(--auth-d-rgb);
+    --auth-accent-strong: var(--auth-d-strong);
+    --auth-accent-fg: var(--auth-d-fg);
+    --auth-link: var(--auth-d-link);
     --auth-danger: #f87171;
     --auth-danger-rgb: 248, 113, 113;
     --auth-success: #34d399;
@@ -44,10 +105,11 @@ html[data-theme="light"] {
     --auth-loud: #12141c;
     --auth-medium: #4b5161;
     --auth-quiet: #6b7180;
-    --auth-accent: #4f46e5;
-    --auth-accent-rgb: 79, 70, 229;
-    --auth-accent-strong: #4338ca;
-    --auth-link: #4f46e5;
+    --auth-accent: var(--auth-l-accent);
+    --auth-accent-rgb: var(--auth-l-rgb);
+    --auth-accent-strong: var(--auth-l-strong);
+    --auth-accent-fg: #ffffff;
+    --auth-link: var(--auth-l-accent);
     --auth-danger: #dc2626;
     --auth-danger-rgb: 220, 38, 38;
     --auth-success: #16a34a;
@@ -133,7 +195,7 @@ html.theme-transition *::after {
     height: 42px;
     border-radius: 12px;
     background: var(--auth-accent);
-    color: #ffffff;
+    color: var(--auth-accent-fg);
     box-shadow: 0 8px 20px rgba(var(--auth-accent-rgb), 0.35);
     overflow: hidden;
 }
@@ -337,7 +399,7 @@ html.theme-transition *::after {
 /* Активная вкладка — цвета кнопки «Войти», чтобы не сливалась с фоном */
 .auth-tabs a.is-active {
     background: var(--auth-accent);
-    color: #ffffff;
+    color: var(--auth-accent-fg);
     box-shadow: 0 4px 12px rgba(var(--auth-accent-rgb), 0.3);
 }
 
@@ -443,7 +505,7 @@ html.theme-transition *::after {
     border: none;
     border-radius: 11px;
     background: var(--auth-accent);
-    color: #ffffff;
+    color: var(--auth-accent-fg);
     font: 600 15px var(--auth-font);
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(var(--auth-accent-rgb), 0.3);

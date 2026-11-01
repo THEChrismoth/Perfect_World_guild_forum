@@ -1,5 +1,6 @@
 {% load static ga_admin %}<!DOCTYPE html>
-<html lang="ru">
+{# Цвет гильдии из настроек сайта: у гостя своего цвета нет. #}
+<html lang="ru" data-accent="{{ site_settings.accent_color|default:'indigo' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
