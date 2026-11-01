@@ -330,13 +330,26 @@ html.site-sidebar-collapsed .site-sidebar {
 }
 
 .site-online-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     font-size: 15px;
     color: var(--text-muted);
 }
 
+/* Число — цветом оформления, рядом зелёная точка «в сети» */
 .site-online-value b {
     font-size: 18px;
-    color: var(--success);
+    color: var(--accent-light);
+}
+
+.site-online-dot {
+    width: 8px;
+    height: 8px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 0 3px rgba(var(--success-rgb), 0.2);
 }
 
 /* ---------- Окно по центру экрана (<dialog>) ---------- */

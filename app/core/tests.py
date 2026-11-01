@@ -310,7 +310,8 @@ class SiteNavTests(TestCase):
         response = self.client.get('/')
 
         # Онлайн только сам пользователь (его активность отмечается при каждом запросе), всего — двое.
-        self.assertContains(response, '<span class="site-online-value"><b>1</b> / 2</span>', html=True)
+        self.assertContains(response, '<span class="site-online-value"><i class="site-online-dot" aria-hidden="true"></i>'
+                                      '<b>1</b> / 2</span>', html=True)
         self.assertContains(response, f'<a href="{reverse("profile_view", args=["member"])}">member</a>', html=True)
         self.assertContains(response, 'Редактировать профиль')
 
