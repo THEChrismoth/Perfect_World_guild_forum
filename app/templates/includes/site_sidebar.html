@@ -1,5 +1,5 @@
 {% load ga_admin %}
-{# Боковое меню сайта. Пункты собирает core/site_nav.py. #}
+{# Боковое меню сайта. Пункты собирает core/site_nav.py, внизу — кто сейчас онлайн. #}
 <aside class="site-sidebar" id="site-sidebar" aria-label="Разделы сайта">
     <a class="site-brand" href="/" title="{{ site_settings.site_name }}">
         <span class="site-brand-mark">{% if site_settings.favicon %}<img src="{{ site_settings.favicon.url }}" alt="">{% else %}{% ga_icon "shield" %}{% endif %}</span>
@@ -20,5 +20,30 @@
             {% endfor %}
         {% endfor %}
     </nav>
+
+    {% with online=site_online %}
+        <div class="site-online">
+            <div class="site-online-text">
+                <span class="site-online-label">Онлайн</span>
+                <span class="site-online-value"><b>{{ online.count }}</b> / {{ online.total }}</span>
+            </div>
+            <button type="button" class="site-icon-btn" data-dialog-open="online-dialog" aria-haspopup="dialog" aria-label="Кто сейчас онлайн">
+                {% ga_icon "eye" %}
+            </button>
+        </div>
+
+        {# Окно по центру экрана со списком тех, кто онлайн #}
+        <dialog class="site-modal" id="online-dialog" aria-labelledby="online-dialog-title">
+            <div class="site-modal-box">
+                <div class="site-modal-head">
+                    <h2 id="online-dialog-title">Сейчас онлайн</h2>
+                    <button type="button" class="site-icon-btn" data-dialog-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+                </div>
+                <p class="site-online-list">
+                    {% for online_user in online.users %}<a href="{% url 'profile_view' username=online_user.username %}">{{ online_user.username }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Сейчас никого нет{% endfor %}
+                </p>
+            </div>
+        </dialog>
+    {% endwith %}
 </aside>
 <div class="site-sidebar-backdrop" hidden></div>

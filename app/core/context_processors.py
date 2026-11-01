@@ -20,4 +20,9 @@ def site_nav(request):
 
         return build_site_nav(request, get_unread_count(request.user))
 
-    return {'site_nav': build}
+    def online():
+        from .site_nav import online_summary
+
+        return online_summary()
+
+    return {'site_nav': build, 'site_online': online}

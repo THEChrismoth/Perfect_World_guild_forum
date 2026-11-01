@@ -305,6 +305,91 @@ html.site-sidebar-collapsed .site-sidebar {
     text-align: center;
 }
 
+/* ---------- Внизу меню: кто сейчас онлайн ---------- */
+.site-online {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: auto;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+}
+
+.site-online-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.site-online-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.site-online-value {
+    font-size: 15px;
+    color: var(--text-muted);
+}
+
+.site-online-value b {
+    font-size: 18px;
+    color: var(--success);
+}
+
+/* ---------- Окно по центру экрана (<dialog>) ---------- */
+.site-modal {
+    width: min(560px, calc(100vw - 32px));
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--popup-shadow);
+}
+
+.site-modal::backdrop {
+    background: rgba(3, 7, 18, 0.6);
+}
+
+.site-modal-box {
+    padding: 22px 24px 24px;
+}
+
+.site-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.site-modal-head h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.site-online-list {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+}
+
+.site-online-list a {
+    color: var(--text);
+    text-decoration: none;
+}
+
+.site-online-list a:hover {
+    color: var(--accent-light);
+}
+
 /* ---------- Личный кабинет справа в верхней панели ---------- */
 .site-account {
     position: relative;

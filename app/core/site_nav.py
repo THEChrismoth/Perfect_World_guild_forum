@@ -8,6 +8,15 @@ def _item(label, icon, url, module, current_module, badge=0):
     return {'label': label, 'icon': icon, 'url': url, 'badge': badge, 'current': module == current_module}
 
 
+def online_summary():
+    """Блок «Онлайн» внизу меню: кто был на сайте последние 5 минут и сколько всего игроков."""
+    from django.contrib.auth.models import User
+    from forum.models import get_online_users
+
+    users = list(get_online_users().order_by('username').only('username'))
+    return {'users': users, 'count': len(users), 'total': User.objects.filter(is_active=True).count()}
+
+
 def build_site_nav(request, unread_notifications=0):
     """Группы меню с отметкой раздела, в котором сейчас находимся. Только для вошедших пользователей."""
     user = request.user

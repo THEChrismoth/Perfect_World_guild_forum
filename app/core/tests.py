@@ -292,6 +292,20 @@ class SiteNavTests(TestCase):
         self.assertContains(response, '<span class="site-nav-badge">1</span>', html=True)
         self.assertContains(response, 'Уведомления: 1 новых')
 
+    def test_online_block_and_profile_menu(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        offline = User.objects.create_user('offline', password='pass')
+        offline.profile.last_activity = timezone.now() - timedelta(hours=1)
+        offline.profile.save()
+        response = self.client.get('/')
+
+        # Онлайн только сам пользователь (его активность отмечается при каждом запросе), всего — двое.
+        self.assertContains(response, '<span class="site-online-value"><b>1</b> / 2</span>', html=True)
+        self.assertContains(response, f'<a href="{reverse("profile_view", args=["member"])}">member</a>', html=True)
+        self.assertContains(response, 'Редактировать профиль')
+
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsTests(TestCase):
