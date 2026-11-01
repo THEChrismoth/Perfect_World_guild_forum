@@ -713,7 +713,7 @@ html.ga-sidebar-collapsed .ga-sidebar {
     right: 0;
     top: calc(100% + 8px);
     z-index: 50;
-    min-width: 210px;
+    min-width: 240px;
     padding: 6px;
     border-radius: 12px;
     border: 1px solid var(--hairline-color);
@@ -794,6 +794,90 @@ html.ga-sidebar-collapsed .ga-sidebar {
 
 #header .ga-accent-picker .ga-swatch[aria-pressed="true"] {
     box-shadow: 0 0 0 2px var(--ga-swatch);
+}
+
+/* «Цвет гильдии» — кружок цвета по умолчанию со щитом, как на логотипе */
+#header .ga-accent-picker .ga-swatch-guild {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+}
+
+#header .ga-accent-picker .ga-swatch-guild .ga-icon {
+    width: 13px;
+    height: 13px;
+    color: #ffffff;
+}
+
+/* Тот же выбор в настройках сайта («Цвет оформления по умолчанию»): кружки с подписями.
+   Селекторы через .ga-swatch-field: у Django правило .aligned label делает каждую подпись
+   блоком 160px с пустым ::after — его нужно перебить. */
+.ga-swatch-field {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.ga-swatch-field .ga-swatch-option {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    min-width: 84px;
+    margin: 0;
+    padding: 10px 8px 8px;
+    border-radius: 10px;
+    float: none;
+    cursor: pointer;
+}
+
+.ga-swatch-field .ga-swatch-option::after {
+    content: none;
+}
+
+.ga-swatch-field .ga-swatch-option:hover,
+.ga-swatch-field .ga-swatch-option:has(input:focus-visible) {
+    background: var(--ga-hover);
+}
+
+/* Радиокнопка остаётся для клавиатуры и экранных дикторов, но не видна */
+.ga-swatch-field .ga-swatch-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ga-swatch-field .ga-swatch {
+    display: block;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid var(--ga-card-bg);
+    background: var(--ga-swatch);
+    box-shadow: 0 0 0 1px var(--hairline-color);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.ga-swatch-field .ga-swatch-option:hover .ga-swatch {
+    transform: scale(1.08);
+}
+
+.ga-swatch-field .ga-swatch-option:has(input:checked) .ga-swatch {
+    box-shadow: 0 0 0 2px var(--ga-swatch);
+}
+
+.ga-swatch-field .ga-swatch-name {
+    font-size: 12px;
+    line-height: 1.2;
+    color: var(--body-quiet-color);
+}
+
+.ga-swatch-field .ga-swatch-option:has(input:checked) .ga-swatch-name {
+    color: var(--body-loud-color);
+    font-weight: 600;
 }
 
 .ga-swatch[data-accent-swatch="indigo"] { --ga-swatch: #6366f1; }

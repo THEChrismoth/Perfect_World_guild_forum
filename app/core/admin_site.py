@@ -42,23 +42,29 @@ class GuildAdminSite(admin.AdminSite):
     enable_nav_sidebar = False
 
     def each_context(self, request):
-        from profiles.models import ACCENT_CHOICES
+        from .accents import ACCENT_CHOICES, ACCENT_NAMES, GUILD_ACCENT, user_accent
         from .models import SiteSettings
 
         context = super().each_context(request)
-        site_name = SiteSettings.load().site_name
-        context['site_header'] = site_name
-        context['site_title'] = f'{site_name} · управление'
+        site_settings = SiteSettings.load()
+        context['site_header'] = site_settings.site_name
+        context['site_title'] = f'{site_settings.site_name} · управление'
         if context.get('available_apps'):
             context['ga_nav'] = self._build_nav(request, context['available_apps'])
-        context['ga_accent'] = self._accent(request.user)
-        context['ga_accent_choices'] = ACCENT_CHOICES
-        return context
 
-    @staticmethod
-    def _accent(user):
-        profile = getattr(user, 'profile', None) if user.is_authenticated else None
-        return profile.accent_color if profile else 'indigo'
+        guild = site_settings.accent_color
+        profile = getattr(request.user, 'profile', None) if request.user.is_authenticated else None
+        own = profile.accent_color if profile else ''
+        context.update({
+            'ga_accent': user_accent(request.user, guild),
+            # Что отмечено в меню выбора: свой цвет или «Цвет гильдии».
+            'ga_accent_choice': own if own in ACCENT_NAMES else GUILD_ACCENT,
+            'ga_guild_accent': guild,
+            'ga_guild_accent_name': ACCENT_NAMES.get(guild, '').lower(),
+            'ga_guild_accent_value': GUILD_ACCENT,
+            'ga_accent_choices': ACCENT_CHOICES,
+        })
+        return context
 
     def get_urls(self):
         return [
@@ -67,12 +73,15 @@ class GuildAdminSite(admin.AdminSite):
 
     def set_accent_view(self, request):
         """Сохраняет цвет оформления в профиль. Меню в шапке шлёт запрос фоном, без перезагрузки."""
-        from profiles.models import ACCENT_CHOICES, Profile
+        from profiles.models import Profile
+        from .accents import ACCENT_NAMES, GUILD_ACCENT
 
         color = request.POST.get('accent')
-        if color not in dict(ACCENT_CHOICES):
+        if color != GUILD_ACCENT and color not in ACCENT_NAMES:
             return HttpResponseBadRequest('Неизвестный цвет')
-        Profile.objects.update_or_create(user=request.user, defaults={'accent_color': color})
+        # «Цвет гильдии» хранится пустой строкой: тогда цвет меняется вместе с настройкой сайта.
+        Profile.objects.update_or_create(user=request.user,
+                                         defaults={'accent_color': '' if color == GUILD_ACCENT else color})
         if request.headers.get('X-Requested-With') == 'fetch':
             return HttpResponse(status=204)
         # Без JavaScript форма отправляется обычным образом — возвращаем на ту же страницу.

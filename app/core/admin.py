@@ -17,6 +17,11 @@ SECRET_FIELDS = {
 }
 
 
+class AccentSwatchSelect(forms.RadioSelect):
+    """Цвет кружками, как в меню пользователя в шапке админки."""
+    template_name = 'core/widgets/accent_swatches.html'
+
+
 def _secret_widget():
     return forms.PasswordInput(render_value=False, attrs={'autocomplete': 'new-password', 'size': 50})
 
@@ -36,6 +41,7 @@ class SiteSettingsForm(forms.ModelForm):
     class Meta:
         model = SiteSettings
         fields = '__all__'
+        widgets = {'accent_color': AccentSwatchSelect}
 
     def clean(self):
         cleaned_data = super().clean()
@@ -79,7 +85,7 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     change_form_template = 'admin/core/sitesettings/change_form.html'
     readonly_fields = ('email_password_status', 'captcha_key_status', 'email_status', 'captcha_status')
     fieldsets = (
-        ('Основное', {'fields': ('site_name', 'favicon')}),
+        ('Основное', {'fields': ('site_name', 'favicon', 'accent_color')}),
         ('Регистрация', {
             'fields': ('email_verification', 'email_status', 'captcha_enabled', 'captcha_status'),
         }),

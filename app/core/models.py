@@ -1,6 +1,7 @@
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 
+from .accents import ACCENT_CHOICES, DEFAULT_ACCENT
 from .secrets import SECRET_PREFIX, decrypt_secret, encrypt_secret
 
 
@@ -26,6 +27,14 @@ class SiteSettings(models.Model):
         blank=True,
         validators=[FileExtensionValidator(['ico', 'png'])],
         help_text='Файл .ico или .png, лучше квадратный (32×32 или 64×64). Если не загружен — используется стандартная иконка'
+    )
+    accent_color = models.CharField(
+        'Цвет оформления по умолчанию',
+        max_length=10,
+        choices=ACCENT_CHOICES,
+        default=DEFAULT_ACCENT,
+        help_text='Цвет гильдии: его видят гости на страницах входа и все, кто не выбрал себе другой цвет '
+                  '(меню пользователя в шапке админ-панели → «Цвет оформления»)'
     )
 
     # ===== Регистрация =====

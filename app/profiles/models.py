@@ -7,6 +7,8 @@ from django.templatetags.static import static
 # Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль.
 from django.utils import timezone as django_timezone
 
+from core.accents import ACCENT_CHOICES
+
 TIMEZONE_CHOICES = [
     ('UTC-12', 'UTC-12:00'), ('UTC-11', 'UTC-11:00'), ('UTC-10', 'UTC-10:00'),
     ('UTC-9', 'UTC-09:00'), ('UTC-8', 'UTC-08:00'), ('UTC-7', 'UTC-07:00'),
@@ -46,13 +48,8 @@ def class_icon_url(player_class):
     return static(path) if path else ''
 
 
-ACCENT_CHOICES = [
-    ('indigo', 'Индиго'),
-    ('blue', 'Синий'),
-    ('teal', 'Бирюзовый'),
-    ('pink', 'Розовый'),
-    ('orange', 'Оранжевый'),
-]
+# Пустое значение — «как у гильдии» (цвет по умолчанию из настроек сайта).
+PROFILE_ACCENT_CHOICES = [('', 'Как у гильдии')] + ACCENT_CHOICES
 
 
 class Profile(models.Model):
@@ -113,8 +110,9 @@ class Profile(models.Model):
 
     last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
 
-    # Цвет оформления (пока — в админ-панели). Палитры в static_src/admin/css/guild_theme.css.
-    accent_color = models.CharField('Цвет оформления', max_length=10, choices=ACCENT_CHOICES, default='indigo')
+    # Цвет оформления (пока — в админ-панели), список цветов — core/accents.py.
+    accent_color = models.CharField('Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES,
+                                    blank=True, default='')
 
     def save(self, *args, **kwargs):
         # Автоматически поддерживаем консистентность при сохранении.

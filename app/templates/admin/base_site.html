@@ -73,9 +73,15 @@
                                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                 <span class="ga-accent-title">Цвет оформления</span>
                                 <span class="ga-accent-swatches">
+                                    {# Первая кнопка — цвет гильдии из настроек сайта; меняется вместе с ними #}
+                                    <button type="submit" name="accent" value="{{ ga_guild_accent_value }}" class="ga-swatch ga-swatch-guild"
+                                            data-accent-swatch="{{ ga_guild_accent }}" data-accent-value="{{ ga_guild_accent }}"
+                                            title="Цвет гильдии — {{ ga_guild_accent_name }}" aria-label="Цвет гильдии — {{ ga_guild_accent_name }}"
+                                            aria-pressed="{% if ga_accent_choice == ga_guild_accent_value %}true{% else %}false{% endif %}">{% ga_icon "shield" %}</button>
                                     {% for value, label in ga_accent_choices %}
-                                        <button type="submit" name="accent" value="{{ value }}" class="ga-swatch" data-accent-swatch="{{ value }}"
-                                                title="{{ label }}" aria-label="{{ label }}" aria-pressed="{% if value == ga_accent %}true{% else %}false{% endif %}"></button>
+                                        <button type="submit" name="accent" value="{{ value }}" class="ga-swatch"
+                                                data-accent-swatch="{{ value }}" data-accent-value="{{ value }}"
+                                                title="{{ label }}" aria-label="{{ label }}" aria-pressed="{% if value == ga_accent_choice %}true{% else %}false{% endif %}"></button>
                                     {% endfor %}
                                 </span>
                             </form>
@@ -120,7 +126,7 @@
                     var swatch = event.submitter;
                     if (!swatch || !window.fetch) return;
                     event.preventDefault();
-                    root.dataset.accent = swatch.value;
+                    root.dataset.accent = swatch.dataset.accentValue;
                     accentForm.querySelectorAll('[data-accent-swatch]').forEach(function (button) {
                         button.setAttribute('aria-pressed', button === swatch ? 'true' : 'false');
                     });
