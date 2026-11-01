@@ -1,30 +1,33 @@
 /* ===== Темы =====
    Все цвета сайта задаются здесь. Тема переключается атрибутом data-theme на <html>
-   (кнопка рядом с колокольчиком, выбор хранится в localStorage).
+   (кнопка рядом с колокольчиком, выбор хранится в localStorage), тёмная — по умолчанию.
+   Акцент — цвет гильдии или свой цвет пользователя: data-accent на <html>, палитры в css/accents.css
+   (общие с админ-панелью). Цвет один: --accent-2 — оттенок того же акцента, а не второй цвет.
    Варианты *-rgb — для полупрозрачных цветов: rgba(var(--accent-rgb), 0.2). */
 
-/* Тёмная тема (по умолчанию): розовый неон */
+/* Тёмная тема (по умолчанию): цвета как у админ-панели */
 :root {
     color-scheme: dark;
 
-    --bg: #1a1c20;
-    --bg-rgb: 26, 28, 32;
-    --bg-deep: #0f1114;
-    --surface: #2d3037;
-    --surface-rgb: 45, 48, 55;
+    --bg: #0b1120;
+    --bg-rgb: 11, 17, 32;
+    --bg-deep: #0b1120;
+    --surface: #111a2e;
+    --surface-rgb: 17, 26, 46;
 
-    --text: #e0e0e0;
-    --text-strong: #ffffff;
-    --text-secondary: #a0a0a0;
-    --text-muted: #888888;
+    --text: #d4d9e6;
+    --text-strong: #f5f7ff;
+    --text-secondary: #b3bccf;
+    --text-muted: #8590a8;
 
-    --accent: #fd48b6;
-    --accent-rgb: 253, 72, 182;
-    --accent-light: #ff69b4;
-    --accent-dark: #e03a9e;
-    --accent-2: #ff8c42;
-    --accent-2-rgb: 255, 140, 66;
-    --accent-2-light: #ffa05e;
+    --accent: var(--pal-d-accent);
+    --accent-rgb: var(--pal-d-rgb);
+    --accent-light: var(--pal-d-strong);
+    --accent-dark: var(--pal-d-button);
+    --accent-fg: var(--pal-d-fg);
+    --accent-2: var(--pal-d-strong);
+    --accent-2-rgb: var(--pal-d-rgb);
+    --accent-2-light: var(--pal-d-light);
 
     /* Тонкие линии и подсветка поверх фона */
     --overlay-rgb: 255, 255, 255;
@@ -32,32 +35,51 @@
     --shade-rgb: 0, 0, 0;
     --shade-k: 1;
 
-    --warning-text: #ffc107;
+    --warning-text: #fbbf24;
     --gold: #ffd700;
+
+    /* Общие элементы: карточки, поля, рамки — как у дашборда админ-панели */
+    --side-bg: #0e1627;
+    --hover: #17223a;
+    --hairline: #1c2740;
+    --border: #293655;
+    --field-bg: #0d1526;
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.25);
+    --popup-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --radius: 16px;
+    --radius-sm: 10px;
+
+    --success: #34d399;
+    --success-rgb: 52, 211, 153;
+    --warning: #fbbf24;
+    --warning-rgb: 251, 191, 36;
+    --danger: #f87171;
+    --danger-rgb: 248, 113, 113;
 }
 
-/* Светлая тема: индиго вместо розового */
+/* Светлая тема */
 [data-theme="light"] {
     color-scheme: light;
 
-    --bg: #eef0f7;
-    --bg-rgb: 238, 240, 247;
-    --bg-deep: #e2e5f1;
+    --bg: #f4f5fb;
+    --bg-rgb: 244, 245, 251;
+    --bg-deep: #f4f5fb;
     --surface: #ffffff;
     --surface-rgb: 255, 255, 255;
 
     --text: #2b2f3a;
     --text-strong: #12141c;
-    --text-secondary: #555b6b;
+    --text-secondary: #4b5161;
     --text-muted: #6b7180;
 
-    --accent: #4f46e5;
-    --accent-rgb: 79, 70, 229;
-    --accent-light: #6366f1;
-    --accent-dark: #4338ca;
-    --accent-2: #0ea5e9;
-    --accent-2-rgb: 14, 165, 233;
-    --accent-2-light: #38bdf8;
+    --accent: var(--pal-l-accent);
+    --accent-rgb: var(--pal-l-rgb);
+    --accent-light: var(--pal-d-accent);
+    --accent-dark: var(--pal-l-strong);
+    --accent-fg: #ffffff;
+    --accent-2: var(--pal-d-accent);
+    --accent-2-rgb: var(--pal-d-rgb);
+    --accent-2-light: var(--pal-d-strong);
 
     --overlay-rgb: 15, 23, 42;
     --shade-rgb: 30, 41, 59;
@@ -65,6 +87,21 @@
 
     --warning-text: #b45309;
     --gold: #a16207;
+
+    --side-bg: #ffffff;
+    --hover: #f1f2f9;
+    --hairline: #e8eaf2;
+    --border: #d7dae6;
+    --field-bg: #ffffff;
+    --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 20px rgba(15, 23, 42, 0.05);
+    --popup-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+
+    --success: #16a34a;
+    --success-rgb: 22, 163, 74;
+    --warning: #d97706;
+    --warning-rgb: 217, 119, 6;
+    --danger: #dc2626;
+    --danger-rgb: 220, 38, 38;
 }
 
 * {

@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-accent="{{ site_accent }}">
 <head>
     <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     <script>
@@ -13,6 +13,7 @@
             }
         })();
     </script>
+    <link rel="stylesheet" href="{% static 'css/accents.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% if site_settings.favicon %}
         <link rel="icon" href="{{ site_settings.favicon.url }}">

@@ -4,90 +4,17 @@
    и встроенный переключатель темы (светлая / тёмная / как в системе).
    Подключается в templates/admin/base_site.html.
 
-   Цвет оформления каждый выбирает себе сам (профиль → accent_color, по умолчанию индиго).
-   Палитра задаёт оттенки акцента отдельно для светлой (--ga-l-*) и тёмной (--ga-d-*) темы,
-   а темы ниже берут акцент только из этих переменных.
+   Цвет оформления — цвет гильдии из настроек сайта или свой из профиля (core/accents.py).
+   Палитры — в css/accents.css, общие с сайтом и страницами входа: оттенки акцента для светлой
+   (--pal-l-*) и тёмной (--pal-d-*) темы; темы ниже берут акцент только из этих переменных.
    ===================================================================== */
-
-/* ---------- Палитры цвета оформления ---------- */
-:root,
-html[data-accent="indigo"] {
-    --ga-l-accent: #4f46e5;
-    --ga-l-rgb: 79, 70, 229;
-    --ga-l-strong: #4338ca;
-    --ga-l-deep: #3730a3;
-    --ga-d-accent: #6366f1;
-    --ga-d-rgb: 99, 102, 241;
-    --ga-d-strong: #818cf8;
-    --ga-d-light: #a5b4fc;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #4f46e5;
-    --ga-d-button-hover: #6366f1;
-}
-
-html[data-accent="blue"] {
-    --ga-l-accent: #2563eb;
-    --ga-l-rgb: 37, 99, 235;
-    --ga-l-strong: #1d4ed8;
-    --ga-l-deep: #1e40af;
-    --ga-d-accent: #3b82f6;
-    --ga-d-rgb: 59, 130, 246;
-    --ga-d-strong: #60a5fa;
-    --ga-d-light: #93c5fd;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #2563eb;
-    --ga-d-button-hover: #3b82f6;
-}
-
-/* Светлые бирюзовый и оранжевый в тёмной теме — с тёмным текстом поверх: белый на них не читается */
-html[data-accent="teal"] {
-    --ga-l-accent: #0f766e;
-    --ga-l-rgb: 15, 118, 110;
-    --ga-l-strong: #115e59;
-    --ga-l-deep: #134e4a;
-    --ga-d-accent: #14b8a6;
-    --ga-d-rgb: 20, 184, 166;
-    --ga-d-strong: #2dd4bf;
-    --ga-d-light: #5eead4;
-    --ga-d-fg: #042f2e;
-    --ga-d-button: #0f766e;
-    --ga-d-button-hover: #0d9488;
-}
-
-html[data-accent="pink"] {
-    --ga-l-accent: #db2777;
-    --ga-l-rgb: 219, 39, 119;
-    --ga-l-strong: #be185d;
-    --ga-l-deep: #9d174d;
-    --ga-d-accent: #ec4899;
-    --ga-d-rgb: 236, 72, 153;
-    --ga-d-strong: #f472b6;
-    --ga-d-light: #f9a8d4;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #db2777;
-    --ga-d-button-hover: #ec4899;
-}
-
-html[data-accent="orange"] {
-    --ga-l-accent: #c2410c;
-    --ga-l-rgb: 194, 65, 12;
-    --ga-l-strong: #9a3412;
-    --ga-l-deep: #7c2d12;
-    --ga-d-accent: #f97316;
-    --ga-d-rgb: 249, 115, 22;
-    --ga-d-strong: #fb923c;
-    --ga-d-light: #fdba74;
-    --ga-d-fg: #431407;
-    --ga-d-button: #c2410c;
-    --ga-d-button-hover: #ea580c;
-}
 
 /* ---------- Светлая тема ---------- */
 html[data-theme="light"],
 :root {
-    --ga-accent: var(--ga-l-accent);
-    --ga-accent-rgb: var(--ga-l-rgb);
-    --ga-accent-strong: var(--ga-l-strong);
+    --ga-accent: var(--pal-l-accent);
+    --ga-accent-rgb: var(--pal-l-rgb);
+    --ga-accent-strong: var(--pal-l-strong);
     --ga-accent-fg: #ffffff;
     --ga-page-bg: #f4f5fb;
     --ga-card-bg: #ffffff;
@@ -125,8 +52,8 @@ html[data-theme="light"],
     --breadcrumbs-bg: transparent;
 
     --link-fg: var(--ga-accent);
-    --link-hover-color: var(--ga-l-deep);
-    --link-selected-fg: var(--ga-l-deep);
+    --link-hover-color: var(--pal-l-deep);
+    --link-selected-fg: var(--pal-l-deep);
 
     --hairline-color: #e8eaf2;
     --border-color: #d7dae6;
@@ -146,7 +73,7 @@ html[data-theme="light"],
     --button-bg: var(--ga-accent);
     --button-hover-bg: var(--ga-accent-strong);
     --default-button-bg: var(--ga-accent-strong);
-    --default-button-hover-bg: var(--ga-l-deep);
+    --default-button-hover-bg: var(--pal-l-deep);
     --close-button-bg: #94a3b8;
     --close-button-hover-bg: #64748b;
     --delete-button-bg: #dc2626;
@@ -164,10 +91,10 @@ html[data-theme="light"],
 /* ---------- Тёмная тема: те же значения для «как в системе» и для явного выбора ---------- */
 @media (prefers-color-scheme: dark) {
     :root {
-        --ga-accent: var(--ga-d-accent);
-        --ga-accent-rgb: var(--ga-d-rgb);
-        --ga-accent-strong: var(--ga-d-strong);
-        --ga-accent-fg: var(--ga-d-fg);
+        --ga-accent: var(--pal-d-accent);
+        --ga-accent-rgb: var(--pal-d-rgb);
+        --ga-accent-strong: var(--pal-d-strong);
+        --ga-accent-fg: var(--pal-d-fg);
         --ga-page-bg: #0b1120;
         --ga-card-bg: #111a2e;
         --ga-sidebar-bg: #0e1627;
@@ -184,7 +111,7 @@ html[data-theme="light"],
         --ga-danger-rgb: 248, 113, 113;
 
         --primary: var(--ga-accent);
-        --secondary: var(--ga-d-button);
+        --secondary: var(--pal-d-button);
         --accent: var(--ga-accent);
         --primary-fg: #ffffff;
         --body-fg: #d4d9e6;
@@ -199,9 +126,9 @@ html[data-theme="light"],
         --breadcrumbs-fg: #f5f7ff;
         --breadcrumbs-link-fg: #8590a8;
         --breadcrumbs-bg: transparent;
-        --link-fg: var(--ga-d-strong);
-        --link-hover-color: var(--ga-d-light);
-        --link-selected-fg: var(--ga-d-light);
+        --link-fg: var(--pal-d-strong);
+        --link-hover-color: var(--pal-d-light);
+        --link-selected-fg: var(--pal-d-light);
         --hairline-color: #1c2740;
         --border-color: #293655;
         --error-fg: #f87171;
@@ -214,25 +141,25 @@ html[data-theme="light"],
         --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
         --selected-row: rgba(var(--ga-accent-rgb), 0.14);
         --button-fg: #ffffff;
-        --button-bg: var(--ga-d-button);
-        --button-hover-bg: var(--ga-d-button-hover);
-        --default-button-bg: var(--ga-d-button);
-        --default-button-hover-bg: var(--ga-d-button-hover);
+        --button-bg: var(--pal-d-button);
+        --button-hover-bg: var(--pal-d-button-hover);
+        --default-button-bg: var(--pal-d-button);
+        --default-button-hover-bg: var(--pal-d-button-hover);
         --close-button-bg: #334160;
         --close-button-hover-bg: #43527a;
         --delete-button-bg: #dc2626;
         --delete-button-hover-bg: #ef4444;
         --object-tools-fg: #ffffff;
-        --object-tools-bg: var(--ga-d-button);
-        --object-tools-hover-bg: var(--ga-d-button-hover);
+        --object-tools-bg: var(--pal-d-button);
+        --object-tools-hover-bg: var(--pal-d-button-hover);
     }
 }
 
 html[data-theme="dark"] {
-    --ga-accent: var(--ga-d-accent);
-    --ga-accent-rgb: var(--ga-d-rgb);
-    --ga-accent-strong: var(--ga-d-strong);
-    --ga-accent-fg: var(--ga-d-fg);
+    --ga-accent: var(--pal-d-accent);
+    --ga-accent-rgb: var(--pal-d-rgb);
+    --ga-accent-strong: var(--pal-d-strong);
+    --ga-accent-fg: var(--pal-d-fg);
     --ga-page-bg: #0b1120;
     --ga-card-bg: #111a2e;
     --ga-sidebar-bg: #0e1627;
@@ -249,7 +176,7 @@ html[data-theme="dark"] {
     --ga-danger-rgb: 248, 113, 113;
 
     --primary: var(--ga-accent);
-    --secondary: var(--ga-d-button);
+    --secondary: var(--pal-d-button);
     --accent: var(--ga-accent);
     --primary-fg: #ffffff;
     --body-fg: #d4d9e6;
@@ -264,9 +191,9 @@ html[data-theme="dark"] {
     --breadcrumbs-fg: #f5f7ff;
     --breadcrumbs-link-fg: #8590a8;
     --breadcrumbs-bg: transparent;
-    --link-fg: var(--ga-d-strong);
-    --link-hover-color: var(--ga-d-light);
-    --link-selected-fg: var(--ga-d-light);
+    --link-fg: var(--pal-d-strong);
+    --link-hover-color: var(--pal-d-light);
+    --link-selected-fg: var(--pal-d-light);
     --hairline-color: #1c2740;
     --border-color: #293655;
     --error-fg: #f87171;
@@ -279,17 +206,17 @@ html[data-theme="dark"] {
     --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
     --selected-row: rgba(var(--ga-accent-rgb), 0.14);
     --button-fg: #ffffff;
-    --button-bg: var(--ga-d-button);
-    --button-hover-bg: var(--ga-d-button-hover);
-    --default-button-bg: var(--ga-d-button);
-    --default-button-hover-bg: var(--ga-d-button-hover);
+    --button-bg: var(--pal-d-button);
+    --button-hover-bg: var(--pal-d-button-hover);
+    --default-button-bg: var(--pal-d-button);
+    --default-button-hover-bg: var(--pal-d-button-hover);
     --close-button-bg: #334160;
     --close-button-hover-bg: #43527a;
     --delete-button-bg: #dc2626;
     --delete-button-hover-bg: #ef4444;
     --object-tools-fg: #ffffff;
-    --object-tools-bg: var(--ga-d-button);
-    --object-tools-hover-bg: var(--ga-d-button-hover);
+    --object-tools-bg: var(--pal-d-button);
+    --object-tools-hover-bg: var(--pal-d-button-hover);
 }
 
 /* =====================================================================
