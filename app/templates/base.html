@@ -50,10 +50,13 @@
         <div class="site-topbar-actions">
             {% if user.is_authenticated %}
                 <div class="notifications-dropdown">
-                    <button type="button" class="site-icon-btn notifications-btn" onclick="toggleNotifications(event)" aria-label="Уведомления">
-                        {% ga_icon "bell" %}
+                    <button type="button" class="site-icon-btn notifications-btn" onclick="toggleNotifications(event)"
+                            aria-label="{% if unread_notifications_count %}Уведомления: {{ unread_notifications_count }} новых{% else %}Новых уведомлений нет{% endif %}">
                         {% if unread_notifications_count > 0 %}
+                            {% ga_icon "bell" %}
                             <span class="notifications-badge">{{ unread_notifications_count }}</span>
+                        {% else %}
+                            {% ga_icon "bell-off" %}
                         {% endif %}
                     </button>
                     <div class="notifications-menu" id="notificationsMenu">

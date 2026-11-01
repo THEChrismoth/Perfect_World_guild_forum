@@ -285,8 +285,12 @@ class SiteNavTests(TestCase):
     def test_unread_notifications_badge(self):
         from notifications.utils import send_notification
 
+        # Без непрочитанных — перечёркнутый колокольчик.
+        self.assertContains(self.client.get('/'), 'Новых уведомлений нет')
         send_notification(user=self.user, title='Привет', message='Тест')
-        self.assertContains(self.client.get('/'), '<span class="site-nav-badge">1</span>', html=True)
+        response = self.client.get('/')
+        self.assertContains(response, '<span class="site-nav-badge">1</span>', html=True)
+        self.assertContains(response, 'Уведомления: 1 новых')
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
