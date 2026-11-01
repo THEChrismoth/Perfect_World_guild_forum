@@ -96,7 +96,33 @@
                 <span class="icon-light">{% ga_icon "sun" %}</span>
                 <span class="icon-dark">{% ga_icon "moon" %}</span>
             </button>
-            {% if not user.is_authenticated %}
+            {% if user.is_authenticated %}
+                {# Личный кабинет: аватар, ник и класс в меню по кнопке #}
+                {% with profile=user.profile %}
+                    <details class="site-account">
+                        <summary class="site-icon-btn site-account-toggle" aria-label="Профиль">{% ga_icon "user" %}</summary>
+                        <div class="site-account-menu">
+                            <div class="site-account-head">
+                                <span class="site-avatar">
+                                    {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+                                </span>
+                                <span class="site-account-name">
+                                    <span class="site-account-user">{{ user.username }}</span>
+                                    <span class="site-account-sub">
+                                        {% if profile.player_class %}<img src="{{ profile.get_icon_url }}" alt="">{{ profile.get_player_class_display }}{% else %}Класс не выбран{% endif %}
+                                    </span>
+                                </span>
+                            </div>
+                            <a href="{% url 'profile_view' username=user.username %}">{% ga_icon "user" %}Мой профиль</a>
+                            <a href="{% url 'profile_edit' %}">{% ga_icon "pencil" %}Редактировать профиль</a>
+                            <form method="post" action="{% url 'logout' %}">
+                                {% csrf_token %}
+                                <button type="submit">{% ga_icon "log-out" %}Выйти</button>
+                            </form>
+                        </div>
+                    </details>
+                {% endwith %}
+            {% else %}
                 <a href="{% url 'login' %}" class="site-btn site-btn-primary">Вход</a>
             {% endif %}
         </div>

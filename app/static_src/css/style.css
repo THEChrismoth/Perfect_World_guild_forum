@@ -305,31 +305,31 @@ html.site-sidebar-collapsed .site-sidebar {
     text-align: center;
 }
 
-/* ---------- Личный кабинет внизу меню ---------- */
+/* ---------- Личный кабинет справа в верхней панели ---------- */
 .site-account {
     position: relative;
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid var(--hairline);
 }
 
 .site-account-toggle {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px;
-    border-radius: 12px;
     list-style: none;
-    cursor: pointer;
 }
 
 .site-account-toggle::-webkit-details-marker {
     display: none;
 }
 
-.site-account-toggle:hover,
 .site-account[open] .site-account-toggle {
     background: var(--hover);
+    color: var(--text-strong);
+}
+
+.site-account-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 6px;
+    padding: 8px 10px 12px;
+    border-bottom: 1px solid var(--hairline);
 }
 
 .site-avatar {
@@ -382,20 +382,12 @@ html.site-sidebar-collapsed .site-sidebar {
     height: 16px;
 }
 
-.site-account-chevron {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-    transform: rotate(180deg);
-}
-
-/* Меню кабинета открывается вверх — снизу места нет */
 .site-account-menu {
     position: absolute;
-    left: 0;
     right: 0;
-    bottom: calc(100% + 6px);
+    top: calc(100% + 8px);
     z-index: 50;
+    width: 250px;
     padding: 6px;
     border-radius: 12px;
     border: 1px solid var(--hairline);
