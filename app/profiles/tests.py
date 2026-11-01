@@ -52,6 +52,49 @@ class ClosedSiteTests(TestCase):
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+class SiteAccentTests(TestCase):
+    """Выбор цвета оформления в меню профиля на сайте — для любого игрока, не только для администраторов."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('member', password='pass')
+        self.url = reverse('profile_accent')
+
+    def test_player_saves_color_and_it_applies_everywhere(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(self.url, {'accent': 'teal'}, headers={'X-Requested-With': 'fetch'})
+
+        self.assertEqual(response.status_code, 204)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.accent_color, 'teal')
+        self.assertContains(self.client.get('/'), 'data-accent="teal"')
+        # Кружок выбранного цвета отмечен в меню.
+        self.assertContains(self.client.get('/'), 'value="teal" class="site-swatch"')
+
+    def test_guild_color_resets_choice(self):
+        site = SiteSettings.load()
+        site.accent_color = 'pink'
+        site.save()
+        self.client.force_login(self.user)
+        self.client.post(self.url, {'accent': 'teal'})
+
+        response = self.client.post(self.url, {'accent': 'guild', 'next': '/koslist/'})
+
+        self.assertRedirects(response, '/koslist/', fetch_redirect_response=False)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.accent_color, '')
+        self.assertContains(self.client.get('/'), 'data-accent="pink"')
+
+    def test_bad_values_and_guest(self):
+        self.assertEqual(self.client.post(self.url, {'accent': 'teal'}).status_code, 302)  # гостя — на вход
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.post(self.url, {'accent': 'red'}).status_code, 400)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        response = self.client.post(self.url, {'accent': 'blue', 'next': 'https://evil.example/'})
+        self.assertRedirects(response, '/', fetch_redirect_response=False)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ActivityMenuTests(TestCase):
     def test_menu_item_opens_activity_page(self):
         admin = User.objects.create_superuser('admin', password='pass')

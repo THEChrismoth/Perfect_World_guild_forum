@@ -83,3 +83,10 @@ html[data-accent="orange"] {
     --pal-d-button: #c2410c;
     --pal-d-button-hover: #ea580c;
 }
+
+/* Цвет кружка в меню выбора цвета (сайт и админ-панель): кнопка с data-accent-swatch="…" */
+[data-accent-swatch="indigo"] { --swatch-color: #6366f1; }
+[data-accent-swatch="blue"] { --swatch-color: #3b82f6; }
+[data-accent-swatch="teal"] { --swatch-color: #14b8a6; }
+[data-accent-swatch="pink"] { --swatch-color: #ec4899; }
+[data-accent-swatch="orange"] { --swatch-color: #f97316; }

@@ -807,11 +807,10 @@ html.ga-sidebar-collapsed .ga-sidebar {
     font-weight: 600;
 }
 
-.ga-swatch[data-accent-swatch="indigo"] { --ga-swatch: #6366f1; }
-.ga-swatch[data-accent-swatch="blue"] { --ga-swatch: #3b82f6; }
-.ga-swatch[data-accent-swatch="teal"] { --ga-swatch: #14b8a6; }
-.ga-swatch[data-accent-swatch="pink"] { --ga-swatch: #ec4899; }
-.ga-swatch[data-accent-swatch="orange"] { --ga-swatch: #f97316; }
+/* Цвет кружка — из css/accents.css (общий с меню профиля на сайте) */
+.ga-swatch {
+    --ga-swatch: var(--swatch-color);
+}
 
 /* Шапка страниц без меню (вход в админку) */
 #site-name a {

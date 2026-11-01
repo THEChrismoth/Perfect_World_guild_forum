@@ -113,6 +113,23 @@
                                     </span>
                                 </span>
                             </div>
+                            {# Цвет оформления: первым — цвет гильдии из настроек сайта, затем пять цветов #}
+                            <form class="site-accent-picker" method="post" action="{% url 'profile_accent' %}" data-accent-form>
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <span class="site-accent-title">Цвет оформления</span>
+                                <span class="site-accent-swatches">
+                                    <button type="submit" name="accent" value="{{ accent_menu.guild_value }}" class="site-swatch site-swatch-guild"
+                                            data-accent-swatch="{{ accent_menu.guild }}" data-accent-value="{{ accent_menu.guild }}"
+                                            title="Цвет гильдии — {{ accent_menu.guild_name }}" aria-label="Цвет гильдии — {{ accent_menu.guild_name }}"
+                                            aria-pressed="{% if accent_menu.choice == accent_menu.guild_value %}true{% else %}false{% endif %}">{% ga_icon "shield" %}</button>
+                                    {% for value, label in accent_menu.choices %}
+                                        <button type="submit" name="accent" value="{{ value }}" class="site-swatch"
+                                                data-accent-swatch="{{ value }}" data-accent-value="{{ value }}"
+                                                title="{{ label }}" aria-label="{{ label }}" aria-pressed="{% if value == accent_menu.choice %}true{% else %}false{% endif %}"></button>
+                                    {% endfor %}
+                                </span>
+                            </form>
                             <a href="{% url 'profile_view' username=user.username %}">{% ga_icon "user" %}Мой профиль</a>
                             <a href="{% url 'profile_edit' %}">{% ga_icon "pencil" %}Редактировать профиль</a>
                             <form method="post" action="{% url 'logout' %}">
@@ -184,6 +201,23 @@
                 if (event.target === dialog || event.target.closest('[data-dialog-close]')) dialog.close();
             });
         });
+
+        // Цвет оформления: перекрашиваем сразу, а в профиль сохраняем фоном (без JavaScript — обычной формой).
+        var accentForm = document.querySelector('[data-accent-form]');
+        if (accentForm) {
+            accentForm.addEventListener('submit', function (event) {
+                var swatch = event.submitter;
+                if (!swatch || !window.fetch) return;
+                event.preventDefault();
+                root.dataset.accent = swatch.dataset.accentValue;
+                accentForm.querySelectorAll('[data-accent-swatch]').forEach(function (button) {
+                    button.setAttribute('aria-pressed', button === swatch ? 'true' : 'false');
+                });
+                var data = new FormData(accentForm);
+                data.set('accent', swatch.value);
+                fetch(accentForm.action, {method: 'POST', body: data, headers: {'X-Requested-With': 'fetch'}});
+            });
+        }
 
         // Меню кабинета и уведомления закрываются кликом мимо них.
         document.addEventListener('click', function (event) {

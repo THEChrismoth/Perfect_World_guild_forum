@@ -4,10 +4,7 @@
 @admin.register и admin.site в проекте работают с этим классом без изменений.
 """
 from django.contrib import admin
-from django.http import HttpResponse, HttpResponseBadRequest
-from django.shortcuts import redirect
 from django.urls import path, reverse
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 # Порядок разделов в меню: сначала повседневные дела гильдии, в конце — служебное.
@@ -42,7 +39,7 @@ class GuildAdminSite(admin.AdminSite):
     enable_nav_sidebar = False
 
     def each_context(self, request):
-        from .accents import ACCENT_CHOICES, ACCENT_NAMES, GUILD_ACCENT, user_accent
+        from .accents import accent_menu
         from .models import SiteSettings
 
         context = super().each_context(request)
@@ -52,17 +49,15 @@ class GuildAdminSite(admin.AdminSite):
         if context.get('available_apps'):
             context['ga_nav'] = self._build_nav(request, context['available_apps'])
 
-        guild = site_settings.accent_color
-        profile = getattr(request.user, 'profile', None) if request.user.is_authenticated else None
-        own = profile.accent_color if profile else ''
+        menu = accent_menu(request.user, site_settings.accent_color)
         context.update({
-            'ga_accent': user_accent(request.user, guild),
+            'ga_accent': menu['accent'],
             # Что отмечено в меню выбора: свой цвет или «Цвет гильдии».
-            'ga_accent_choice': own if own in ACCENT_NAMES else GUILD_ACCENT,
-            'ga_guild_accent': guild,
-            'ga_guild_accent_name': ACCENT_NAMES.get(guild, '').lower(),
-            'ga_guild_accent_value': GUILD_ACCENT,
-            'ga_accent_choices': ACCENT_CHOICES,
+            'ga_accent_choice': menu['choice'],
+            'ga_guild_accent': menu['guild'],
+            'ga_guild_accent_name': menu['guild_name'],
+            'ga_guild_accent_value': menu['guild_value'],
+            'ga_accent_choices': menu['choices'],
         })
         return context
 
@@ -72,23 +67,10 @@ class GuildAdminSite(admin.AdminSite):
         ] + super().get_urls()
 
     def set_accent_view(self, request):
-        """Сохраняет цвет оформления в профиль. Меню в шапке шлёт запрос фоном, без перезагрузки."""
-        from profiles.models import Profile
-        from .accents import ACCENT_NAMES, GUILD_ACCENT
+        """Сохраняет цвет оформления из меню в шапке админки (та же логика, что и на сайте)."""
+        from .accents import handle_accent_post
 
-        color = request.POST.get('accent')
-        if color != GUILD_ACCENT and color not in ACCENT_NAMES:
-            return HttpResponseBadRequest('Неизвестный цвет')
-        # «Цвет гильдии» хранится пустой строкой: тогда цвет меняется вместе с настройкой сайта.
-        Profile.objects.update_or_create(user=request.user,
-                                         defaults={'accent_color': '' if color == GUILD_ACCENT else color})
-        if request.headers.get('X-Requested-With') == 'fetch':
-            return HttpResponse(status=204)
-        # Без JavaScript форма отправляется обычным образом — возвращаем на ту же страницу.
-        next_url = request.POST.get('next', '')
-        if not url_has_allowed_host_and_scheme(next_url, {request.get_host()}, require_https=request.is_secure()):
-            next_url = reverse('admin:index')
-        return redirect(next_url)
+        return handle_accent_post(request, reverse('admin:index'))
 
     def get_app_list(self, request, app_label=None):
         app_list = super().get_app_list(request, app_label)

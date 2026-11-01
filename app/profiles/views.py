@@ -9,6 +9,7 @@ from django.db import transaction
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
+from django.views.decorators.http import require_POST
 from django.contrib.auth.tokens import default_token_generator
 from core import captcha
 from core.mail import send_site_mail
@@ -106,6 +107,15 @@ def verify_email(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         messages.error(request, 'Ошибка подтверждения email.')
         return redirect('register')
+
+@login_required
+@require_POST
+def set_accent(request):
+    """Цвет оформления из меню профиля в верхней панели. Та же логика, что и в админ-панели."""
+    from core.accents import handle_accent_post
+
+    return handle_accent_post(request, '/')
+
 
 @login_required
 def profile_view(request, username):

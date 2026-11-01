@@ -417,6 +417,58 @@ html.site-sidebar-collapsed .site-sidebar {
     border-bottom: 1px solid var(--hairline);
 }
 
+/* Выбор цвета оформления в меню профиля: кружки как в меню админ-панели */
+.site-accent-picker {
+    margin: 0 0 6px;
+    padding: 4px 10px 12px;
+    border-bottom: 1px solid var(--hairline);
+}
+
+.site-accent-title {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.site-accent-swatches {
+    display: flex;
+    gap: 8px;
+}
+
+/* .site-account-menu button растягивает кнопки меню на всю ширину — у кружков своё */
+.site-account-menu .site-swatch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border-radius: 50%;
+    border: 2px solid var(--surface);
+    background: var(--swatch-color);
+    color: #ffffff;
+    box-shadow: 0 0 0 1px var(--hairline);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.site-account-menu .site-swatch:hover {
+    background: var(--swatch-color);
+    transform: scale(1.1);
+}
+
+.site-account-menu .site-swatch[aria-pressed="true"] {
+    box-shadow: 0 0 0 2px var(--swatch-color);
+}
+
+/* «Цвет гильдии» — кружок цвета по умолчанию со щитом, как на логотипе */
+.site-account-menu .site-swatch-guild .ga-icon {
+    width: 13px;
+    height: 13px;
+    color: #ffffff;
+}
+
 .site-avatar {
     display: inline-flex;
     align-items: center;

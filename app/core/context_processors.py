@@ -1,11 +1,13 @@
-from .accents import user_accent
+from .accents import accent_menu
 from .models import SiteSettings
 
 
 def site_settings(request):
     settings = SiteSettings.load()
-    # Цвет оформления: свой из профиля или цвет гильдии (атрибут data-accent на <html>).
-    return {'site_settings': settings, 'site_accent': user_accent(request.user, settings.accent_color)}
+    menu = accent_menu(request.user, settings.accent_color)
+    # Цвет оформления: свой из профиля или цвет гильдии (атрибут data-accent на <html>);
+    # accent_menu — кружки выбора цвета в меню профиля.
+    return {'site_settings': settings, 'site_accent': menu['accent'], 'accent_menu': menu}
 
 
 def site_nav(request):
