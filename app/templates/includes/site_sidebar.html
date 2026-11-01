@@ -1,0 +1,50 @@
+{% load ga_admin %}
+{# Боковое меню сайта. Пункты собирает core/site_nav.py, внизу — личный кабинет. #}
+<aside class="site-sidebar" id="site-sidebar" aria-label="Разделы сайта">
+    <a class="site-brand" href="/" title="{{ site_settings.site_name }}">
+        <span class="site-brand-mark">{% if site_settings.favicon %}<img src="{{ site_settings.favicon.url }}" alt="">{% else %}{% ga_icon "shield" %}{% endif %}</span>
+        <span class="site-brand-name">
+            <span class="site-brand-text">{{ site_settings.site_name }}</span>
+            <span class="site-brand-sub">Сайт гильдии</span>
+        </span>
+    </a>
+
+    <nav class="site-nav">
+        {% for group in site_nav %}
+            {% if group.title %}<p class="site-nav-title">{{ group.title }}</p>{% endif %}
+            {% for item in group.items %}
+                <a class="site-nav-link{% if item.current %} is-current{% endif %}" href="{{ item.url }}"{% if item.current %} aria-current="page"{% endif %}>
+                    {% ga_icon item.icon %}<span>{{ item.label }}</span>
+                    {% if item.badge %}<span class="site-nav-badge">{{ item.badge }}</span>{% endif %}
+                </a>
+            {% endfor %}
+        {% endfor %}
+    </nav>
+
+    {# Личный кабинет: аватар, ник и класс; по клику — меню #}
+    {% with profile=user.profile %}
+        <details class="site-account">
+            <summary class="site-account-toggle">
+                <span class="site-avatar">
+                    {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ user.username|slice:":1"|upper }}{% endif %}
+                </span>
+                <span class="site-account-name">
+                    <span class="site-account-user">{{ user.username }}</span>
+                    <span class="site-account-sub">
+                        {% if profile.player_class %}<img src="{{ profile.get_icon_url }}" alt="">{{ profile.get_player_class_display }}{% else %}Класс не выбран{% endif %}
+                    </span>
+                </span>
+                {% ga_icon "chevron-down" "site-account-chevron" %}
+            </summary>
+            <div class="site-account-menu">
+                <a href="{% url 'profile_view' username=user.username %}">{% ga_icon "user" %}Мой профиль</a>
+                <a href="{% url 'profile_edit' %}">{% ga_icon "pencil" %}Редактировать профиль</a>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">{% ga_icon "log-out" %}Выйти</button>
+                </form>
+            </div>
+        </details>
+    {% endwith %}
+</aside>
+<div class="site-sidebar-backdrop" hidden></div>

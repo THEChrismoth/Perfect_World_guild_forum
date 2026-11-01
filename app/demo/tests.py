@@ -99,9 +99,9 @@ class DemoModeOnTests(TestCase):
 
     def test_admin_link_in_menu_only_for_admin(self):
         self.login('member')
-        self.assertNotContains(self.client.get('/'), 'class="admin-link"')
+        self.assertNotContains(self.client.get('/'), 'Панель управления')
         self.login('admin')
-        self.assertContains(self.client.get('/'), 'class="admin-link"')
+        self.assertContains(self.client.get('/'), 'Панель управления')
 
     def test_stale_cookie_creates_new_account(self):
         user = self.login('member')

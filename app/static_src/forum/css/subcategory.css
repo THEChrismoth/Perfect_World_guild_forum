@@ -1,17 +1,3 @@
-main {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-
-main .container {
-    background: transparent !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    max-width: 100% !important;
-}
-
 .subcategory-forum-container {
     width: 100%;
     margin: 0;

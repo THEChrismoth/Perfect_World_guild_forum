@@ -1,16 +1,23 @@
-{% load static %}
+{% load static ga_admin %}
 <!DOCTYPE html>
 <html lang="ru" data-accent="{{ site_accent }}">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}{{ site_settings.site_name }}{% endblock %}</title>
     <script>
-        // Тема применяется до загрузки стилей, чтобы страница не мигала тёмной темой.
+        // Тема и свёрнутое меню применяются до загрузки стилей, чтобы страница не мигала.
         (function () {
             var theme = null;
             try { theme = localStorage.getItem('theme'); } catch (e) {}
             if (theme === 'light' || theme === 'dark') {
                 document.documentElement.setAttribute('data-theme', theme);
             }
+            try {
+                if (localStorage.getItem('siteSidebar') === 'collapsed') {
+                    document.documentElement.classList.add('site-sidebar-collapsed');
+                }
+            } catch (e) {}
         })();
     </script>
     <link rel="stylesheet" href="{% static 'css/accents.css' %}">
@@ -23,88 +30,79 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
-    <header>
-        <div class="container">
-            <div class="header-left">
-                <h1><a href="/">{{ site_settings.site_name }}</a></h1>
-                <div class="nav-divider"></div>
-                <nav>
-                    <a href="/">Главная</a>
-                    <a href="/koslist">Кос-лист</a>
-                    <a href="/">Форум</a>
-                    {# Администраторы и модераторы: модератор видит в панели только свои разделы. #}
-                    {% if user.is_staff %}
-                        <a href="/admin/" class="admin-link">Панель управления</a>
-                    {% endif %}
-                </nav>
-            </div>
-            <div class="header-right">
-                {% if user.is_authenticated %}
-                    <div class="user-menu">
-                        {% include 'includes/theme_toggle.html' %}
-                        <div class="notifications-dropdown">
-                            <button class="notifications-btn" onclick="toggleNotifications()">
-                                🔔
-                                {% if unread_notifications_count > 0 %}
-                                    <span class="notifications-badge">{{ unread_notifications_count }}</span>
-                                {% endif %}
-                            </button>
-                            <div class="notifications-menu" id="notificationsMenu">
-                                <div class="notifications-header">
-                                    <span>Уведомления</span>
-                                    {% if unread_notifications_count > 0 %}
-                                        <form method="post" action="{% url 'notifications:mark_all_as_read_dropdown' %}" style="display: inline;">
-                                            {% csrf_token %}
-                                            <button type="submit" class="mark-all-read" style="background: none; border: none; padding: 0; cursor: pointer; font: inherit;">Все прочитаны</button>
-                                        </form>
-                                    {% endif %}
-                                </div>
-                                <div class="notifications-list">
-                                    {% if notifications %}
-                                        {% for notification in notifications %}
-                                            <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/'|urlencode }}"
-                                                class="notification-item {% if not notification.is_read %}unread{% endif %} type-{{ notification.notification_type }}">
-                                                <div class="notification-icon">{{ notification.get_icon }}</div>
-                                                <div class="notification-content">
-                                                    <div class="notification-title">{{ notification.title }}</div>
-                                                    <div class="notification-message">{{ notification.message|safe|striptags|truncatechars:80 }}</div>
-                                                    <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
-                                                </div>
-                                            </a>
-                                        {% endfor %}
-                                        <div class="notifications-footer">
-                                            <a href="{% url 'notifications:notification_list' %}">Все уведомления →</a>
-                                        </div>
-                                    {% else %}
-                                        <div class="no-notifications">Нет уведомлений</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        <a href="{% url 'profile_view' username=user.username %}" class="profile-link">{{ user.username }}</a>
-                        <form method="post" action="{% url 'logout' %}" class="logout-form">
-                            {% csrf_token %}
-                            <button type="submit" class="logout-btn">Выход</button>
-                        </form>
-                    </div>
-                {% else %}
-                    <div class="auth-buttons">
-                        {% include 'includes/theme_toggle.html' %}
-                        {% if not demo_mode %}
-                            <a href="{% url 'register' %}" class="register-btn">Регистрация</a>
+{# Каркас как у админ-панели: меню слева на всю высоту, сверху панель, справа содержимое. #}
+<div class="site-shell">
+    {% if user.is_authenticated %}
+        {% include 'includes/site_sidebar.html' %}
+    {% endif %}
+
+    <header class="site-topbar">
+        {% if user.is_authenticated %}
+            <button type="button" class="site-icon-btn site-burger" data-site-sidebar-toggle aria-controls="site-sidebar" aria-label="Показать или скрыть меню">
+                {% ga_icon "menu" %}
+            </button>
+        {% else %}
+            <a class="site-topbar-brand" href="/">{{ site_settings.site_name }}</a>
+        {% endif %}
+
+        <div class="site-topbar-spacer"></div>
+
+        <div class="site-topbar-actions">
+            {% if user.is_authenticated %}
+                <div class="notifications-dropdown">
+                    <button type="button" class="site-icon-btn notifications-btn" onclick="toggleNotifications(event)" aria-label="Уведомления">
+                        {% ga_icon "bell" %}
+                        {% if unread_notifications_count > 0 %}
+                            <span class="notifications-badge">{{ unread_notifications_count }}</span>
                         {% endif %}
-                        <a href="{% url 'login' %}" class="login-btn">Вход</a>
+                    </button>
+                    <div class="notifications-menu" id="notificationsMenu">
+                        <div class="notifications-header">
+                            <span>Уведомления</span>
+                            {% if unread_notifications_count > 0 %}
+                                <form method="post" action="{% url 'notifications:mark_all_as_read_dropdown' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="mark-all-read">Все прочитаны</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div class="notifications-list">
+                            {% if notifications %}
+                                {% for notification in notifications %}
+                                    <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/'|urlencode }}"
+                                        class="notification-item {% if not notification.is_read %}unread{% endif %} type-{{ notification.notification_type }}">
+                                        <div class="notification-icon">{{ notification.get_icon }}</div>
+                                        <div class="notification-content">
+                                            <div class="notification-title">{{ notification.title }}</div>
+                                            <div class="notification-message">{{ notification.message|safe|striptags|truncatechars:80 }}</div>
+                                            <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
+                                        </div>
+                                    </a>
+                                {% endfor %}
+                                <div class="notifications-footer">
+                                    <a href="{% url 'notifications:notification_list' %}">Все уведомления →</a>
+                                </div>
+                            {% else %}
+                                <div class="no-notifications">Нет уведомлений</div>
+                            {% endif %}
+                        </div>
                     </div>
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
+            <button type="button" class="site-icon-btn theme-toggle" onclick="toggleTheme()">
+                <span class="icon-light">{% ga_icon "sun" %}</span>
+                <span class="icon-dark">{% ga_icon "moon" %}</span>
+            </button>
+            {% if not user.is_authenticated %}
+                <a href="{% url 'login' %}" class="site-btn site-btn-primary">Вход</a>
+            {% endif %}
         </div>
     </header>
 
-    {% if demo_mode %}
-        {% include 'demo/banner.html' %}
-    {% endif %}
-
-    <main>
+    <main class="site-main">
+        {% if demo_mode %}
+            {% include 'demo/banner.html' %}
+        {% endif %}
         <div class="container">
             {% if messages %}
                 <div class="messages">
@@ -121,32 +119,52 @@
         </div>
     </main>
 
-    <footer>
-        <div class="container">
-            <p>© 2026 <a href="https://github.com/THEChrismoth" target="_blank" rel="noopener">THEChrismoth</a>. Все права защищены.</p>
-            <div class="footer-links">
-                <a href="https://github.com/THEChrismoth/Perfect_World_guild_forum/issues" target="_blank" rel="noopener">Сообщить о проблеме</a>
-            </div>
-        </div>
+    <footer class="site-footer">
+        <p>© 2026 <a href="https://github.com/THEChrismoth" target="_blank" rel="noopener">THEChrismoth</a>. Все права защищены.</p>
+        <a href="https://github.com/THEChrismoth/Perfect_World_guild_forum/issues" target="_blank" rel="noopener">Сообщить о проблеме</a>
     </footer>
+</div>
 
-    {% include 'includes/theme_script.html' %}
-    <script>
-        function toggleNotifications() {
-            const menu = document.getElementById('notificationsMenu');
-            menu.classList.toggle('show');
+{% include 'includes/theme_script.html' %}
+<script>
+    (function () {
+        // Меню слева: на широком экране кнопка сворачивает его (и запоминает), на узком — выдвигает поверх страницы.
+        var root = document.documentElement;
+        var toggle = document.querySelector('[data-site-sidebar-toggle]');
+        var backdrop = document.querySelector('.site-sidebar-backdrop');
+        var narrow = window.matchMedia('(max-width: 1023px)');
+        function setOpen(open) {
+            root.classList.toggle('site-sidebar-open', open);
+            if (backdrop) backdrop.hidden = !open;
         }
-
-        window.onclick = function(event) {
-            if (!event.target.matches('.notifications-btn')) {
-                const dropdowns = document.getElementsByClassName('notifications-menu');
-                for (let i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('show')) {
-                        dropdowns[i].classList.remove('show');
-                    }
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                if (narrow.matches) {
+                    setOpen(!root.classList.contains('site-sidebar-open'));
+                } else {
+                    var collapsed = root.classList.toggle('site-sidebar-collapsed');
+                    try { localStorage.setItem('siteSidebar', collapsed ? 'collapsed' : 'expanded'); } catch (e) {}
                 }
-            }
+            });
         }
-    </script>
+        if (backdrop) backdrop.addEventListener('click', function () { setOpen(false); });
+        narrow.addEventListener('change', function () { setOpen(false); });
+
+        // Меню кабинета и уведомления закрываются кликом мимо них.
+        document.addEventListener('click', function (event) {
+            var account = document.querySelector('.site-account[open]');
+            if (account && !account.contains(event.target)) account.removeAttribute('open');
+            var menu = document.getElementById('notificationsMenu');
+            if (menu && menu.classList.contains('show') && !event.target.closest('.notifications-dropdown')) {
+                menu.classList.remove('show');
+            }
+        });
+    })();
+
+    function toggleNotifications(event) {
+        event.stopPropagation();
+        document.getElementById('notificationsMenu').classList.toggle('show');
+    }
+</script>
 </body>
 </html>

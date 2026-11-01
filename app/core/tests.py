@@ -250,6 +250,46 @@ class HashedStaticTests(SimpleTestCase):
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+class SiteNavTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('member', password='pass')
+        self.client.force_login(self.user)
+
+    def current_items(self, url):
+        html = self.client.get(url).content.decode()
+        sidebar = html[html.find('id="site-sidebar"'):html.find('</aside>')]
+        return re.findall(r'class="site-nav-link is-current".*?<span>([^<]+)</span>', sidebar, re.S)
+
+    def test_current_section_highlighted(self):
+        from forum.models import Category, SubCategory
+
+        category = Category.objects.create(title='Гильдия', slug='guild')
+        SubCategory.objects.create(title='Аукцион', slug='auction', category=category, is_auction=True)
+
+        self.assertEqual(self.current_items('/'), ['Форум'])
+        self.assertEqual(self.current_items(reverse('events:event_index')), ['Ивенты'])
+        self.assertEqual(self.current_items(reverse('auction:auction_index')), ['Аукцион'])
+        self.assertEqual(self.current_items('/koslist/'), ['Кос-лист'])
+
+    def test_auction_hidden_without_access(self):
+        # Раздела аукциона нет — доступа нет, и пункта в меню тоже.
+        self.assertNotContains(self.client.get('/'), f'href="{reverse("auction:auction_index")}"')
+
+    def test_reception_link_depends_on_membership(self):
+        from django.contrib.auth.models import Group
+
+        self.assertContains(self.client.get('/'), f'href="{reverse("reception:my_applications")}"')
+        self.user.groups.add(Group.objects.create(name='Член гильдии'))
+        self.assertContains(self.client.get('/'), f'href="{reverse("reception:application_list")}"')
+
+    def test_unread_notifications_badge(self):
+        from notifications.utils import send_notification
+
+        send_notification(user=self.user, title='Привет', message='Тест')
+        self.assertContains(self.client.get('/'), '<span class="site-nav-badge">1</span>', html=True)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsTests(TestCase):
     def setUp(self):
         self.client.force_login(User.objects.create_user('member', password='pass'))
@@ -267,7 +307,7 @@ class SiteSettingsTests(TestCase):
         response = self.client.get('/')
 
         self.assertContains(response, '<title>Ermitage</title>', html=True)
-        self.assertContains(response, '<a href="/">Ermitage</a>', html=True)
+        self.assertContains(response, '<span class="site-brand-text">Ermitage</span>', html=True)
 
     def test_only_one_record(self):
         SiteSettings(site_name='Первая').save()
@@ -353,9 +393,9 @@ class ModeratorRoleTests(TestCase):
 
     def test_menu_link_and_admin_sections(self):
         self.client.login(username='mod', password='pass')
-        self.assertNotContains(self.client.get('/'), 'class="admin-link"')
+        self.assertNotContains(self.client.get('/'), 'Панель управления')
         self.user.groups.add(self.group)
-        self.assertContains(self.client.get('/'), 'class="admin-link"')
+        self.assertContains(self.client.get('/'), 'Панель управления')
         self.assertEqual(self.client.get(reverse('admin:auction_auctionlot_changelist')).status_code, 200)
         # Поиск игроков при записи в отряд ивента.
         autocomplete = self.client.get(reverse('admin:autocomplete'), {
