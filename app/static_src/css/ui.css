@@ -1,0 +1,376 @@
+/* =====================================================================
+   Общие элементы сайта в стиле дашборда: заголовок страницы, карточки, кнопки,
+   поля, таблицы, бейджи и пустые состояния. Цвета — переменные из css/style.css
+   (тема и цвет оформления подставляются сами).
+
+   Приставка ui- — потому что .btn, .card, .badge уже заняты стилями модулей со своим видом.
+   Модули переходят на эти элементы постепенно, начиная с форума.
+   Подключается в templates/base.html после css/style.css.
+   ===================================================================== */
+
+/* ---------- Заголовок страницы ---------- */
+.ui-page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 16px;
+    margin-bottom: 24px;
+}
+
+.ui-page-title {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-strong);
+}
+
+.ui-page-sub {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.ui-page-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* ---------- Карточки ---------- */
+.ui-card {
+    min-width: 0;
+    padding: 20px;
+    border-radius: var(--radius);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    box-shadow: var(--card-shadow);
+}
+
+/* Без внутренних отступов — для списков и таблиц на всю ширину карточки */
+.ui-card-flush {
+    padding: 0;
+    overflow: hidden;
+}
+
+.ui-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ui-card-flush > .ui-card-head {
+    margin: 0;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--hairline);
+}
+
+.ui-card-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.ui-card-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-light);
+    text-decoration: none;
+}
+
+.ui-card-link:hover {
+    text-decoration: underline;
+}
+
+.ui-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* ---------- Кнопки ---------- */
+.ui-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, filter 0.15s ease;
+}
+
+.ui-btn .ga-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ui-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.ui-btn:disabled,
+.ui-btn[aria-disabled="true"] {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+/* Главное действие — цветом оформления */
+.ui-btn-primary {
+    background: var(--accent);
+    color: var(--accent-fg);
+    box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.25);
+}
+
+.ui-btn-primary:hover {
+    filter: brightness(1.08);
+}
+
+/* Второстепенное — карточка с рамкой */
+.ui-btn-secondary {
+    border-color: var(--border);
+    background: var(--surface);
+    color: var(--text);
+}
+
+.ui-btn-secondary:hover {
+    background: var(--hover);
+    color: var(--text-strong);
+}
+
+/* Тихое — без рамки, для действий в строках списков */
+.ui-btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+}
+
+.ui-btn-ghost:hover {
+    background: var(--hover);
+    color: var(--text-strong);
+}
+
+/* Удаление и отказ */
+.ui-btn-danger {
+    background: rgba(var(--danger-rgb), 0.12);
+    color: var(--danger);
+}
+
+.ui-btn-danger:hover {
+    background: rgba(var(--danger-rgb), 0.2);
+}
+
+.ui-btn-sm {
+    height: 32px;
+    padding: 0 12px;
+    font-size: 13px;
+}
+
+/* ---------- Поля формы ---------- */
+.ui-form {
+    display: grid;
+    gap: 18px;
+}
+
+.ui-field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.ui-field > label,
+.ui-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.ui-field input[type="text"],
+.ui-field input[type="email"],
+.ui-field input[type="password"],
+.ui-field input[type="number"],
+.ui-field input[type="url"],
+.ui-field input[type="date"],
+.ui-field input[type="search"],
+.ui-field select,
+.ui-field textarea,
+.ui-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--field-bg);
+    color: var(--text-strong);
+    font-family: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-field textarea {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.ui-field input:focus,
+.ui-field select:focus,
+.ui-field textarea:focus,
+.ui-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
+    outline: none;
+}
+
+.ui-help {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.ui-error {
+    font-size: 13px;
+    color: var(--danger);
+}
+
+.ui-error ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ui-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* ---------- Таблицы ---------- */
+.ui-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.ui-table th {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.ui-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+    color: var(--text);
+    vertical-align: middle;
+}
+
+.ui-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ui-table tbody tr:hover td {
+    background: var(--hover);
+}
+
+/* ---------- Бейджи ---------- */
+.ui-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--accent-light);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+.ui-badge .ga-icon {
+    width: 13px;
+    height: 13px;
+}
+
+.ui-badge-success { background: rgba(var(--success-rgb), 0.14); color: var(--success); }
+.ui-badge-warning { background: rgba(var(--warning-rgb), 0.16); color: var(--warning); }
+.ui-badge-danger { background: rgba(var(--danger-rgb), 0.14); color: var(--danger); }
+.ui-badge-muted { background: var(--hover); color: var(--text-muted); }
+
+/* ---------- Пустое состояние ---------- */
+.ui-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.ui-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent-light);
+}
+
+.ui-empty-icon .ga-icon {
+    width: 24px;
+    height: 24px;
+}
+
+.ui-empty-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.ui-empty-text {
+    margin: 0;
+    max-width: 420px;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* ---------- Узкие экраны ---------- */
+@media (max-width: 768px) {
+    .ui-page-title {
+        font-size: 22px;
+    }
+
+    .ui-card {
+        padding: 16px;
+    }
+
+    .ui-card-flush > .ui-card-head {
+        padding: 14px 16px;
+    }
+
+    .ui-table th,
+    .ui-table td {
+        padding: 10px 12px;
+    }
+}

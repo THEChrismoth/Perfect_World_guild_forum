@@ -936,10 +936,15 @@ html.theme-transition *::after {
     margin-bottom: 20px;
 }
 
+/* Как предупреждения на дашборде: мягкий фон цвета сообщения, без цветной полосы сбоку */
 .alert {
-    padding: 12px 15px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
     margin-bottom: 10px;
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--text-strong);
+    font-size: 14px;
     animation: slideDown 0.3s ease;
 }
 
@@ -954,29 +959,10 @@ html.theme-transition *::after {
     }
 }
 
-.alert-success {
-    background: rgba(40, 167, 69, 0.2);
-    border-left: 3px solid #28a745;
-    color: #28a745;
-}
-
-.alert-error, .alert-danger {
-    background: rgba(220, 53, 69, 0.2);
-    border-left: 3px solid #dc3545;
-    color: #dc3545;
-}
-
-.alert-warning {
-    background: rgba(255, 193, 7, 0.2);
-    border-left: 3px solid #ffc107;
-    color: var(--warning-text);
-}
-
-.alert-info {
-    background: rgba(23, 162, 184, 0.2);
-    border-left: 3px solid #17a2b8;
-    color: #17a2b8;
-}
+.alert-success { background: rgba(var(--success-rgb), 0.12); }
+.alert-error, .alert-danger { background: rgba(var(--danger-rgb), 0.12); }
+.alert-warning { background: rgba(var(--warning-rgb), 0.14); }
+.alert-info { background: rgba(var(--accent-rgb), 0.1); }
 
 /* Форум */
 .forum-layout,
