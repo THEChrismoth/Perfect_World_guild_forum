@@ -24,7 +24,7 @@ def _last_post(subcategory):
     """Последний пост в самой свежей теме подкатегории."""
     return Post.objects.filter(
         topic__subcategory=subcategory
-    ).select_related('author', 'topic').order_by('-topic__updated_at', '-created_at').first()
+    ).select_related('author__profile', 'topic').order_by('-topic__updated_at', '-created_at').first()
 
 
 def forum_view(request):
@@ -77,7 +77,8 @@ def subcategory_detail(request, slug):
     if not subcategory.is_visible_to_user(request.user):
         raise PermissionDenied("У вас нет доступа к этой подкатегории")
 
-    context = {'subcategory': subcategory}
+    topics = subcategory.topics.select_related('author__profile').annotate(posts_num=Count('posts'))
+    context = {'subcategory': subcategory, 'topics': topics}
     return render(request, 'forum/subcategory_detail.html', context)
 
 

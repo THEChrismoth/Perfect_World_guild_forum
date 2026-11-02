@@ -1,51 +1,57 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}{{ subcategory.title }} — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="subcategory-forum-container">
-    <div class="subcategory-header">
-        <h1 class="subcategory-title-main">{{ subcategory.title }}</h1>
-        <a href="{% url 'topic_create' slug=subcategory.slug %}" class="btn-create-topic">+ Создать тему</a>
+<div class="ui-page-head">
+    <div>
+        <nav class="forum-crumbs" aria-label="Путь">
+            <a href="{% url 'index' %}">Форум</a>{% ga_icon "chevron-right" %}<span>{{ subcategory.category.title }}</span>
+        </nav>
+        <h1 class="ui-page-title">{{ subcategory.title }}</h1>
+        <p class="ui-page-sub">Тем: {{ topics|length }}</p>
     </div>
+    <div class="ui-page-actions">
+        <a href="{% url 'topic_create' slug=subcategory.slug %}" class="ui-btn ui-btn-primary">{% ga_icon "plus" %}Создать тему</a>
+    </div>
+</div>
 
-    <div class="topics-block">
-        <div class="topics-container">
-            {% if subcategory.topics.all %}
-                <ul class="topics-list">
-                    {% for topic in subcategory.topics.all %}
-                        <li class="topic-list-item">
-                            <div class="topic-card" onclick="window.location.href='{% url 'topic_detail' slug=topic.slug %}'">
-                                <div class="topic-info">
-                                    <span class="topic-title">{{ topic.title }}</span>
-                                    <div class="topic-meta">
-                                        <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link" onclick="event.stopPropagation();">{{ topic.author.username }}</a></span>
-                                        <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
-                                        <span>Ответов: {{ topic.posts.count }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                            {% if user == topic.author or user.is_superuser %}
-                                <div class="topic-actions">
-                                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic-list" title="Редактировать тему" onclick="event.stopPropagation();">✏️</a>
-                                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form" onclick="event.stopPropagation();">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn-delete-topic-list" title="Удалить тему" onclick="event.stopPropagation();">🗑️</button>
-                                    </form>
-                                </div>
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="no-topics">
-                    В этой подкатегории пока нет тем
-                </div>
-            {% endif %}
+<div class="ui-card ui-card-flush">
+    {% if topics %}
+        <ul class="forum-list">
+            {% for topic in topics %}
+                <li class="forum-row forum-topic">
+                    {% include 'forum/includes/avatar.html' with author=topic.author %}
+                    <div class="forum-row-main">
+                        <a href="{% url 'topic_detail' slug=topic.slug %}" class="forum-row-link">{{ topic.title }}</a>
+                        <div class="forum-row-sub">
+                            <a href="{% url 'profile_view' username=topic.author.username %}">{{ topic.author.username }}</a>
+                            · {{ topic.created_at|date:"d.m.Y H:i" }}
+                        </div>
+                    </div>
+                    <span class="ui-badge ui-badge-muted forum-topic-count" title="Сообщений в теме">{% ga_icon "message" %}{{ topic.posts_num }}</span>
+                    {% if user == topic.author or user.is_superuser %}
+                        <div class="forum-row-actions">
+                            <a href="{% url 'topic_edit' slug=topic.slug %}" class="ui-btn ui-btn-ghost ui-btn-sm" title="Редактировать тему" aria-label="Редактировать тему">{% ga_icon "pencil" %}</a>
+                            <a href="{% url 'topic_delete' slug=topic.slug %}" class="ui-btn ui-btn-ghost ui-btn-sm" title="Удалить тему" aria-label="Удалить тему">{% ga_icon "trash" %}</a>
+                        </div>
+                    {% else %}
+                        <span></span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "message" %}</span>
+            <p class="ui-empty-title">Тем пока нет</p>
+            <p class="ui-empty-text">В этом разделе ещё никто не писал — начните первое обсуждение.</p>
         </div>
-    </div>
+    {% endif %}
 </div>
 {% endblock %}

@@ -964,15 +964,6 @@ html.theme-transition *::after {
 .alert-warning { background: rgba(var(--warning-rgb), 0.14); }
 .alert-info { background: rgba(var(--accent-rgb), 0.1); }
 
-/* Форум */
-.forum-layout,
-.categorys,
-.subcategories-block,
-.subcategory-card {
-    position: relative;
-    z-index: 1;
-}
-
 /* Статистика форума */
 .stats-list {
     display: flex;
@@ -1651,17 +1642,6 @@ html.theme-transition *::after {
 .admin-link:hover {
     color: var(--text-strong) !important;
     text-shadow: 0 0 5px rgba(var(--accent-rgb), 0.5);
-}
-
-.post-author-link {
-    color: #0066cc;
-    text-decoration: none;
-    transition: color 0.2s ease;
-}
-
-.post-author-link:hover {
-    color: #004499;
-    text-decoration: underline;
 }
 
 /* Мобильная версия */

@@ -1,0 +1,6 @@
+{# Аватар автора: картинка из профиля или первая буква ника. Параметры: author, size ("lg" — крупный). #}
+{% with profile=author.profile %}
+    <span class="forum-avatar{% if size == 'lg' %} forum-avatar-lg{% endif %}">
+        {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ author.username|slice:":1"|upper }}{% endif %}
+    </span>
+{% endwith %}

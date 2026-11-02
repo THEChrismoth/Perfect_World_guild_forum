@@ -56,3 +56,19 @@ class VisibilityTests(ForumTestCase):
         response = self.client.get(reverse('index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Болталка')
+
+
+class PageRenderTests(ForumTestCase):
+    def test_subcategory_lists_topics_with_post_count(self):
+        response = self.client.get(reverse('subcategory_detail', args=[self.subcategory.slug]))
+        self.assertContains(response, 'Первая тема')
+        self.assertEqual(response.context['topics'][0].posts_num, 1)
+
+    def test_topic_page_shows_posts_and_reply_form(self):
+        response = self.client.get(reverse('topic_detail', args=[self.topic.slug]))
+        self.assertContains(response, 'Текст')
+        self.assertContains(response, reverse('post_create', args=[self.topic.slug]))
+
+    def test_topic_create_form_renders(self):
+        response = self.client.get(reverse('topic_create', args=[self.subcategory.slug]))
+        self.assertEqual(response.status_code, 200)

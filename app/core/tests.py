@@ -241,7 +241,7 @@ class HashedStaticTests(SimpleTestCase):
 
     def test_name_changes_with_content(self):
         # Имя зависит от содержимого: так браузер узнаёт о новой версии файла.
-        url = static('forum/css/style.css')
+        url = static('forum/css/forum.css')
         other = static('css/style.css')
         self.assertNotEqual(re.search(r'\.([0-9a-f]{12})\.', url).group(1), re.search(r'\.([0-9a-f]{12})\.', other).group(1))
 

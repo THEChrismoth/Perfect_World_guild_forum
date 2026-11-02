@@ -1,29 +1,32 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Удалить тему — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="subcategory-forum-container">
-    <div class="subcategory-header">
-        <h1 class="subcategory-title-main">Удаление темы</h1>
+<div class="ui-page-head">
+    <div>
+        <nav class="forum-crumbs" aria-label="Путь">
+            <a href="{% url 'index' %}">Форум</a>{% ga_icon "chevron-right" %}<a href="{% url 'subcategory_detail' slug=topic.subcategory.slug %}">{{ topic.subcategory.title }}</a>
+        </nav>
+        <h1 class="ui-page-title">Удалить тему</h1>
     </div>
+</div>
 
-    <div class="topics-block">
-        <div class="topics-container">
-            <form method="post" class="topic-form">
-                {% csrf_token %}
-                <p>Вы действительно хотите удалить тему «{{ topic.title }}» вместе со всеми сообщениями? Это действие нельзя отменить.</p>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn-create-topic">Удалить</button>
-                    <a href="{% url 'topic_detail' slug=topic.slug %}" class="btn-cancel">Отмена</a>
-                </div>
-            </form>
+<div class="ui-card forum-narrow">
+    <form method="post">
+        {% csrf_token %}
+        <p class="forum-confirm-text">
+            Тема «{{ topic.title }}» будет удалена вместе со всеми сообщениями ({{ topic.posts.count }}). Это действие нельзя отменить.
+        </p>
+        <div class="ui-form-actions">
+            <button type="submit" class="ui-btn ui-btn-danger">{% ga_icon "trash" %}Удалить</button>
+            <a href="{% url 'topic_detail' slug=topic.slug %}" class="ui-btn ui-btn-secondary">Отмена</a>
         </div>
-    </div>
+    </form>
 </div>
 {% endblock %}

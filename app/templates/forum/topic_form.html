@@ -1,102 +1,52 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Новая тема — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/posts.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="subcategory-forum-container">
-    <div class="subcategory-header">
-        <h1 class="subcategory-title-main">Создать тему в "{{ subcategory.title }}"</h1>
-    </div>
-
-    <div class="topics-block">
-        <div class="topics-container">
-            <form method="post" class="topic-form" enctype="multipart/form-data">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label for="{{ form.title.id_for_label }}">Название темы</label>
-                    {{ form.title }}
-                    {% if form.title.errors %}
-                        <div class="form-error">{{ form.title.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label for="{{ form.content.id_for_label }}">Сообщение</label>
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <div class="form-error">{{ form.content.errors }}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <label class="image-upload-label" for="images">
-                        📷 Добавить изображения (можно несколько)
-                    </label>
-                    <input type="file" name="images" id="images" multiple accept="image/*" style="display: none;">
-                    <div id="image-previews" class="image-previews-container"></div>
-                    <small class="form-text">Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB каждый</small>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="submit" class="btn-create-topic">Создать тему</button>
-                    <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="btn-cancel">Отмена</a>
-                </div>
-            </form>
-        </div>
+<div class="ui-page-head">
+    <div>
+        <nav class="forum-crumbs" aria-label="Путь">
+            <a href="{% url 'index' %}">Форум</a>{% ga_icon "chevron-right" %}<a href="{% url 'subcategory_detail' slug=subcategory.slug %}">{{ subcategory.title }}</a>
+        </nav>
+        <h1 class="ui-page-title">Новая тема</h1>
     </div>
 </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const imageInput = document.getElementById('images');
-    const previewContainer = document.getElementById('image-previews');
-    const uploadLabel = document.querySelector('.image-upload-label');
-    
-    if (uploadLabel) {
-        uploadLabel.addEventListener('click', function() {
-            imageInput.click();
-        });
-    }
-    
-    if (imageInput) {
-        imageInput.addEventListener('change', function(e) {
-            previewContainer.innerHTML = '';
-            const files = Array.from(e.target.files);
-            
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'image-preview-item';
-                
-                reader.onload = function(e) {
-                    previewDiv.innerHTML = `
-                        <img src="${e.target.result}" class="image-preview">
-                        <button type="button" class="remove-image-btn" data-index="${index}">✖</button>
-                    `;
-                    previewContainer.appendChild(previewDiv);
-                    
-                    // Добавляем обработчик для кнопки удаления.
-                    const removeBtn = previewDiv.querySelector('.remove-image-btn');
-                    removeBtn.addEventListener('click', function() {
-                        // Создаем новый FileList без удаленного файла.
-                        const dt = new DataTransfer();
-                        const remainingFiles = files.filter((_, i) => i !== index);
-                        remainingFiles.forEach(file => dt.items.add(file));
-                        imageInput.files = dt.files;
-                        // Перезагружаем превью.
-                        imageInput.dispatchEvent(new Event('change'));
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-    }
-});
-</script>
+<div class="ui-card forum-narrow">
+    <form method="post" class="ui-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="ui-field">
+            <label for="{{ form.title.id_for_label }}">Название темы</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="ui-error">{{ form.title.errors }}</div>{% endif %}
+        </div>
+
+        <div class="ui-field">
+            <label for="{{ form.content.id_for_label }}">Сообщение</label>
+            {{ form.content }}
+            {% if form.content.errors %}<div class="ui-error">{{ form.content.errors }}</div>{% endif %}
+        </div>
+
+        <div class="ui-field">
+            <div id="topic-previews" class="forum-previews"></div>
+            <div>
+                <label for="images" class="ui-btn ui-btn-secondary">{% ga_icon "image" %}Добавить изображения</label>
+                <input type="file" name="images" id="images" class="forum-file-input" multiple accept="image/*" data-image-input="topic-previews">
+            </div>
+            <span class="ui-help">JPG, PNG или GIF, до 5 МБ каждое, не больше 10</span>
+        </div>
+
+        <div class="ui-form-actions">
+            <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "plus" %}Создать тему</button>
+            <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="ui-btn ui-btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+
+{% include 'forum/includes/image_previews.html' %}
 {% endblock %}

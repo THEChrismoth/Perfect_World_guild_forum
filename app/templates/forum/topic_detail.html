@@ -1,342 +1,165 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}{{ topic.title }} — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/topic_detail.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/posts.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="topic-detail-container">
-
-    <div class="topic-header">
-        <div class="topic-header-top">
-            <h1 class="topic-title-main">{{ topic.title }}</h1>
-            <div class="topic-header-buttons">
-                {% if user == topic.author or user.is_superuser %}
-                    <a href="{% url 'topic_edit' slug=topic.slug %}" class="btn-edit-topic" title="Редактировать тему">✏️ Редактировать тему</a>
-                    <form method="post" action="{% url 'topic_delete' slug=topic.slug %}" class="topic-delete-form-header" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-delete-topic-header">🗑️ Удалить тему</button>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-        <div class="topic-meta-info">
-            <span>Автор: <a href="{% url 'profile_view' username=topic.author.username %}" class="topic-author-link">{{ topic.author.username }}</a></span>
-            <span>Создано: {{ topic.created_at|date:"d.m.Y H:i" }}</span>
-            {% if topic.updated_at|date:"Y-m-d H:i" != topic.created_at|date:"Y-m-d H:i" %}
-                <span>Отредактировано: {{ topic.updated_at|date:"d.m.Y H:i" }}</span>
-            {% endif %}
-        </div>
+<div class="ui-page-head">
+    <div>
+        <nav class="forum-crumbs" aria-label="Путь">
+            <a href="{% url 'index' %}">Форум</a>{% ga_icon "chevron-right" %}<a href="{% url 'subcategory_detail' slug=topic.subcategory.slug %}">{{ topic.subcategory.title }}</a>
+        </nav>
+        <h1 class="ui-page-title">{{ topic.title }}</h1>
+        <p class="ui-page-sub">
+            Автор <a class="ui-card-link" href="{% url 'profile_view' username=topic.author.username %}">{{ topic.author.username }}</a>
+            · {{ topic.created_at|date:"d.m.Y H:i" }}
+            {% if topic.updated_at|date:"Y-m-d H:i" != topic.created_at|date:"Y-m-d H:i" %}· изменена {{ topic.updated_at|date:"d.m.Y H:i" }}{% endif %}
+        </p>
     </div>
-
-    <div class="posts-block">
-        <div class="posts-container">
-            {% if posts %}
-                <ul class="posts-list">
-                    {% for post in posts %}
-                        <li class="post-item" id="post-{{ post.id }}" data-post-id="{{ post.id }}">
-                            <div class="post-author-wrapper">
-                                <div class="post-author">
-                                    <a href="{% url 'profile_view' username=post.author.username %}" class="post-author-link">
-                                        {% with profile=post.author.profile %}
-                                            {% if profile.avatar %}
-                                                <img src="{{ profile.avatar.url }}" alt="{{ post.author.username }}" class="author-avatar-img">
-                                            {% else %}
-                                                <div class="author-avatar">
-                                                    {{ post.author.username|make_list|first|upper }}
-                                                </div>
-                                            {% endif %}
-                                        {% endwith %}
-                                        <div class="author-name">{{ post.author.username }}</div>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="post-content-wrapper">
-                                <div class="post-content">
-                                    <div class="post-text" id="post-text-{{ post.id }}">
-                                        {{ post.content|linebreaks }}
-                                        {% if post.images.all %}
-                                            <div class="post-images-gallery">
-                                                {% for image in post.images.all %}
-                                                    <div class="gallery-item">
-                                                        <a href="{{ image.image.url }}" target="_blank">
-                                                            <img src="{{ image.image.url }}" alt="Изображение к посту" class="post-image">
-                                                        </a>
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        {% endif %}
-                                    </div>
-
-                                    {% if user == post.author or user.is_superuser %}
-                                        <div class="post-edit-form" id="edit-form-{{ post.id }}" style="display: none;">
-                                            <form method="post" action="{% url 'post_edit' post_id=post.id %}" class="inline-edit-form" enctype="multipart/form-data">
-                                                {% csrf_token %}
-                                                <textarea name="content" class="edit-textarea" rows="6">{{ post.content }}</textarea>
-                                                <div class="edit-image-section">
-                                                    {% if post.images.all %}
-                                                        <div class="current-images">
-                                                            <p>Текущие изображения:</p>
-                                                            <div class="current-images-grid">
-                                                                {% for image in post.images.all %}
-                                                                    <div class="current-image-item">
-                                                                        <img src="{{ image.image.url }}" alt="Изображение" class="edit-preview-image">
-                                                                        <label>
-                                                                            <input type="checkbox" name="delete_images" value="{{ image.id }}"> Удалить
-                                                                        </label>
-                                                                    </div>
-                                                                {% endfor %}
-                                                            </div>
-                                                        </div>
-                                                    {% endif %}
-                                                    <label class="edit-image-label">Добавить новые изображения:</label>
-                                                    <input type="file" name="new_images" multiple accept="image/*" class="edit-image-input">
-                                                    <div id="edit-image-previews-{{ post.id }}" class="image-previews-container"></div>
-                                                </div>
-                                                <div class="edit-form-buttons">
-                                                    <button type="submit" class="btn-save-edit">💾 Сохранить</button>
-                                                    <button type="button" class="btn-cancel-edit" onclick="cancelEdit({{ post.id }})">❌ Отмена</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    {% endif %}
-
-                                    <div class="post-meta">
-                                        {% if post.updated_at|date:"Y-m-d H:i" != post.created_at|date:"Y-m-d H:i" %}
-                                            <span class="post-edited">Отредактировано: {{ post.updated_at|date:"d.m.Y H:i" }}</span>
-                                        {% else %}
-                                            <span class="post-created">Отправлено: {{ post.created_at|date:"d.m.Y H:i" }}</span>
-                                        {% endif %}
-                                    </div>
-
-                                    {% if user == post.author or user.is_superuser %}
-                                        <div class="post-actions">
-                                            <button type="button" class="btn-post-edit" onclick="showEditForm({{ post.id }})" title="Редактировать">✏️ Редактировать</button>
-                                            <form method="post" action="{% url 'post_delete' post_id=post.id %}" class="post-delete-form" style="display: inline;" onsubmit="return confirm('Удалить сообщение?');">
-                                                {% csrf_token %}
-                                                <button type="submit" class="btn-post-delete" title="Удалить">🗑️ Удалить</button>
-                                            </form>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <div class="no-posts">
-                    В этой теме пока нет сообщений
-                </div>
-            {% endif %}
+    {% if user == topic.author or user.is_superuser %}
+        <div class="ui-page-actions">
+            <a href="{% url 'topic_edit' slug=topic.slug %}" class="ui-btn ui-btn-secondary">{% ga_icon "pencil" %}Переименовать</a>
+            <a href="{% url 'topic_delete' slug=topic.slug %}" class="ui-btn ui-btn-danger">{% ga_icon "trash" %}Удалить тему</a>
         </div>
-    </div>
-
-    <div class="reply-form-block">
-        <h3 class="reply-title">Ответить в тему</h3>
-        {% if user.is_authenticated %}
-            <form method="post" action="{% url 'post_create' slug=topic.slug %}" class="reply-form" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                    {{ form.content }}
-                    {% if form.content.errors %}
-                        <div class="form-error">{{ form.content.errors }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <div id="reply-image-previews" class="image-previews-container"></div>
-                    <small class="form-text">Поддерживаются форматы: JPG, PNG, GIF. Максимальный размер: 5MB каждый</small>
-                </div>
-                
-                <div class="form-buttons-wrapper">
-                    <div class="image-upload-wrapper">
-                        <label for="reply-images" class="image-upload-label">
-                            📷 Добавить изображения
-                        </label>
-                        <input type="file" name="images" id="reply-images" multiple accept="image/*" style="display: none;">
-                    </div>
-                    <button type="submit" class="btn-submit-reply">Отправить ответ</button>
-                </div>
-            </form>
-        {% else %}
-            <div class="login-to-reply">
-                <p>Чтобы ответить в теме, пожалуйста, <a href="{% url 'login' %}?next={{ request.path }}">войдите</a> в систему.</p>
-            </div>
-        {% endif %}
-    </div>
+    {% endif %}
 </div>
 
+{% if posts %}
+    <div class="forum-posts">
+        {% for post in posts %}
+            {% with profile=post.author.profile %}
+                <article class="ui-card forum-post" id="post-{{ post.id }}">
+                    <div class="forum-post-author">
+                        <div class="forum-post-author-inner">
+                            <a href="{% url 'profile_view' username=post.author.username %}">{% include 'forum/includes/avatar.html' with author=post.author size='lg' %}</a>
+                            <div class="forum-post-who">
+                                <a href="{% url 'profile_view' username=post.author.username %}" class="forum-post-name">{{ post.author.username }}</a>
+                                {% if profile.player_class %}
+                                    <div class="forum-post-class"><img src="{{ profile.get_icon_url }}" alt="">{{ profile.get_player_class_display }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="forum-post-body">
+                        <div class="forum-post-text" id="post-text-{{ post.id }}">
+                            {{ post.content|linebreaks }}
+                            {% if post.images.all %}
+                                <div class="forum-gallery">
+                                    {% for image in post.images.all %}
+                                        <a href="{{ image.image.url }}" target="_blank" rel="noopener"><img src="{{ image.image.url }}" alt="Изображение к сообщению" loading="lazy"></a>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {% if user == post.author or user.is_superuser %}
+                            <form method="post" action="{% url 'post_edit' post_id=post.id %}" class="ui-form forum-edit" id="edit-form-{{ post.id }}" enctype="multipart/form-data" hidden>
+                                {% csrf_token %}
+                                <div class="ui-field">
+                                    <label for="edit-content-{{ post.id }}">Текст сообщения</label>
+                                    <textarea name="content" id="edit-content-{{ post.id }}" rows="6">{{ post.content }}</textarea>
+                                </div>
+                                {% if post.images.all %}
+                                    <div class="ui-field">
+                                        <span class="ui-label">Прикреплённые изображения — отметьте, какие удалить</span>
+                                        <div class="forum-previews">
+                                            {% for image in post.images.all %}
+                                                <div class="forum-preview">
+                                                    <img src="{{ image.image.url }}" alt="">
+                                                    <label class="forum-preview-check"><input type="checkbox" name="delete_images" value="{{ image.id }}">Удалить</label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                <div id="edit-previews-{{ post.id }}" class="forum-previews"></div>
+                                <div class="forum-form-row">
+                                    <label for="edit-images-{{ post.id }}" class="ui-btn ui-btn-secondary ui-btn-sm">{% ga_icon "image" %}Добавить изображения</label>
+                                    <input type="file" name="new_images" id="edit-images-{{ post.id }}" class="forum-file-input" multiple accept="image/*" data-image-input="edit-previews-{{ post.id }}">
+                                    <div class="ui-form-actions">
+                                        <button type="button" class="ui-btn ui-btn-ghost ui-btn-sm" data-post-edit-cancel="{{ post.id }}">Отмена</button>
+                                        <button type="submit" class="ui-btn ui-btn-primary ui-btn-sm">{% ga_icon "check" %}Сохранить</button>
+                                    </div>
+                                </div>
+                            </form>
+                        {% endif %}
+
+                        <div class="forum-post-foot">
+                            <span>
+                                {{ post.created_at|date:"d.m.Y H:i" }}
+                                {% if post.updated_at|date:"Y-m-d H:i" != post.created_at|date:"Y-m-d H:i" %}· изменено {{ post.updated_at|date:"d.m.Y H:i" }}{% endif %}
+                                {% if forloop.first %}<span class="ui-badge forum-post-badge">Начало темы</span>{% endif %}
+                            </span>
+                            {% if user == post.author or user.is_superuser %}
+                                <div class="forum-row-actions">
+                                    <button type="button" class="ui-btn ui-btn-ghost ui-btn-sm" data-post-edit="{{ post.id }}">{% ga_icon "pencil" %}Изменить</button>
+                                    <form method="post" action="{% url 'post_delete' post_id=post.id %}" onsubmit="return confirm('Удалить сообщение?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="ui-btn ui-btn-ghost ui-btn-sm">{% ga_icon "trash" %}Удалить</button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% endwith %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="ui-card forum-posts">
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "message" %}</span>
+            <p class="ui-empty-title">Сообщений пока нет</p>
+            <p class="ui-empty-text">Напишите первое сообщение в этой теме.</p>
+        </div>
+    </div>
+{% endif %}
+
+<section class="ui-card" id="reply">
+    <div class="ui-card-head">
+        <h2 class="ui-card-title">Ответить в тему</h2>
+    </div>
+    <form method="post" action="{% url 'post_create' slug=topic.slug %}" class="ui-form" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="ui-field">
+            {{ form.content }}
+            {% if form.content.errors %}<div class="ui-error">{{ form.content.errors }}</div>{% endif %}
+            {% if form.non_field_errors %}<div class="ui-error">{{ form.non_field_errors }}</div>{% endif %}
+        </div>
+        <div id="reply-previews" class="forum-previews"></div>
+        <div class="forum-form-row">
+            <div>
+                <label for="reply-images" class="ui-btn ui-btn-secondary">{% ga_icon "image" %}Добавить изображения</label>
+                <input type="file" name="images" id="reply-images" class="forum-file-input" multiple accept="image/*" data-image-input="reply-previews">
+                <div class="ui-help">JPG, PNG или GIF, до 5 МБ каждое, не больше 10</div>
+            </div>
+            <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "send" %}Отправить</button>
+        </div>
+    </form>
+</section>
+
+{% include 'forum/includes/image_previews.html' %}
 <script>
-// Редактирование постов.
-function showEditForm(postId) {
-    document.getElementById('post-text-' + postId).style.display = 'none';
-    document.getElementById('edit-form-' + postId).style.display = 'block';
-    
-    const editImageInput = document.querySelector('#edit-form-' + postId + ' input[name="new_images"]');
-    const editPreviewContainer = document.getElementById('edit-image-previews-' + postId);
-    
-    if (editImageInput && editPreviewContainer) {
-        editImageInput.addEventListener('change', function(e) {
-            editPreviewContainer.innerHTML = '';
-            const files = Array.from(e.target.files);
-            
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'image-preview-item';
-                
-                reader.onload = function(e) {
-                    previewDiv.innerHTML = `
-                        <img src="${e.target.result}" class="image-preview">
-                        <button type="button" class="remove-image-btn" data-index="${index}">✖</button>
-                    `;
-                    editPreviewContainer.appendChild(previewDiv);
-                    
-                    const removeBtn = previewDiv.querySelector('.remove-image-btn');
-                    removeBtn.addEventListener('click', function() {
-                        const dt = new DataTransfer();
-                        const remainingFiles = files.filter((_, i) => i !== index);
-                        remainingFiles.forEach(file => dt.items.add(file));
-                        editImageInput.files = dt.files;
-                        editImageInput.dispatchEvent(new Event('change'));
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-    }
-}
-
-function cancelEdit(postId) {
-    document.getElementById('post-text-' + postId).style.display = 'block';
-    document.getElementById('edit-form-' + postId).style.display = 'none';
-}
-
-// Предпросмотр изображений для ответа.
-document.addEventListener('DOMContentLoaded', function() {
-    const replyImageInput = document.getElementById('reply-images');
-    const replyPreviewContainer = document.getElementById('reply-image-previews');
-    
-    if (replyImageInput) {
-        replyImageInput.addEventListener('change', function(e) {
-            replyPreviewContainer.innerHTML = '';
-            const files = Array.from(e.target.files);
-            
-            files.forEach((file, index) => {
-                const reader = new FileReader();
-                const previewDiv = document.createElement('div');
-                previewDiv.className = 'image-preview-item';
-                
-                reader.onload = function(e) {
-                    previewDiv.innerHTML = `
-                        <img src="${e.target.result}" class="image-preview">
-                        <button type="button" class="remove-image-btn" data-index="${index}">✖</button>
-                    `;
-                    replyPreviewContainer.appendChild(previewDiv);
-                    
-                    const removeBtn = previewDiv.querySelector('.remove-image-btn');
-                    removeBtn.addEventListener('click', function() {
-                        const dt = new DataTransfer();
-                        const remainingFiles = files.filter((_, i) => i !== index);
-                        remainingFiles.forEach(file => dt.items.add(file));
-                        replyImageInput.files = dt.files;
-                        replyImageInput.dispatchEvent(new Event('change'));
-                    });
-                };
-                reader.readAsDataURL(file);
-            });
-        });
-    }
+// Редактирование сообщения прямо в теме: текст прячется, вместо него форма.
+document.querySelectorAll('[data-post-edit]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var id = button.dataset.postEdit;
+        document.getElementById('post-text-' + id).hidden = true;
+        document.getElementById('edit-form-' + id).hidden = false;
+        document.getElementById('edit-content-' + id).focus();
+    });
 });
-
-// Sticky-блок автора с ограничением по высоте поста.
-(function() {
-    function initStickyAuthors() {
-        const authorBlocks = document.querySelectorAll('.post-author');
-        
-        function updateStickyPositions() {
-            authorBlocks.forEach(function(authorBlock) {
-                const postItem = authorBlock.closest('.post-item');
-                if (!postItem) return;
-                
-                const postRect = postItem.getBoundingClientRect();
-                const authorHeight = authorBlock.offsetHeight;
-                const postContentWrapper = postItem.querySelector('.post-content-wrapper');
-                const postContent = postItem.querySelector('.post-content');
-                
-                if (!postContentWrapper || !postContent) return;
-                
-                const contentHeight = postContent.offsetHeight;
-                const scrollTop = window.pageYOffset;
-                const viewportHeight = window.innerHeight;
-                
-                // Получаем позиции элементов относительно документа.
-                const postTop = postRect.top + scrollTop;
-                const postBottom = postRect.bottom + scrollTop;
-                
-                // Настройки отступов.
-                const offsetTop = 20;
-                const offsetBottom = 20;
-                
-                // Проверяем, виден ли пост.
-                const isPostVisible = postRect.bottom > 0 && postRect.top < viewportHeight;
-                
-                if (isPostVisible && authorHeight < contentHeight + 40) {
-                    // Если пост виден и блок автора не выше контента, делаем sticky.
-                    let newTop = scrollTop + offsetTop;
-                    
-                    // Не выходим за пределы поста снизу.
-                    if (newTop + authorHeight > postBottom - offsetBottom) {
-                        newTop = postBottom - authorHeight - offsetBottom;
-                    }
-                    
-                    // Не выходим за пределы поста сверху.
-                    if (newTop < postTop + offsetTop) {
-                        newTop = postTop + offsetTop;
-                    }
-                    
-                    // Применяем позиционирование.
-                    authorBlock.style.position = 'absolute';
-                    authorBlock.style.top = (newTop - postTop) + 'px';
-                    authorBlock.style.bottom = 'auto';
-                    authorBlock.style.width = authorBlock.parentElement.offsetWidth + 'px';
-                } else {
-                    // Если пост не виден или блок выше контента, возвращаем обычное позиционирование.
-                    authorBlock.style.position = '';
-                    authorBlock.style.top = '';
-                    authorBlock.style.bottom = '';
-                    authorBlock.style.width = '';
-                }
-            });
-        }
-        
-        // Настраиваем каждый блок автора.
-        authorBlocks.forEach(function(authorBlock) {
-            const postItem = authorBlock.closest('.post-item');
-            if (postItem) {
-                postItem.style.position = 'relative';
-            }
-        });
-        
-        // Обновляем при скролле и ресайзе.
-        window.addEventListener('scroll', updateStickyPositions);
-        window.addEventListener('resize', updateStickyPositions);
-        
-        // Первоначальное обновление.
-        setTimeout(updateStickyPositions, 100);
-        // Обновляем после загрузки изображений.
-        window.addEventListener('load', updateStickyPositions);
-    }
-    
-    // Запускаем после загрузки страницы.
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initStickyAuthors);
-    } else {
-        initStickyAuthors();
-    }
-})();
+document.querySelectorAll('[data-post-edit-cancel]').forEach(function (button) {
+    button.addEventListener('click', function () {
+        var id = button.dataset.postEditCancel;
+        document.getElementById('post-text-' + id).hidden = false;
+        document.getElementById('edit-form-' + id).hidden = true;
+    });
+});
 </script>
 {% endblock %}

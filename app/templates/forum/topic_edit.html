@@ -1,36 +1,36 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Переименовать тему — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/subcategory.css' %}">
-    <link rel="stylesheet" href="{% static 'forum/css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="subcategory-forum-container">
-    <div class="subcategory-header">
-        <h1 class="subcategory-title-main">Редактирование темы</h1>
+<div class="ui-page-head">
+    <div>
+        <nav class="forum-crumbs" aria-label="Путь">
+            <a href="{% url 'index' %}">Форум</a>{% ga_icon "chevron-right" %}<a href="{% url 'subcategory_detail' slug=topic.subcategory.slug %}">{{ topic.subcategory.title }}</a>
+        </nav>
+        <h1 class="ui-page-title">Переименовать тему</h1>
+        <p class="ui-page-sub">Текст сообщений меняется кнопкой «Изменить» под самим сообщением</p>
     </div>
+</div>
 
-    <div class="topics-block">
-        <div class="topics-container">
-            <form method="post" class="topic-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="{{ form.title.id_for_label }}">Название темы</label>
-                    {{ form.title }}
-                    {% if form.title.errors %}
-                        <div class="form-error">{{ form.title.errors }}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-buttons">
-                    <button type="submit" class="btn-create-topic">Сохранить изменения</button>
-                    <a href="{% url 'topic_detail' slug=topic.slug %}" class="btn-cancel">Отмена</a>
-                </div>
-            </form>
+<div class="ui-card forum-narrow">
+    <form method="post" class="ui-form">
+        {% csrf_token %}
+        <div class="ui-field">
+            <label for="{{ form.title.id_for_label }}">Название темы</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="ui-error">{{ form.title.errors }}</div>{% endif %}
         </div>
-    </div>
+
+        <div class="ui-form-actions">
+            <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "check" %}Сохранить</button>
+            <a href="{% url 'topic_detail' slug=topic.slug %}" class="ui-btn ui-btn-secondary">Отмена</a>
+        </div>
+    </form>
 </div>
 {% endblock %}

@@ -1,76 +1,71 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="forum-layout">
-    <div class="forum-main">
-        <!-- Категории форума -->
-        <ul class="categorys">
-            {% for category_data in categories %}
-                <li class="category-item">
-                    <h2 class="category-title">{{ category_data.category.title }}</h2>
-                    <div class="subcategories-block">
-                        <div class="subcategories-container">
-                            <div class="subcategories-grid">
-                                {% for subcategory in category_data.subcategories %}
-                                    <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
-                                        <div class="subcategory-main">
-                                            <span class="subcategory-title">{{ subcategory.title }}</span>
-                                        </div>
-
-                                        <div class="subcategory-stats">
-                                            <div class="stat-item">
-                                                <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                <span class="stat-label">тем</span>
-                                            </div>
-                                            <div class="stat-item">
-                                                <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                <span class="stat-label">ответов</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="subcategory-last-post">
-                                            {% with last_post=subcategory.last_post %}
-                                                {% if last_post %}
-                                                    {% with profile=last_post.author.profile %}
-                                                        {% if profile.avatar %}
-                                                            <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
-                                                        {% else %}
-                                                            <div class="last-post-avatar">
-                                                                {{ last_post.author.username|make_list|first|upper }}
-                                                            </div>
-                                                        {% endif %}
-                                                    {% endwith %}
-                                                    <div class="last-post-info">
-                                                        <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
-                                                        <div class="last-post-meta">
-                                                            {{ last_post.created_at|date:"d.m.Y H:i" }}
-                                                            <span>от {{ last_post.author.username }}</span>
-                                                        </div>
-                                                    </div>
-                                                {% else %}
-                                                    <div class="no-posts">Нет сообщений</div>
-                                                {% endif %}
-                                            {% endwith %}
-                                        </div>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            {% empty %}
-                <li class="category-item">
-                    <div class="no-subcategories">
-                        На форуме пока нет доступных вам разделов
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Форум</h1>
+        <p class="ui-page-sub">Обсуждения гильдии по разделам</p>
     </div>
 </div>
+
+{% if categories %}
+    <div class="ui-stack">
+        {% for category_data in categories %}
+            <section class="ui-card ui-card-flush">
+                <div class="ui-card-head">
+                    <h2 class="ui-card-title">{{ category_data.category.title }}</h2>
+                </div>
+                <ul class="forum-list">
+                    {% for subcategory in category_data.subcategories %}
+                        <li class="forum-row forum-section">
+                            <span class="forum-row-icon">{% ga_icon "message" %}</span>
+                            <div class="forum-row-main">
+                                <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="forum-row-link">{{ subcategory.title }}</a>
+                                <div class="forum-row-sub">
+                                    {{ subcategory.topics_count }} тем · {{ subcategory.posts_count }} сообщений
+                                </div>
+                            </div>
+                            <div class="forum-counts">
+                                <div class="forum-count">
+                                    <span class="forum-count-value">{{ subcategory.topics_count }}</span>
+                                    <span class="forum-count-label">тем</span>
+                                </div>
+                                <div class="forum-count">
+                                    <span class="forum-count-value">{{ subcategory.posts_count }}</span>
+                                    <span class="forum-count-label">сообщений</span>
+                                </div>
+                            </div>
+                            {% with last_post=subcategory.last_post %}
+                                {% if last_post %}
+                                    <div class="forum-last">
+                                        {% include 'forum/includes/avatar.html' with author=last_post.author %}
+                                        <div class="forum-last-info">
+                                            <div class="forum-last-topic">{{ last_post.topic.title }}</div>
+                                            <div class="forum-last-meta">{{ last_post.author.username }} · {{ last_post.created_at|date:"d.m.Y H:i" }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="forum-last forum-last-empty">Нет сообщений</div>
+                                {% endif %}
+                            {% endwith %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="ui-card">
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "message" %}</span>
+            <p class="ui-empty-title">Разделов пока нет</p>
+            <p class="ui-empty-text">На форуме пока нет доступных вам разделов</p>
+        </div>
+    </div>
+{% endif %}
 {% endblock %}

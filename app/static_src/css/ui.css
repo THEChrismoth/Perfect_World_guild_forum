@@ -365,6 +365,10 @@
         padding: 16px;
     }
 
+    .ui-card-flush {
+        padding: 0;
+    }
+
     .ui-card-flush > .ui-card-head {
         padding: 14px 16px;
     }
