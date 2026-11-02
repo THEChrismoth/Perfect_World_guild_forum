@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from auction.models import PointsTransaction
 from events.models import EventAttendance, EventNotification
-from notifications.utils import send_notification
+from notifications.utils import VOTE_BUTTON, send_notification
 from teamspeak.models import GUILD_GROUP
 
 from .accounts import ADMIN_APPS, ADMIN_GROUP, DEMO_ROLES, GUEST_GROUP
@@ -151,4 +151,4 @@ def _join_guild(user):
     for notification in upcoming:
         notification.sent_to_users.add(user)
         send_notification(user, notification.subject, notification.message, notification_type='warning',
-                          link=reverse('events:vote_view', args=[notification.id]))
+                          link=reverse('events:vote_view', args=[notification.id]), button=VOTE_BUTTON)
