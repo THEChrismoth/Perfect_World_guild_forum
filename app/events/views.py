@@ -1,11 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from core.roles import guild_member_required
 from .models import EventType, Event, Party, PartyMember, EventNotification, EventAttendance
 from .utils import get_attendance_stats
 
 
 @login_required
+@guild_member_required
 def event_index(request):
     """Страница со списком типов ивентов и отрядов."""
     
@@ -72,6 +74,7 @@ def event_index(request):
 
 
 @login_required
+@guild_member_required
 def event_detail(request, event_type_slug):
     """Детальная страница конкретного типа ивента."""
     
@@ -124,6 +127,7 @@ def event_detail(request, event_type_slug):
 
 
 @login_required
+@guild_member_required
 def vote_view(request, notification_id):
     """Страница голосования по уведомлению."""
     
@@ -175,6 +179,7 @@ def vote_view(request, notification_id):
 
 
 @login_required
+@guild_member_required
 def vote_results(request, notification_id):
     """Страница результатов голосования."""
     
@@ -195,6 +200,7 @@ def vote_results(request, notification_id):
 
 
 @login_required
+@guild_member_required
 def my_votes(request):
     """Страница с историей голосований пользователя."""
     

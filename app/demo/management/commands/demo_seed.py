@@ -128,16 +128,15 @@ class Command(BaseCommand):
         guild_category.view_groups.add(self.guild_group)
         public = Category.objects.create(title='Общий раздел', slug='public', order=2)
 
-        def sub(category, title, slug, order, **flags):
-            return SubCategory.objects.create(category=category, title=title, slug=slug, order=order, **flags)
+        def sub(category, title, slug, order):
+            return SubCategory.objects.create(category=category, title=title, slug=slug, order=order)
 
+        # Аукцион, ивенты и заявки — разделы в меню слева, в форуме только темы для общения.
         news = sub(guild_category, 'Объявления', 'news', 1)
-        self.events_sub = sub(guild_category, 'Ивенты', 'events', 2, is_events=True)
-        sub(guild_category, 'Аукцион', 'auction', 3, is_auction=True)
-        sub(guild_category, 'Заявки на вступление', 'applications', 4, is_reception_view=True)
-        tactics = sub(guild_category, 'Тактика и гайды', 'tactics', 5)
-        sub(public, 'Вступить в гильдию', 'join', 1, is_reception=True)
-        tavern = sub(public, 'Таверна', 'tavern', 2)
+        tactics = sub(guild_category, 'Тактика и гайды', 'tactics', 2)
+        tavern = sub(public, 'Таверна', 'tavern', 1)
+        # Здесь обсуждают ивенты (поле «Раздел форума» у типа ивента).
+        self.events_sub = tactics
 
         leader, admin = self.members[0], self.members[1]
         self.topic(news, 'Расписание ивентов на неделю', leader, 2, [
@@ -175,7 +174,7 @@ class Command(BaseCommand):
 
     def create_events(self):
         for order, (name, slug, icon, description, parties, size, channel, present, absent) in enumerate(EVENT_TYPES):
-            # Адрес задаем сами: slugify отбрасывает кириллицу.
+            # Адрес задаем сами — короткий и понятный (tv, kh, boss).
             event_type = EventType.objects.create(
                 name=name, slug=slug, icon=icon, description=description, parties_count=parties, party_size=size,
                 order=order, forum_subcategory=self.events_sub, ts_channels=channel,

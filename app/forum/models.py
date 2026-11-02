@@ -90,33 +90,6 @@ class SubCategory(models.Model):
         verbose_name='Группы с доступом',
         help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
     )
-    # Флаг аукциона.
-    is_auction = models.BooleanField(
-        'Это аукцион',
-        default=False,
-        help_text='Отметьте, если эта подкатегория является аукционом'
-    )
-
-    # Флаг приема заявок.
-    is_reception = models.BooleanField(
-        'Это прием заявок',
-        default=False,
-        help_text='Отметьте, если эта подкатегория предназначена для приема заявок в гильдию'
-    )
-
-    # Флаг просмотра заявок.
-    is_reception_view = models.BooleanField(
-        'Это просмотр заявок',
-        default=False,
-        help_text='Отметьте, если эта подкатегория для ПРОСМОТРА и ГОЛОСОВАНИЯ за заявки (доступно только членам гильдии)'
-    )
-
-    is_events = models.BooleanField(
-        'Это ивентовая подкатегория',
-        default=False,
-        help_text='Отметьте, если эта подкатегория предназначена для отображения ивентов'
-    )
-
     order = models.IntegerField(
         'Порядок сортировки',
         default=0,

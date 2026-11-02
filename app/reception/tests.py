@@ -23,6 +23,20 @@ class ApplicationAdminTests(TestCase):
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+@override_settings(SECURE_SSL_REDIRECT=False)
+class GuildMemberReceptionTests(TestCase):
+    def test_member_votes_instead_of_applying(self):
+        from django.contrib.auth.models import Group
+
+        member = User.objects.create_user('member', password='pass')
+        member.groups.add(Group.objects.create(name='Член гильдии'))
+        self.client.force_login(member)
+
+        response = self.client.get(reverse('reception:application_form'))
+
+        self.assertRedirects(response, reverse('reception:application_list'))
+
+
 class ApplicationFormTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('candidate', password='pass')

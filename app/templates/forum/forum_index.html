@@ -3,9 +3,6 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
-    <link rel="stylesheet" href="{% static 'reception/css/reception.css' %}">
-    <link rel="stylesheet" href="{% static 'events/css/events.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -20,120 +17,45 @@
                         <div class="subcategories-container">
                             <div class="subcategories-grid">
                                 {% for subcategory in category_data.subcategories %}
-                                    <a href="
-                                        {% if subcategory.is_events %}
-                                            {% url 'events:event_index' %}
-                                        {% elif subcategory.is_auction %}
-                                            {% url 'auction:auction_index' %}
-                                        {% elif subcategory.is_reception %}
-                                            {% url 'reception:application_form' %}
-                                        {% elif subcategory.is_reception_view %}
-                                            {% url 'reception:application_list' %}
-                                        {% else %}
-                                            {% url 'subcategory_detail' slug=subcategory.slug %}
-                                        {% endif %}
-                                    " class="subcategory-card 
-                                        {% if subcategory.is_events %}events-card{% endif %}
-                                        {% if subcategory.is_auction %}auction-card{% endif %}
-                                        {% if subcategory.is_reception %}reception-card{% endif %}
-                                        {% if subcategory.is_reception_view %}reception-view-card{% endif %}">
-                                        
+                                    <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="subcategory-card">
                                         <div class="subcategory-main">
-                                            <span class="subcategory-title">
-                                                {% if subcategory.is_events %}⚔️ {% endif %}
-                                                {% if subcategory.is_auction %}🎯 {% endif %}
-                                                {% if subcategory.is_reception %}📝 {% endif %}
-                                                {% if subcategory.is_reception_view %}🗳️ {% endif %}
-                                                {{ subcategory.title }}
-                                            </span>
+                                            <span class="subcategory-title">{{ subcategory.title }}</span>
                                         </div>
-                                        
+
                                         <div class="subcategory-stats">
-                                            {% if subcategory.is_events %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">типов ивентов</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего ивентов</span>
-                                                </div>
-                                            {% elif subcategory.is_auction %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">активных лотов</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего лотов</span>
-                                                </div>
-                                            {% elif subcategory.is_reception %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">📋</span>
-                                                    <span class="stat-label">Подать заявку</span>
-                                                </div>
-                                            {% elif subcategory.is_reception_view %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">активных заявок</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего заявок</span>
-                                                </div>
-                                            {% else %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">тем</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">ответов</span>
-                                                </div>
-                                            {% endif %}
+                                            <div class="stat-item">
+                                                <span class="stat-value">{{ subcategory.topics_count }}</span>
+                                                <span class="stat-label">тем</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-value">{{ subcategory.posts_count }}</span>
+                                                <span class="stat-label">ответов</span>
+                                            </div>
                                         </div>
-                                        
+
                                         <div class="subcategory-last-post">
-                                            {% if subcategory.is_events %}
-                                                <div class="events-badge">
-                                                    ⚔️ Активные ивенты
-                                                </div>
-                                            {% elif subcategory.is_auction %}
-                                                <div class="auction-badge">
-                                                    🎯 Активные торги
-                                                </div>
-                                            {% elif subcategory.is_reception %}
-                                                <div class="reception-badge">
-                                                    📝 Подать заявку
-                                                </div>
-                                            {% elif subcategory.is_reception_view %}
-                                                <div class="reception-view-badge">
-                                                    🗳️ Активные заявки
-                                                </div>
-                                            {% else %}
-                                                {% with last_post=subcategory.last_post %}
-                                                    {% if last_post %}
-                                                        {% with profile=last_post.author.profile %}
-                                                            {% if profile.avatar %}
-                                                                <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
-                                                            {% else %}
-                                                                <div class="last-post-avatar">
-                                                                    {{ last_post.author.username|make_list|first|upper }}
-                                                                </div>
-                                                            {% endif %}
-                                                        {% endwith %}
-                                                        <div class="last-post-info">
-                                                            <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
-                                                            <div class="last-post-meta">
-                                                                {{ last_post.created_at|date:"d.m.Y H:i" }}
-                                                                <span>от {{ last_post.author.username }}</span>
+                                            {% with last_post=subcategory.last_post %}
+                                                {% if last_post %}
+                                                    {% with profile=last_post.author.profile %}
+                                                        {% if profile.avatar %}
+                                                            <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
+                                                        {% else %}
+                                                            <div class="last-post-avatar">
+                                                                {{ last_post.author.username|make_list|first|upper }}
                                                             </div>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                    <div class="last-post-info">
+                                                        <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
+                                                        <div class="last-post-meta">
+                                                            {{ last_post.created_at|date:"d.m.Y H:i" }}
+                                                            <span>от {{ last_post.author.username }}</span>
                                                         </div>
-                                                    {% else %}
-                                                        <div class="no-posts">Нет сообщений</div>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endif %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="no-posts">Нет сообщений</div>
+                                                {% endif %}
+                                            {% endwith %}
                                         </div>
                                     </a>
                                 {% endfor %}
@@ -144,7 +66,7 @@
             {% empty %}
                 <li class="category-item">
                     <div class="no-subcategories">
-                        У вас нет доступа ни к одной категории
+                        На форуме пока нет доступных вам разделов
                     </div>
                 </li>
             {% endfor %}

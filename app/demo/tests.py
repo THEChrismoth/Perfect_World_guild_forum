@@ -175,14 +175,14 @@ class DemoSeedTests(TestCase):
         self.assertGreater(guest.profile.activity_points, 100)
         self.assertTrue(Notification.objects.filter(user=guest, link__startswith='/events/vote/').exists())
 
-        # Главные страницы открываются под каждой ролью.
+        # Главные страницы открываются под каждой ролью; ивенты и аукцион — только членам гильдии.
+        members_only = [reverse('events:event_index'), reverse('auction:auction_index')]
         for role in DEMO_ROLES:
             self.client.post(reverse('demo:login', args=[role]))
-            for url in ['/', '/koslist/', reverse('events:event_index'), reverse('auction:auction_index')]:
-                if role == 'candidate' and url == reverse('auction:auction_index'):
-                    continue
+            for url in ['/', '/koslist/', *members_only]:
+                expected = 403 if role == 'candidate' and url in members_only else 200
                 with self.subTest(role=role, url=url):
-                    self.assertEqual(self.client.get(url).status_code, 200)
+                    self.assertEqual(self.client.get(url).status_code, expected)
 
 
 class AutoResetRuleTests(TestCase):

@@ -1,11 +1,11 @@
 from datetime import timedelta
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from forum.models import Category, SubCategory
+from core.roles import GUILD_GROUP
 from notifications.models import Notification
 from .models import AuctionLot, AuctionBid, PointsTransaction
 
@@ -13,9 +13,8 @@ from .models import AuctionLot, AuctionBid, PointsTransaction
 @override_settings(SECURE_SSL_REDIRECT=False)
 class AuctionTestCase(TestCase):
     def setUp(self):
-        category = Category.objects.create(title='Гильдия', slug='guild')
-        SubCategory.objects.create(title='Аукцион', slug='auction', category=category, is_auction=True)
-
+        # Аукцион открыт только членам гильдии.
+        self.guild = Group.objects.create(name=GUILD_GROUP)
         self.alice = self.make_user('alice', 100)
         self.bob = self.make_user('bob', 100)
         self.lot = AuctionLot.objects.create(
@@ -27,6 +26,7 @@ class AuctionTestCase(TestCase):
 
     def make_user(self, username, points):
         user = User.objects.create_user(username, password='pass')
+        user.groups.add(self.guild)
         user.profile.activity_points = points
         user.profile.save()
         return user
@@ -184,10 +184,11 @@ class AuctionEndTests(AuctionTestCase):
 
 
 class AuctionAccessTests(AuctionTestCase):
-    def test_two_auction_subcategories_do_not_close_auction(self):
-        category = Category.objects.get(slug='guild')
-        SubCategory.objects.create(title='Аукцион 2', slug='auction-2', category=category, is_auction=True)
+    def test_only_guild_members(self):
         self.client.force_login(self.alice)
+        self.assertEqual(self.client.get(reverse('auction:auction_index')).status_code, 200)
 
-        response = self.client.get(reverse('auction:auction_index'))
-        self.assertEqual(response.status_code, 200)
+        outsider = User.objects.create_user('outsider', password='pass')
+        self.client.force_login(outsider)
+        self.assertEqual(self.client.get(reverse('auction:auction_index')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('auction:lot_detail', args=[self.lot.slug])).status_code, 403)

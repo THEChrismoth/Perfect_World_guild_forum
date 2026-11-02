@@ -6,16 +6,16 @@ from django.urls import reverse
 from .models import Application, ApplicationVote
 from .forms import ApplicationForm, VoteForm
 from notifications.utils import send_notification
-
-
-def check_guild_member(user):
-    if user.is_superuser:
-        return True
-    return user.groups.filter(name='Член гильдии').exists()
+from core.roles import is_guild_member as check_guild_member
 
 
 @login_required
 def application_form(request):
+    # Члены гильдии заявки не подают, а голосуют по чужим.
+    if check_guild_member(request.user):
+        messages.info(request, 'Вы уже в гильдии — здесь можно голосовать по заявкам кандидатов.')
+        return redirect('reception:application_list')
+
     if not hasattr(request.user, 'profile'):
         messages.error(request, 'У вас нет профиля.')
         return redirect('/')

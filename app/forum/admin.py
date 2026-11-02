@@ -11,8 +11,8 @@ class CategoryAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    list_display = ('title', 'order', 'slug', 'category', 'require_auth', 'is_auction', 'is_reception', 'is_reception_view')
-    list_filter = ('category', 'require_auth', 'is_auction', 'is_reception', 'is_reception_view')
+    list_display = ('title', 'order', 'slug', 'category', 'require_auth')
+    list_filter = ('category', 'require_auth')
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)
 

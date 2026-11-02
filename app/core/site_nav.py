@@ -1,7 +1,7 @@
 """Боковое меню сайта (templates/includes/site_sidebar.html). Иконки — имена из core/templatetags/ga_admin.py."""
 from django.urls import reverse
 
-GUILD_GROUP = 'Член гильдии'
+from .roles import is_guild_member
 
 
 def _item(label, icon, url, module, current_module, badge=0):
@@ -24,21 +24,16 @@ def build_site_nav(request, unread_notifications=0):
     # Раздел — приложение, чья страница сейчас открыта: forum, events, auction, reception…
     current = match.func.__module__.split('.')[0] if match else ''
 
-    # Приём: участник гильдии голосует по заявкам, кандидат смотрит свои.
-    if user.groups.filter(name=GUILD_GROUP).exists():
-        reception_url = reverse('reception:application_list')
-    else:
-        reception_url = reverse('reception:my_applications')
-
-    from auction.views import check_auction_access
-
-    guild_items = [
-        _item('Форум', 'message', reverse('index'), 'forum', current),
-        _item('Ивенты', 'swords', reverse('events:event_index'), 'events', current),
-    ]
-    # Аукцион доступен не всем (видимость его раздела форума) — без доступа пункта нет, а не ошибка.
-    if check_auction_access(user):
-        guild_items.append(_item('Аукцион', 'gavel', reverse('auction:auction_index'), 'auction', current))
+    member = is_guild_member(user)
+    guild_items = [_item('Форум', 'message', reverse('index'), 'forum', current)]
+    # Ивенты и аукцион — только для членов гильдии: остальным пункта нет, а не ошибка доступа.
+    if member:
+        guild_items += [
+            _item('Ивенты', 'swords', reverse('events:event_index'), 'events', current),
+            _item('Аукцион', 'gavel', reverse('auction:auction_index'), 'auction', current),
+        ]
+    # Приём: член гильдии голосует по заявкам, остальные подают заявку и следят за своими.
+    reception_url = reverse('reception:application_list' if member else 'reception:my_applications')
     guild_items += [
         _item('Приём в гильдию', 'file-text', reception_url, 'reception', current),
         _item('Кос-лист', 'skull', reverse('koslist'), 'koslist', current),

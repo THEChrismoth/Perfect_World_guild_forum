@@ -261,19 +261,20 @@ class SiteNavTests(TestCase):
         return re.findall(r'class="site-nav-link is-current".*?<span>([^<]+)</span>', sidebar, re.S)
 
     def test_current_section_highlighted(self):
-        from forum.models import Category, SubCategory
+        from django.contrib.auth.models import Group
 
-        category = Category.objects.create(title='Гильдия', slug='guild')
-        SubCategory.objects.create(title='Аукцион', slug='auction', category=category, is_auction=True)
+        self.user.groups.add(Group.objects.create(name='Член гильдии'))
 
         self.assertEqual(self.current_items('/'), ['Форум'])
         self.assertEqual(self.current_items(reverse('events:event_index')), ['Ивенты'])
         self.assertEqual(self.current_items(reverse('auction:auction_index')), ['Аукцион'])
         self.assertEqual(self.current_items('/koslist/'), ['Кос-лист'])
 
-    def test_auction_hidden_without_access(self):
-        # Раздела аукциона нет — доступа нет, и пункта в меню тоже.
-        self.assertNotContains(self.client.get('/'), f'href="{reverse("auction:auction_index")}"')
+    def test_events_and_auction_only_for_guild_members(self):
+        # Не член гильдии — пунктов «Ивенты» и «Аукцион» в меню нет.
+        response = self.client.get('/')
+        self.assertNotContains(response, f'href="{reverse("auction:auction_index")}"')
+        self.assertNotContains(response, f'href="{reverse("events:event_index")}"')
 
     def test_reception_link_depends_on_membership(self):
         from django.contrib.auth.models import Group

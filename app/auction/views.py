@@ -5,19 +5,13 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
-from forum.models import SubCategory
+from core.roles import is_guild_member
 from profiles.models import Profile
 from .models import AuctionLot, AuctionBid, PointsTransaction
 
 def check_auction_access(user):
-    """Проверяет, имеет ли пользователь доступ к аукциону."""
-    if user.is_superuser:
-        return True
-
-    auction_subcategory = SubCategory.objects.filter(is_auction=True).first()
-    if auction_subcategory is None:
-        return False
-    return auction_subcategory.is_visible_to_user(user)
+    """Аукцион открыт только членам гильдии (и суперпользователю)."""
+    return is_guild_member(user)
 
 def auction_index(request):
     """Главная страница аукциона."""
