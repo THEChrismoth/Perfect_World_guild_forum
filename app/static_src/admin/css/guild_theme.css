@@ -1009,6 +1009,130 @@ select:focus,
     outline: none;
 }
 
+/* Выбор нескольких значений из двух списков (filter_horizontal: группы с доступом, получатели ивентов,
+   права пользователей). Стили Django (widgets.css) подключаются после темы — селекторы через div.selector. */
+div.selector {
+    gap: 12px;
+}
+
+div.selector .selector-available,
+div.selector .selector-chosen {
+    border: 1px solid var(--hairline-color);
+    border-radius: 12px;
+    background: var(--darkened-bg);
+    overflow: hidden;
+}
+
+div.selector .selector-available-title,
+div.selector .selector-chosen-title {
+    padding: 12px 14px;
+    border: none;
+    border-bottom: 1px solid var(--hairline-color);
+    border-radius: 0;
+    background: transparent;
+    color: var(--body-quiet-color);
+}
+
+div.selector .selector-available-title label,
+div.selector .selector-chosen-title label {
+    color: var(--body-loud-color);
+    font-weight: 600;
+}
+
+/* Выбранные — лёгкая подсветка цветом оформления вместо сплошной синей шапки */
+div.selector .selector-chosen-title {
+    background: var(--ga-soft);
+}
+
+div.selector .helptext {
+    display: block;
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--body-quiet-color);
+}
+
+div.selector .selector-filter {
+    padding: 8px 10px;
+    border: none;
+    border-bottom: 1px solid var(--hairline-color);
+    align-items: center;
+}
+
+div.selector .selector-filter label {
+    margin: 0;
+}
+
+div.selector select {
+    margin: 0;
+    padding: 6px;
+    border: none;
+    border-radius: 0;
+    background: var(--ga-card-bg);
+    box-shadow: none;
+}
+
+div.selector select option {
+    padding: 6px 10px;
+    border-radius: 6px;
+}
+
+div.selector select:focus {
+    box-shadow: none;
+}
+
+/* Стрелки между списками — круглые кнопки */
+div.selector ul.selector-chooser {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: auto;
+    padding: 0;
+    background: none;
+    border-radius: 0;
+}
+
+div.selector .selector-chooser li {
+    display: flex;
+    padding: 6px;
+    border: 1px solid var(--hairline-color);
+    border-radius: 50%;
+    background: var(--ga-card-bg);
+}
+
+div.selector .selector-chooser li:hover {
+    background: var(--ga-hover);
+}
+
+/* «Выбрать все» / «Удалить все» — спокойные кнопки с рамкой */
+div.selector .selector-chooseall,
+div.selector .selector-clearall {
+    margin: 10px auto;
+    padding: 6px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+div.selector :enabled.selector-chooseall:hover,
+div.selector :enabled.selector-clearall:hover,
+div.selector :enabled.selector-chooseall:focus,
+div.selector :enabled.selector-clearall:focus {
+    background: var(--ga-hover);
+    color: var(--body-loud-color);
+}
+
+div.selector .selector-chosen .list-footer-display {
+    margin: 0;
+    border: none;
+    border-top: 1px solid var(--hairline-color);
+    border-radius: 0;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+}
+
 /* Таблицы */
 #result_list,
 table {
