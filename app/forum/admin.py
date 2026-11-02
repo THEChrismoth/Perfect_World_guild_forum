@@ -5,14 +5,14 @@ from .models import Category, SubCategory, Topic, Post
 
 @admin.register(Category)
 class CategoryAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    list_display = ('title', 'order', 'slug', 'require_auth')
+    list_display = ('title', 'order', 'slug')
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)
 
 @admin.register(SubCategory)
 class SubCategoryAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    list_display = ('title', 'order', 'slug', 'category', 'require_auth')
-    list_filter = ('category', 'require_auth')
+    list_display = ('title', 'order', 'slug', 'category')
+    list_filter = ('category',)
     prepopulated_fields = {'slug': ('title',)}
     filter_horizontal = ('view_groups',)
 

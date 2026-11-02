@@ -20,9 +20,6 @@ def _check_visibility(obj, user):
     if user.is_superuser:
         return True
 
-    if obj.require_auth and not user.is_authenticated:
-        return False
-
     view_group_ids = {group.id for group in obj.view_groups.all()}
     # Если нет групп с доступом.
     if not view_group_ids:
@@ -37,18 +34,12 @@ def _check_visibility(obj, user):
 class Category(models.Model):
     title = models.CharField('Название категории', max_length=100)
     slug = models.SlugField('Адрес в ссылке', unique=True)
-    # Только для авторизованных пользователей.
-    require_auth = models.BooleanField(
-        'Только для авторизованных',
-        default=False,
-        help_text='Если включено, категорию видят только авторизованные пользователи'
-    )
-    # Группы, которые могут видеть эту категорию (пусто = видят все, если require_auth=False).
+    # Группы, которые могут видеть эту категорию (пусто = видят все вошедшие: гостям сайт закрыт целиком).
     view_groups = models.ManyToManyField(
-        Group, 
-        blank=True, 
+        Group,
+        blank=True,
         verbose_name='Группы с доступом',
-        help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
+        help_text='Оставьте пустым, чтобы категорию видели все пользователи сайта'
     )
     order = models.IntegerField(
         'Порядок сортировки',
@@ -77,18 +68,12 @@ class SubCategory(models.Model):
         related_name='subcategories',
         verbose_name='Категория'
     )
-    # Только для авторизованных пользователей.
-    require_auth = models.BooleanField(
-        'Только для авторизованных',
-        default=False,
-        help_text='Если включено, подкатегорию видят только авторизованные пользователи'
-    )
-    # Группы, которые могут видеть эту подкатегорию.
+    # Группы, которые могут видеть эту подкатегорию (пусто = все вошедшие).
     view_groups = models.ManyToManyField(
-        Group, 
-        blank=True, 
+        Group,
+        blank=True,
         verbose_name='Группы с доступом',
-        help_text='Оставьте пустым для доступа всем пользователям (с учетом require_auth)'
+        help_text='Оставьте пустым, чтобы подкатегорию видели все пользователи сайта'
     )
     order = models.IntegerField(
         'Порядок сортировки',
