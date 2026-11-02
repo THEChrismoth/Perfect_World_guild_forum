@@ -17,12 +17,13 @@ class ClassIconTests(TestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class KosListPageTests(TestCase):
-    def test_page_shows_icons_of_all_classes_and_players(self):
+    def test_players_grouped_by_class_with_icon(self):
         Player.objects.create(name='Злодей', player_class='zhrec')
         self.client.force_login(User.objects.create_user('member', password='pass'))
 
         response = self.client.get('/koslist/')
 
-        self.assertContains(response, 'class_icon/priest.png', count=2)
-        self.assertContains(response, 'title = "Дух крови"')
+        self.assertContains(response, 'Злодей')
+        self.assertContains(response, 'class_icon/priest.png', count=1)
+        # Классы без персонажей не показываются.
         self.assertNotContains(response, 'voin.png')

@@ -1,76 +1,74 @@
-.koslist-container {
-    max-width: 100%;
-    margin: 0 auto;
+/* Кос-лист: карточки и кнопки — общие из css/ui.css, здесь только плашки и группы классов. */
+
+.kos-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
-.koslist-container h1 {
+.kos-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
     color: var(--text-strong);
-    text-align: center;
-    margin-bottom: 0px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease, border-color 0.15s ease;
 }
 
-.koslist-container h2 {
-  color: #66CCFF;
-  text-align: center;
-  margin-bottom: 10px;
+.kos-chip .ga-icon {
+    width: 15px;
+    height: 15px;
+    color: var(--text-muted);
 }
 
-.koslist-container h3 {
-  color: #66CCFF;
-  margin-bottom: 10px;
+a.kos-chip:hover {
+    border-color: var(--border);
+    background: var(--hover);
 }
 
-.koslist-container p {
-    color: var(--text-secondary) !important;
-    text-align: center;
-    font-size: 18px;
-    margin-bottom: 5px;
+a.kos-chip:hover .kos-chip-out {
+    color: var(--accent-light);
 }
 
-.koslist-container hr {
-    margin: 0px 0;
-    border: none;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+.kos-classes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px 24px;
 }
 
-.koslist-container a {
-  color: var(--text-strong);
+.kos-class-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
 }
 
-.koslist-container .guilds-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  list-style: none;
-  padding: 0;
+.kos-class-title img {
+    width: 22px;
+    height: 22px;
 }
 
-.koslist-container .guilds-grid li {
-  padding: 10px;
-  color: var(--text-strong);
+.kos-class-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
-.koslist-container .guilds-grid a {
-  text-decoration: none;
-}
-
-.koslist-container .player-item {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.koslist-container .player-item a {
-  text-decoration: none;
-}
-
-.koslist-container .class-icons {
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.koslist-container .class-icons img {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
+.kos-empty {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-muted);
 }
