@@ -1,25 +1,69 @@
 from datetime import date
 
-from django.contrib import admin
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .admin import ApplicationAdmin
 from .models import Application, ApplicationVote
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ApplicationAdminTests(TestCase):
-    def test_vote_comment_is_escaped(self):
-        applicant = User.objects.create_user('applicant')
+    def setUp(self):
+        self.admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.candidate = User.objects.create_user('candidate')
+        self.application = Application.objects.create(user=self.candidate, player_class='Маг', development_plans='Расти')
+        self.client.force_login(self.admin)
+
+    def decide(self, decision, **data):
+        return self.client.post(reverse('admin:reception_application_decision', args=[self.application.pk]),
+                                {'decision': decision, **data})
+
+    def test_no_add_and_no_votes_section(self):
+        self.assertEqual(self.client.get(reverse('admin:reception_application_add')).status_code, 403)
+        with self.assertRaises(Exception):
+            reverse('admin:reception_applicationvote_changelist')
+
+    def test_card_shows_application_and_escaped_comments(self):
         voter = User.objects.create_user('voter')
-        application = Application.objects.create(user=applicant, player_class='Маг', development_plans='Расти')
-        ApplicationVote.objects.create(application=application, voter=voter, vote='for', comment='<script>alert(1)</script>')
+        ApplicationVote.objects.create(application=self.application, voter=voter, vote='for',
+                                       comment='<script>alert(1)</script>')
 
-        html = ApplicationAdmin(Application, admin.site).votes_detail(application)
+        response = self.client.get(reverse('admin:reception_application_change', args=[self.application.pk]))
 
-        self.assertNotIn('<script>', html)
-        self.assertIn('&lt;script&gt;', html)
+        self.assertContains(response, 'Расти')
+        self.assertContains(response, 'Вынести на голосование')
+        self.assertContains(response, '&lt;script&gt;')
+        self.assertNotContains(response, '<script>alert(1)</script>')
+
+    def test_decisions_follow_status(self):
+        from django.contrib.auth.models import Group
+        from notifications.models import Notification
+
+        # Одобрить можно только после голосования.
+        self.decide('approve')
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status, 'pending')
+
+        self.decide('voting')
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status, 'voting')
+        self.assertIsNotNone(self.application.approved_at)
+
+        self.decide('approve', add_to_guild='1')
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status, 'approved')
+        self.assertTrue(self.candidate.groups.filter(name='Член гильдии').exists())
+        self.assertEqual(Notification.objects.filter(user=self.candidate).count(), 2)
+
+    def test_reject_requires_reason(self):
+        self.decide('reject', reason='  ')
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status, 'pending')
+
+        self.decide('reject', reason='Нет скриншотов')
+        self.application.refresh_from_db()
+        self.assertEqual((self.application.status, self.application.admin_comment), ('rejected', 'Нет скриншотов'))
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)

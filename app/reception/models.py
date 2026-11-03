@@ -66,26 +66,6 @@ class Application(models.Model):
     def get_absolute_url(self):
         return reverse('reception:application_detail', args=[self.id])
 
-    def approve_by_admin(self, admin_user):
-        self.status = 'voting'
-        self.approved_at = timezone.now()
-        self.reviewed_by = admin_user
-        self.save()
-
-    def reject_by_admin(self, admin_user, comment=''):
-        self.status = 'rejected'
-        self.admin_comment = comment
-        self.reviewed_by = admin_user
-        self.save()
-
-    def final_approve(self):
-        self.status = 'approved'
-        self.save()
-
-    def final_reject(self):
-        self.status = 'rejected'
-        self.save()
-
     def can_vote(self, user):
         if self.status != 'voting':
             return False

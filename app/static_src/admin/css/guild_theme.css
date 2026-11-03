@@ -2472,6 +2472,10 @@ html[data-theme="dark"] .ga-datetime input[type="datetime-local"] {
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 
+a.ga-btn-secondary {
+    text-decoration: none !important;
+}
+
 .ga-btn-secondary:hover {
     border-color: var(--ga-accent);
 }
@@ -2495,6 +2499,12 @@ html[data-theme="dark"] .ga-datetime input[type="datetime-local"] {
     background: var(--ga-card-bg);
     color: var(--body-fg);
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Фокус ставится на поле внутри окна — рамка браузера вокруг самого окна не нужна */
+.ga-modal:focus,
+.ga-modal:focus-visible {
+    outline: none;
 }
 
 .ga-modal::backdrop {
@@ -2551,4 +2561,339 @@ input[type="file"]::file-selector-button:hover {
 
 #bids-group tr.has_original td {
     padding-top: 10px;
+}
+
+/* ---------- Заявка в гильдию: просмотр и решение (admin/reception/application/detail.html) ---------- */
+.ga-app-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.ga-app-person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ga-app-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.ga-app-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#content .ga-app-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 22px;
+}
+
+.ga-app-sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+.ga-app-sub img {
+    width: 16px;
+    height: 16px;
+}
+
+.ga-app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ga-app-actions form {
+    margin: 0;
+}
+
+.ga-app-actions .btn,
+.ga-modal-foot .btn {
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+.ga-app-actions .ga-icon,
+.ga-modal-foot .ga-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ga-app-hint {
+    margin: 0 0 16px;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+.ga-app-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.ga-app-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.ga-app-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px 20px;
+    margin: 0;
+}
+
+.ga-app-facts dt {
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.ga-app-facts dd {
+    margin: 2px 0 0;
+    color: var(--body-loud-color);
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-text {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-text span {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ga-app-text-reason {
+    background: color-mix(in srgb, var(--ga-danger) 10%, transparent);
+}
+
+.ga-app-shots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.ga-app-shots a {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 10px;
+    border: 1px solid var(--hairline-color);
+}
+
+.ga-app-shots img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Голоса: ширина блока по проценту, как на сайте */
+.ga-app-votes {
+    display: flex;
+    gap: 8px;
+}
+
+.ga-app-vote {
+    display: flex;
+    flex-basis: 0;
+    flex-direction: column;
+    min-width: 96px;
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.ga-app-vote strong {
+    font-size: 22px;
+}
+
+.ga-app-vote span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ga-app-vote-for {
+    background: color-mix(in srgb, var(--ga-success) 14%, transparent);
+    color: var(--ga-success);
+}
+
+.ga-app-vote-against {
+    align-items: flex-end;
+    background: color-mix(in srgb, var(--ga-danger) 14%, transparent);
+    color: var(--ga-danger);
+}
+
+.ga-app-votes.is-empty .ga-app-vote {
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+}
+
+.ga-app-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ga-app-feed li {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--darkened-bg);
+    list-style: none;
+}
+
+.ga-app-feed-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--body-loud-color);
+}
+
+.ga-app-feed-date {
+    margin-left: auto;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.ga-app-feed-text {
+    margin-top: 6px;
+    color: var(--body-fg);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-delete {
+    margin: 0;
+    text-align: right;
+    font-size: 13px;
+}
+
+.ga-app-delete a {
+    color: var(--ga-danger);
+}
+
+/* Бейджи статусов и голосов */
+.ga-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.ga-pill-voting {
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+}
+
+.ga-pill-pending {
+    background: color-mix(in srgb, var(--ga-warning) 16%, transparent);
+    color: var(--ga-warning);
+}
+
+.ga-pill-approved,
+.ga-pill-for {
+    background: color-mix(in srgb, var(--ga-success) 14%, transparent);
+    color: var(--ga-success);
+}
+
+.ga-pill-rejected,
+.ga-pill-against {
+    background: color-mix(in srgb, var(--ga-danger) 14%, transparent);
+    color: var(--ga-danger);
+}
+
+/* Окно решения */
+.ga-modal-body {
+    padding: 16px 18px;
+    font-size: 14px;
+}
+
+.ga-modal-body p {
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.ga-modal-body label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.ga-modal-body textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ga-modal-body .ga-modal-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.ga-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--hairline-color);
+}
+
+@media (max-width: 1100px) {
+    .ga-app-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

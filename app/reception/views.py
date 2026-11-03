@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from .models import Application, ApplicationVote, ApplicationComment, vote_stats
 from .forms import ApplicationForm
+from .services import discussion_items
 from notifications.utils import send_notification
 from core.roles import is_guild_member as check_guild_member
 
@@ -62,7 +63,7 @@ def application_form(request):
                 title='📝 Новая заявка',
                 message=f'Пользователь {request.user.username} подал новую заявку на вступление в гильдию.',
                 notification_type='application',
-                link=reverse('admin:reception_application_changelist'),
+                link=reverse('admin:reception_application_change', args=[app.id]),
                 perm='reception.change_application',
             )
             return redirect('reception:application_success')
@@ -168,20 +169,6 @@ def _access(request, application):
     }
 
 
-def _discussion_items(application):
-    """Голоса и комментарии одной лентой: голос — с комментарием или без, комментарий — отдельной записью."""
-    items = [
-        {'kind': vote.vote, 'label': vote.get_vote_display(), 'author': vote.voter,
-         'text': vote.comment, 'created_at': vote.created_at}
-        for vote in application.votes.select_related('voter')
-    ] + [
-        {'kind': 'comment', 'label': 'Комментарий', 'author': comment.author,
-         'text': comment.text, 'created_at': comment.created_at}
-        for comment in application.comments.select_related('author')
-    ]
-    return sorted(items, key=lambda item: item['created_at'], reverse=True)
-
-
 def _render_detail(request, application):
     access = _access(request, application)
     my_vote = application.votes.filter(voter=request.user).first()
@@ -190,7 +177,7 @@ def _render_detail(request, application):
         'profile': application.user.profile,
         'stats': application.get_vote_stats(),
         'my_vote': my_vote,
-        'items': _discussion_items(application) if access['can_discuss'] else [],
+        'items': discussion_items(application) if access['can_discuss'] else [],
         **access,
     }
     # Во всплывающем окне — только содержимое, без каркаса сайта.

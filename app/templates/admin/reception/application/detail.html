@@ -1,0 +1,200 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls ga_admin %}
+{# Заявка в админ-панели: только просмотр и решение. Сами заявки создают кандидаты на сайте. #}
+
+{% block bodyclass %}{{ block.super }} app-reception model-application ga-application-page{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">Дашборд</a>
+        &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+        &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        &rsaquo; {{ application.user.username }}
+    </div>
+{% endblock %}
+
+{# Заголовок страницы — карточка кандидата ниже, стандартный h1 не нужен #}
+{% block content_title %}{% endblock %}
+
+{% block content %}
+<div id="content-main" class="ga-app">
+    <div class="ga-app-head">
+        <div class="ga-app-person">
+            <span class="ga-app-avatar">
+                {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ application.user.username|slice:":1"|upper }}{% endif %}
+            </span>
+            <div>
+                <h1 class="ga-app-name">
+                    {{ application.user.username }}
+                    <span class="ga-pill ga-pill-{{ application.status }}">{{ application.get_status_display }}</span>
+                </h1>
+                <div class="ga-app-sub">
+                    {% if profile.player_class %}<img src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ application.player_class }}
+                    · подана {{ application.created_at|date:"d.m.Y H:i" }}
+                    {% if application.reviewed_by %}· решение: {{ application.reviewed_by.username }}{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="ga-app-actions">
+            <a href="{% url 'reception:application_detail' id=application.id %}" class="ga-btn-secondary" target="_blank" rel="noopener">{% ga_icon "arrow-up-right" %}На сайте</a>
+            {% if can_change %}
+                {% if can_vote_out %}
+                    <form method="post" action="{% url 'admin:reception_application_decision' application.id %}">
+                        {% csrf_token %}
+                        <button type="submit" name="decision" value="voting" class="btn btn-primary">{% ga_icon "users" %}Вынести на голосование</button>
+                    </form>
+                {% endif %}
+                {% if can_approve %}
+                    <button type="button" class="btn btn-success" data-modal-open="approve-dialog">{% ga_icon "check" %}Одобрить</button>
+                {% endif %}
+                {% if can_reject %}
+                    <button type="button" class="btn btn-danger" data-modal-open="reject-dialog">{% ga_icon "x" %}Отклонить</button>
+                {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if application.status == 'pending' %}
+        <p class="ga-app-hint">Заявка ждёт проверки: если с анкетой всё в порядке — вынесите её на голосование членов гильдии, иначе отклоните с причиной.</p>
+    {% elif application.status == 'voting' %}
+        <p class="ga-app-hint">Члены гильдии голосуют на сайте. Когда решение ясно — одобрите или отклоните заявку.</p>
+    {% endif %}
+
+    <div class="ga-app-grid">
+        <div class="ga-app-col">
+            <section class="ga-card">
+                <div class="ga-card-head"><h2 class="ga-card-title">Анкета</h2></div>
+                <dl class="ga-app-facts">
+                    <div><dt>Имя</dt><dd>{{ application.real_name|default:"не указано" }}</dd></div>
+                    <div><dt>Возраст</dt><dd>{{ application.age|default:"не указан" }}</dd></div>
+                    <div><dt>Часовой пояс</dt><dd>{{ application.timezone }}</dd></div>
+                    <div><dt>Email</dt><dd>{{ application.user.email|default:"—" }}</dd></div>
+                    <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="ga-text-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
+                    <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>
+                    <div><dt>Состоит в гильдиях</dt><dd>{{ application.other_guilds|default:"нет" }}</dd></div>
+                    <div><dt>Поручители</dt><dd>{{ application.guarantors|default:"не указаны" }}</dd></div>
+                </dl>
+                {% if application.on_blacklist and application.blacklist_details %}
+                    <div class="ga-app-text"><span>Пояснение по ЧС</span>{{ application.blacklist_details|linebreaksbr }}</div>
+                {% endif %}
+                <div class="ga-app-text"><span>Планы на 2 месяца</span>{{ application.development_plans|linebreaksbr }}</div>
+                {% if application.admin_comment %}
+                    <div class="ga-app-text ga-app-text-reason"><span>Причина отказа</span>{{ application.admin_comment|linebreaksbr }}</div>
+                {% endif %}
+            </section>
+
+            <section class="ga-card">
+                <div class="ga-card-head"><h2 class="ga-card-title">Характеристики</h2><span class="ga-empty">из профиля, текущие</span></div>
+                <dl class="ga-app-facts">
+                    <div><dt>HP / MP</dt><dd>{{ profile.hp }} / {{ profile.mp }}</dd></div>
+                    <div><dt>ПА / ФА / МА</dt><dd>{{ profile.pa }} / {{ profile.fa }} / {{ profile.ma }}</dd></div>
+                    <div><dt>ПЗ / БД / БУ</dt><dd>{{ profile.pz }} / {{ profile.bd }} / {{ profile.bu }}</dd></div>
+                    <div><dt>Физ. / маг. защита</dt><dd>{{ profile.physical_defense }} / {{ profile.magic_defense }}</dd></div>
+                    <div><dt>Физ. / маг. пробив</dt><dd>{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</dd></div>
+                    <div><dt>Крит. урон / шанс</dt><dd>{{ profile.crit_damage }}% / {{ profile.crit_chance }}%</dd></div>
+                    <div><dt>Меткость / уклонение</dt><dd>{{ profile.accuracy }} / {{ profile.dodge }}</dd></div>
+                </dl>
+                {% if screenshots %}
+                    <div class="ga-app-shots">
+                        {% for url in screenshots %}<a href="{{ url }}" target="_blank" rel="noopener"><img src="{{ url }}" alt="Скриншот {{ forloop.counter }}"></a>{% endfor %}
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+
+        <div class="ga-app-col">
+            <section class="ga-card">
+                <div class="ga-card-head"><h2 class="ga-card-title">Голосование</h2><span class="ga-empty">всего {{ stats.total }}{% if stats.abstain %}, воздержались {{ stats.abstain }}{% endif %}</span></div>
+                {% if application.status == 'pending' %}
+                    <p class="ga-empty">Голосование начнётся, когда заявку вынесут на голосование.</p>
+                {% elif not application.approved_at %}
+                    <p class="ga-empty">Заявку отклонили на проверке — голосования не было.</p>
+                {% else %}
+                    <div class="ga-app-votes{% if not stats.for and not stats.against %} is-empty{% endif %}">
+                        <div class="ga-app-vote ga-app-vote-for" style="flex-grow: {% if stats.for or stats.against %}{{ stats.percent_for }}{% else %}1{% endif %}">
+                            <strong>{{ stats.percent_for }}%</strong><span>За · {{ stats.for }}</span>
+                        </div>
+                        <div class="ga-app-vote ga-app-vote-against" style="flex-grow: {% if stats.for or stats.against %}{{ stats.percent_against }}{% else %}1{% endif %}">
+                            <strong>{{ stats.percent_against }}%</strong><span>Против · {{ stats.against }}</span>
+                        </div>
+                    </div>
+                {% endif %}
+            </section>
+
+            <section class="ga-card">
+                <div class="ga-card-head"><h2 class="ga-card-title">Голоса и комментарии</h2><span class="ga-empty">{{ items|length }}</span></div>
+                {% if items %}
+                    <ul class="ga-app-feed">
+                        {% for item in items %}
+                            <li>
+                                <div class="ga-app-feed-head">
+                                    <strong>{{ item.author.username }}</strong>
+                                    <span class="ga-pill ga-pill-{{ item.kind }}">{{ item.label }}</span>
+                                    <span class="ga-app-feed-date">{{ item.created_at|date:"d.m.Y H:i" }}</span>
+                                </div>
+                                {% if item.text %}<div class="ga-app-feed-text">{{ item.text|linebreaksbr }}</div>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="ga-empty">Пока никто не голосовал и не комментировал.</p>
+                {% endif %}
+            </section>
+
+            {% if can_delete %}
+                <p class="ga-app-delete"><a href="{% url opts|admin_urlname:'delete' application.pk %}">Удалить заявку</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if can_approve %}
+    <dialog class="ga-modal" id="approve-dialog" aria-labelledby="approve-title">
+        <form method="post" action="{% url 'admin:reception_application_decision' application.id %}">
+            {% csrf_token %}
+            <div class="ga-modal-head">
+                <h2 id="approve-title" tabindex="-1" autofocus>Одобрить заявку {{ application.user.username }}?</h2>
+                <button type="button" class="ga-icon-btn" data-modal-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+            </div>
+            <div class="ga-modal-body">
+                <p>Кандидат получит уведомление. Голоса сейчас: за {{ stats.for }}, против {{ stats.against }}.</p>
+                <label class="ga-modal-check"><input type="checkbox" name="add_to_guild" value="1" checked> Сразу добавить в группу «{{ guild_group }}»</label>
+            </div>
+            <div class="ga-modal-foot">
+                <button type="button" class="ga-btn-secondary" data-modal-close>Отмена</button>
+                <button type="submit" name="decision" value="approve" class="btn btn-success">{% ga_icon "check" %}Одобрить</button>
+            </div>
+        </form>
+    </dialog>
+{% endif %}
+
+{% if can_reject %}
+    <dialog class="ga-modal" id="reject-dialog" aria-labelledby="reject-title">
+        <form method="post" action="{% url 'admin:reception_application_decision' application.id %}">
+            {% csrf_token %}
+            <div class="ga-modal-head">
+                <h2 id="reject-title">Отклонить заявку {{ application.user.username }}?</h2>
+                <button type="button" class="ga-icon-btn" data-modal-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+            </div>
+            <div class="ga-modal-body">
+                <label for="reject-reason">Причина — кандидат увидит её в уведомлении</label>
+                <textarea id="reject-reason" name="reason" rows="3" required autofocus></textarea>
+            </div>
+            <div class="ga-modal-foot">
+                <button type="button" class="ga-btn-secondary" data-modal-close>Отмена</button>
+                <button type="submit" name="decision" value="reject" class="btn btn-danger">{% ga_icon "x" %}Отклонить</button>
+            </div>
+        </form>
+    </dialog>
+{% endif %}
+
+<script>
+document.querySelectorAll('[data-modal-open]').forEach(function (button) {
+    var dialog = document.getElementById(button.dataset.modalOpen);
+    button.addEventListener('click', function () { dialog.showModal(); });
+    dialog.addEventListener('click', function (event) {
+        if (event.target === dialog || event.target.closest('[data-modal-close]')) dialog.close();
+    });
+});
+</script>
+{% endblock %}
