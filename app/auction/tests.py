@@ -105,6 +105,25 @@ class BidTests(AuctionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.lot.name)
 
+    def test_my_bids_one_row_per_lot_with_state(self):
+        self.bid(self.alice, 15)
+        self.bid(self.bob, 20)
+        self.bid(self.alice, 25)
+        self.bid(self.bob, 30)
+
+        self.client.force_login(self.alice)
+        active = self.client.get(reverse('auction:my_bids')).context['active']
+
+        self.assertEqual([(bid.bid_amount, bid.state) for bid in active], [(25, 'outbid')])
+
+    def test_lot_state_for_live_page(self):
+        self.bid(self.alice, 15)
+
+        state = self.client.get(reverse('auction:lot_state', args=[self.lot.slug])).json()
+
+        self.assertEqual((state['status'], state['price'], state['bids']), ('active', 15, 1))
+        self.assertEqual(state['end'], int(self.lot.end_date.timestamp() * 1000))
+
 
 class AuctionEndTests(AuctionTestCase):
     def test_winner_pays_and_gets_notified(self):

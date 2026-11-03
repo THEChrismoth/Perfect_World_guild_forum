@@ -1,37 +1,25 @@
-{# Карточка лота в списке аукциона. Её же показывает предпросмотр в админ-панели (preview — ссылки никуда не ведут, image_url — несохранённая картинка). #}
+{% load ga_admin %}
+{# Карточка лота в списке аукциона. Её же показывает предпросмотр в админ-панели: preview — ссылки никуда не ведут, image_url — несохранённая картинка, bids_count — число ставок. #}
 {% with url=image_url|default:lot.get_image_url %}
-<div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp }}">
-    <div class="lot-image">
-        {% if url %}
-            <img src="{{ url }}" alt="{{ lot.name }}">
-        {% else %}
-            <div class="no-image">📦</div>
-        {% endif %}
+<article class="ui-card ac-card">
+    <div class="ac-card-image">
+        {% if url %}<img src="{{ url }}" alt="">{% else %}<span class="ac-placeholder">{% ga_icon "gavel" %}</span>{% endif %}
+        {% if lot.id in leading_ids %}<span class="ui-badge ui-badge-success ac-card-flag">{% ga_icon "check" %}Вы лидер</span>{% endif %}
     </div>
-    <div class="lot-info">
-        <h3>
-            <a href="{% if preview %}#{% else %}{% url 'auction:lot_detail' slug=lot.slug %}{% endif %}">
-                {{ lot.name }}
-            </a>
+    <div class="ac-card-body">
+        <h3 class="ac-card-title">
+            <a href="{% if preview %}#{% else %}{% url 'auction:lot_detail' slug=lot.slug %}{% endif %}" class="ac-card-link">{{ lot.name }}</a>
         </h3>
-        <div class="lot-price">
-            <div class="price-item">
-                <span class="price-label">Текущая цена:</span>
-                <span class="price-value">{{ lot.current_price }}</span>
-            </div>
-            <div class="price-item">
-                <span class="price-label">Начальная:</span>
-                <span class="price-value">{{ lot.initial_price }}</span>
-            </div>
+        <div class="ac-price">
+            <span class="ac-price-value">{{ lot.current_price }} <span class="ac-star">⭐</span></span>
+            <span class="ac-muted">старт {{ lot.initial_price }} ⭐</span>
         </div>
-        <div class="lot-timer">
-            <span class="timer-label">Осталось:</span>
-            <span class="timer-value" id="timer-{{ lot.id }}">{% if lot.end_date %}{{ lot.end_date|timeuntil }}{% else %}без срока{% endif %}</span>
+        <div class="ac-card-meta">
+            <span class="ac-timer" {% if lot.end_date %}data-countdown="{{ lot.end_date|date:'U' }}000"{% endif %}>
+                {% ga_icon "clock" %}<span data-countdown-text>{% if lot.end_date %}{{ lot.end_date|timeuntil }}{% else %}без срока{% endif %}</span>
+            </span>
+            <span class="ac-muted" title="Ставок">{% ga_icon "gavel" %}{% if preview %}{{ bids_count|default:0 }}{% else %}{{ lot.bids_num|default:0 }}{% endif %}</span>
         </div>
-        <div class="lot-stats">
-            <span>📊 Ставок: {% if preview %}{{ bids_count|default:0 }}{% else %}{{ lot.total_bids_count }}{% endif %}</span>
-        </div>
-        <a href="{% if preview %}#{% else %}{% url 'auction:lot_detail' slug=lot.slug %}{% endif %}" class="btn-bid">Сделать ставку</a>
     </div>
-</div>
+</article>
 {% endwith %}

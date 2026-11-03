@@ -1,0 +1,16 @@
+{% load ga_admin %}
+{# Очки игрока: сколько можно ставить, сколько заморожено в лидирующих ставках и баланс. Параметр: points. #}
+<div class="ac-points">
+    <div class="ui-card ac-point">
+        <span class="ac-point-label">Доступно для ставок</span>
+        <span class="ac-point-value">{{ points.available }} <span class="ac-star">⭐</span></span>
+    </div>
+    <div class="ui-card ac-point">
+        <span class="ac-point-label">Заморожено в ставках</span>
+        <span class="ac-point-value{% if not points.frozen %} ac-muted{% endif %}">{{ points.frozen }} <span class="ac-star">⭐</span></span>
+    </div>
+    <div class="ui-card ac-point">
+        <span class="ac-point-label">Баланс</span>
+        <span class="ac-point-value">{{ points.balance }} <span class="ac-star">⭐</span></span>
+    </div>
+</div>

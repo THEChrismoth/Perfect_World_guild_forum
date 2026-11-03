@@ -1,340 +1,200 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}{{ lot.name }} — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="lot-detail-container">
-    <div class="lot-detail-header">
-        <div class="lot-detail-image">
-            {% if lot.get_image_url %}
-                <img src="{{ lot.get_image_url }}" alt="{{ lot.name }}">
-            {% else %}
-                <div class="no-image">📦</div>
-            {% endif %}
-        </div>
-        
-        <div class="lot-detail-info">
-            <h1>{{ lot.name }}</h1>
-            
-            <div class="lot-description">
-                {{ lot.description|linebreaks }}
-            </div>
-            
-            <div class="lot-detail-price">
-                <div class="price-row">
-                    <span class="label">Начальная цена:</span>
-                    <span class="value">{{ lot.initial_price }}</span>
-                </div>
-                <div class="price-row">
-                    <span class="label">Текущая цена:</span>
-                    <span class="value">{{ lot.current_price }}</span>
-                </div>
-                <div class="price-row">
-                    <span class="label">Минимальный шаг:</span>
-                    <span class="value">{{ lot.min_step }}</span>
-                </div>
-                <div class="price-row">
-                    <span class="label">Минимальная ставка:</span>
-                    <span class="value">{{ min_bid }}</span>
-                </div>
-            </div>
-            
-            <div class="lot-timer">
-                <div class="timer-label">⏰ До конца торгов</div>
-                <div class="timer-value" id="timer-value">
-                    {% if lot.end_date %}
-                        {% if lot.is_active %}
-                            --:--:--
-                        {% else %}
-                            Аукцион завершен
-                        {% endif %}
-                    {% else %}
-                        Не указана
-                    {% endif %}
-                </div>
-                {% if lot.is_active and lot.end_date %}
-                    <div class="timer-note">
-                        {% if time_expired %}
-                            <small>⏳ Торги закончились, итоги подводятся — обычно в течение минуты.</small>
-                        {% else %}
-                            <small>ℹ️ Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут. В конце лидер платит, остальным очки возвращаются</small>
-                        {% endif %}
-                    </div>
-                {% endif %}
-            </div>
-            
-            {% if user.is_authenticated %}
-                <div class="user-points-info">
-                    <div>💰 Ваш баланс: <strong>{{ user_balance }}</strong> ⭐</div>
-                    <div>🔓 Доступно для ставок: <strong>{{ available_points }}</strong> ⭐</div>
-                    {% if user_balance > available_points %}
-                        <div class="frozen-points-warning">
-                            ⚠️ <strong>{{ user_balance|add:"-available_points" }}</strong> ⭐ заморожено в активных ставках
-                        </div>
-                    {% endif %}
-                </div>
-            {% endif %}
-        </div>
+<div class="ui-page-head">
+    <div>
+        <nav class="ac-crumbs" aria-label="Путь"><a href="{% url 'auction:auction_index' %}">Аукцион</a>{% ga_icon "chevron-right" %}<span>Лот</span></nav>
+        <h1 class="ui-page-title">{{ lot.name }}</h1>
+        <p class="ui-page-sub">
+            {% if lot.status == 'active' and not time_expired %}<span class="ui-badge ui-badge-success">Идут торги</span>
+            {% elif lot.status == 'active' %}<span class="ui-badge ui-badge-warning">Итоги подводятся</span>
+            {% elif lot.status == 'ended' %}<span class="ui-badge ui-badge-muted">Завершён</span>
+            {% else %}<span class="ui-badge ui-badge-danger">Отменён</span>{% endif %}
+        </p>
     </div>
-    
-    {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                <div class="alert alert-{% if message.tags == 'error' %}error{% elif message.tags == 'warning' %}warning{% elif message.tags == 'info' %}info{% else %}success{% endif %}">
-                    {{ message }}
-                </div>
-            {% endfor %}
+    <div class="ui-page-actions">
+        <a href="{% url 'auction:my_bids' %}" class="ui-btn ui-btn-secondary">{% ga_icon "user" %}Мои ставки</a>
+    </div>
+</div>
+
+<div class="ac-update" data-lot-update hidden>
+    {% ga_icon "info" %}<span>По лоту появились новые ставки.</span>
+    <button type="button" class="ui-btn ui-btn-primary ui-btn-sm" onclick="window.location.reload()">Обновить</button>
+</div>
+
+<div class="ac-detail">
+    <section class="ui-card ac-detail-item">
+        <div class="ac-detail-image">
+            {% if lot.get_image_url %}<img src="{{ lot.get_image_url }}" alt="{{ lot.name }}">{% else %}<span class="ac-placeholder">{% ga_icon "gavel" %}</span>{% endif %}
         </div>
-    {% endif %}
-    
-    {% if user_frozen_bid and lot.is_active and not time_expired %}
-        <div class="active-bid-warning">
-            🔒 Ваша активная ставка: <strong>{{ user_frozen_bid.bid_amount }} ⭐</strong> (очки заморожены)
-        </div>
-    {% endif %}
-    
-    {% if lot.is_active %}
-        {% if time_expired %}
-            <div class="warning-message">
-                <h3>⏰ Торги закончились</h3>
-                <p>Ставки больше не принимаются. Итоги подводятся автоматически — обычно в течение минуты: лидер платит, остальным очки возвращаются.</p>
-            </div>
-        {% elif user.is_authenticated %}
-            {% if can_bid %}
-                <div class="bid-section">
-                    <h3>💰 Сделать ставку</h3>
-                    <form method="post" class="bid-form" id="bid-form" onsubmit="return validateBid()">
-                        {% csrf_token %}
-                        <div class="bid-form-wrapper">
-                            <label for="id_bid_amount" class="bid-label">Ваша ставка (мин. {{ min_bid }} ⭐)</label>
-                            
-                            <div class="bid-row">
-                                <div class="bid-input-wrapper">
-                                    <input type="number" name="bid_amount" id="id_bid_amount" 
-                                           class="bid-input" 
-                                           step="{{ lot.min_step }}"
-                                           value="{{ min_bid }}"
-                                           min="{{ min_bid }}"
-                                           max="{{ available_points }}"
-                                           required>
-                                    <small class="form-hint">Доступно: {{ available_points }} ⭐</small>
-                                </div>
-                                <button type="submit" class="btn-submit-bid" id="submit-bid-btn">Сделать ставку</button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            {% elif user_frozen_bid %}
-                <div class="info-message">
-                    <h3>🔒 Вы лидер на этом аукционе!</h3>
-                    <p>Ваша ставка: <strong>{{ user_frozen_bid.bid_amount }} ⭐</strong> (очки заморожены)</p>
-                    <p>Если вас перебьют, очки будут разморожены и вы сможете сделать новую ставку.</p>
-                </div>
-            {% else %}
-                <div class="warning-message">
-                    <p>⚠️ Недостаточно средств для минимальной ставки.</p>
-                    <p>Доступно: <strong>{{ available_points }}</strong> ⭐ | Нужно: <strong>{{ min_bid }}</strong> ⭐</p>
-                </div>
-            {% endif %}
-        {% elif not user.is_authenticated %}
-            <div class="warning-message">
-                <p><a href="{% url 'login' %}">Войдите</a>, чтобы сделать ставку</p>
-            </div>
+        {% if lot.description %}
+            <div class="ac-description">{{ lot.description|linebreaks }}</div>
         {% endif %}
-    {% elif not lot.is_active and lot.status == 'ended' %}
-        <div class="info-message">
-            <h3>🏆 Аукцион завершен</h3>
-            {% if winners %}
-                <div class="winners-list">
-                    <h4>Победитель:</h4>
-                    <ul>
-                    {% for winner in winners %}
-                        <li>{{ winner.bidder.username }} - {{ winner.bid_amount }} ⭐</li>
-                    {% endfor %}
-                    </ul>
+    </section>
+
+    <div class="ui-stack">
+        <section class="ui-card">
+            <div class="ac-price ac-price-lg">
+                <span class="ac-price-value">{{ lot.current_price }} <span class="ac-star">⭐</span></span>
+                <span class="ac-muted">{% if lot.status != 'active' %}итоговая цена{% elif bids %}текущая цена{% else %}начальная цена{% endif %}</span>
+            </div>
+            <dl class="ac-facts">
+                <div><dt>Старт</dt><dd>{{ lot.initial_price }} ⭐</dd></div>
+                <div><dt>Шаг</dt><dd>{{ lot.min_step }} ⭐</dd></div>
+                <div><dt>Ставок</dt><dd>{{ bids|length }}</dd></div>
+                <div><dt>Окончание</dt><dd>{{ lot.end_date|date:"d.m H:i"|default:"—" }}</dd></div>
+            </dl>
+            {% if lot.status == 'active' and lot.end_date %}
+                <div class="ac-timer ac-timer-lg" data-countdown="{{ lot.end_date|date:'U' }}000">
+                    {% ga_icon "clock" %}<span>До конца торгов:</span><strong data-countdown-text>{{ lot.end_date|timeuntil }}</strong>
                 </div>
+                <p class="ui-help ac-rule">Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут.</p>
+            {% endif %}
+        </section>
+
+        <section class="ui-card">
+            {% if lot.status == 'active' and time_expired %}
+                <div class="ac-note">{% ga_icon "clock" %}<div><strong>Торги закончились.</strong> Итоги подводятся автоматически — обычно в течение минуты: лидер платит, остальным очки возвращаются.</div></div>
+            {% elif lot.status == 'active' and user_frozen_bid %}
+                <div class="ac-note ac-note-success">{% ga_icon "check" %}<div><strong>Вы лидер — {{ user_frozen_bid.bid_amount }} ⭐.</strong> Очки заморожены до конца торгов. Если вас перебьют, придёт уведомление и очки вернутся.</div></div>
+            {% elif lot.status == 'active' and can_bid %}
+                <form method="post" class="ac-bid-form" data-bid-form>
+                    {% csrf_token %}
+                    <label for="id_bid_amount" class="ui-label">Ваша ставка</label>
+                    <div class="ac-bid-row">
+                        <input type="number" name="bid_amount" id="id_bid_amount" class="ui-input" value="{{ min_bid }}"
+                               min="{{ min_bid }}" max="{{ points.available }}" step="1" required>
+                        <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "gavel" %}Сделать ставку</button>
+                    </div>
+                    {% if quick_bids|length > 1 %}
+                        <div class="ac-quick">
+                            {% for amount in quick_bids %}<button type="button" class="ac-chip" data-bid-quick="{{ amount }}">{{ amount }} ⭐</button>{% endfor %}
+                        </div>
+                    {% endif %}
+                    <p class="ui-help">Минимум {{ min_bid }} ⭐. Очки замораживаются до конца торгов; если перебьют — вернутся.</p>
+                </form>
+            {% elif lot.status == 'active' %}
+                <div class="ac-note ac-note-warning">{% ga_icon "alert" %}<div><strong>Не хватает очков.</strong> Нужно {{ min_bid }} ⭐, доступно {{ points.available }} ⭐{% if points.frozen %} — ещё {{ points.frozen }} ⭐ заморожено в других ставках{% endif %}.</div></div>
+            {% elif lot.status == 'ended' %}
+                {% if winner %}
+                    <div class="ac-note ac-note-success">{% ga_icon "star" %}<div><strong>Победитель — {{ winner.bidder.username }}</strong> со ставкой {{ winner.bid_amount }} ⭐.{% if winner.bidder == user %} Поздравляем, очки списаны!{% endif %}</div></div>
+                {% else %}
+                    <div class="ac-note">{% ga_icon "info" %}<div>Торги завершились без ставок.</div></div>
+                {% endif %}
             {% else %}
-                <p>❌ Нет победителей</p>
+                <div class="ac-note ac-note-danger">{% ga_icon "x" %}<div><strong>Лот отменён.</strong> Все замороженные очки вернулись участникам.</div></div>
             {% endif %}
-            {% if lot.ended_by %}
-                <div class="ended-by-info">
-                    Завершен администратором: {{ lot.ended_by.username }} ({{ lot.ended_at|date:"d.m.Y H:i:s" }})
-                </div>
+            {% if lot.status == 'active' %}
+                <p class="ac-points-line ac-muted">Доступно {{ points.available }} ⭐ · заморожено {{ points.frozen }} ⭐ · баланс {{ points.balance }} ⭐</p>
             {% endif %}
-        </div>
-    {% elif lot.status == 'cancelled' %}
-        <div class="warning-message">
-            <h3>❌ Аукцион отменен</h3>
-            <p>Аукцион был отменен администратором.</p>
-            {% if lot.ended_by %}
-                <div class="ended-by-info">
-                    Отменен: {{ lot.ended_by.username }} ({{ lot.ended_at|date:"d.m.Y H:i:s" }})
-                </div>
-            {% endif %}
-        </div>
-    {% endif %}
-    
-    <div class="bids-table">
-        <h3>📊 История ставок ({{ bids|length }})</h3>
-        <div class="table-responsive">
-            <table class="bids-table">
-                <thead>
-                    <tr>
-                        <th>Пользователь</th>
-                        <th>Ставка</th>
-                        <th>Время</th>
-                        <th>Статус</th>
-                    </tr>
-                </thead>
+        </section>
+    </div>
+</div>
+
+<section class="ui-card ui-card-flush ac-history">
+    <div class="ui-card-head">
+        <h2 class="ui-card-title">История ставок</h2>
+        <span class="ui-badge ui-badge-muted">{{ bids|length }}</span>
+    </div>
+    {% if bids %}
+        <div class="ac-table-wrap">
+            <table class="ui-table">
+                <thead><tr><th>Участник</th><th>Ставка</th><th>Время</th><th>Статус</th></tr></thead>
                 <tbody>
                     {% for bid in bids %}
-                        <tr class="{% if bid.is_winner %}winner-row{% elif bid.is_frozen %}frozen-row{% endif %}">
-                            <td>{{ bid.bidder.username }}</a></td>
-                            <td><strong>{{ bid.bid_amount }} ⭐</strong></a></td>
-                            <td>{{ bid.created_at|date:"d.m.Y H:i:s" }}</a></td>
-                            <td>
-                                {% if bid.is_winner %}
-                                    <span class="status-winner">🏆 Победитель</span>
-                                {% elif bid.is_frozen %}
-                                    <span class="status-frozen">🔒 Лидер</span>
-                                {% elif bid.status == 'outbid' %}
-                                    <span class="status-outbid">📉 Перебита</span>
-                                {% elif bid.status == 'lost' %}
-                                    <span class="status-lost">❌ Проиграна</span>
-                                {% elif bid.status == 'cancelled' %}
-                                    <span class="status-cancelled">⚠️ Отменена</span>
-                                {% else %}
-                                    <span class="status-active">✅ Активна</span>
-                                {% endif %}
-                            </a>
-                        </a>
-                    {% empty %}
                         <tr>
-                            <td colspan="4" class="no-bids">Пока нет ставок 💤</a>
-                        </a
+                            <td><strong>{{ bid.bidder.username }}</strong>{% if bid.bidder == user %} <span class="ac-muted">(вы)</span>{% endif %}</td>
+                            <td>{{ bid.bid_amount }} ⭐</td>
+                            <td class="ac-muted">{{ bid.created_at|date:"d.m.Y H:i:s" }}</td>
+                            <td>
+                                {% if bid.is_winner %}<span class="ui-badge ui-badge-success">Победитель</span>
+                                {% elif bid.is_frozen %}<span class="ui-badge">Лидер</span>
+                                {% elif bid.status == 'cancelled' %}<span class="ui-badge ui-badge-danger">Отменена</span>
+                                {% elif bid.status == 'lost' %}<span class="ui-badge ui-badge-muted">Проиграла</span>
+                                {% else %}<span class="ui-badge ui-badge-muted">Перебита</span>{% endif %}
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+    {% else %}
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "gavel" %}</span>
+            <p class="ui-empty-title">Ставок пока нет</p>
+            <p class="ui-empty-text">Сделайте первую — от {{ lot.initial_price|add:lot.min_step }} ⭐.</p>
+        </div>
+    {% endif %}
+</section>
+
+<dialog class="site-modal" id="bid-confirm" aria-labelledby="bid-confirm-title">
+    <div class="site-modal-box">
+        <div class="site-modal-head">
+            <h2 id="bid-confirm-title">Поставить <span data-bid-confirm-amount></span> ⭐?</h2>
+            <button type="button" class="site-icon-btn" data-dialog-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+        </div>
+        <p class="ac-confirm-text">Очки заморозятся до конца торгов и будут недоступны для других ставок. Если вас перебьют — сразу вернутся, если выиграете — спишутся.</p>
+        <div class="ui-form-actions">
+            <button type="button" class="ui-btn ui-btn-primary" data-bid-confirm>{% ga_icon "gavel" %}Поставить</button>
+            <button type="button" class="ui-btn ui-btn-secondary" data-dialog-close>Отмена</button>
+        </div>
     </div>
-</div>
+</dialog>
 
-{% if lot.is_active and lot.end_date and not time_expired %}
+<script src="{% static 'auction/js/countdown.js' %}"></script>
 <script>
-// Таймер работает, только если время еще не истекло.
-var endTimestamp = {{ end_timestamp }};
-var timerElement = document.getElementById('timer-value');
-var availablePoints = {{ available_points }};
-var minBid = {{ min_bid }};
+(function () {
+    // Ставка: быстрые суммы и подтверждение в окне вместо системного confirm.
+    var form = document.querySelector('[data-bid-form]');
+    if (form) {
+        var input = form.querySelector('input[name="bid_amount"]');
+        var dialog = document.getElementById('bid-confirm');
+        var confirmed = false;
+        form.addEventListener('click', function (event) {
+            var quick = event.target.closest('[data-bid-quick]');
+            if (quick) input.value = quick.dataset.bidQuick;
+        });
+        form.addEventListener('submit', function (event) {
+            if (confirmed || !dialog.showModal || !form.reportValidity()) return;
+            event.preventDefault();
+            dialog.querySelector('[data-bid-confirm-amount]').textContent = input.value;
+            dialog.showModal();
+        });
+        dialog.querySelector('[data-bid-confirm]').addEventListener('click', function () {
+            confirmed = true;
+            this.disabled = true;
+            form.requestSubmit();
+        });
+    }
 
-function updateTimer() {
-    if (!timerElement) return;
-    
-    var now = new Date().getTime();
-    var diff = endTimestamp - now;
-    
-    if (diff <= 0) {
-        location.reload();
-        return;
+    {% if lot.status == 'active' %}
+    // Пока торги идут, страница спрашивает сервер о новых ставках и продлении:
+    // таймер подхватывает новое окончание сам, а о новых ставках — плашка «Обновить».
+    var timer = document.querySelector('.ac-detail [data-countdown]');
+    var update = document.querySelector('[data-lot-update]');
+    var price = {{ lot.current_price }};
+    var bids = {{ bids|length }};
+    function poll() {
+        fetch('{% url "auction:lot_state" slug=lot.slug %}', {headers: {'X-Requested-With': 'fetch'}})
+            .then(function (response) { return response.json(); })
+            .then(function (state) {
+                if (state.status !== 'active') { window.location.reload(); return; }
+                if (timer && state.end) timer.dataset.countdown = state.end;
+                if (state.price !== price || state.bids !== bids) update.hidden = false;
+                // После окончания спрашиваем чаще, чтобы сразу показать итоги.
+                setTimeout(poll, state.end && state.end < Date.now() ? 5000 : 15000);
+            })
+            .catch(function () { setTimeout(poll, 30000); });
     }
-    
-    var hours = Math.floor(diff / (1000 * 60 * 60));
-    var minutes = Math.floor((diff % 3600000) / 60000);
-    var seconds = Math.floor((diff % 60000) / 1000);
-    
-    timerElement.textContent = 
-        hours.toString().padStart(2, '0') + ':' + 
-        minutes.toString().padStart(2, '0') + ':' + 
-        seconds.toString().padStart(2, '0');
-}
-
-function validateBid() {
-    var bidInput = document.getElementById('id_bid_amount');
-    var bidAmount = parseInt(bidInput.value);
-    var submitBtn = document.getElementById('submit-bid-btn');
-    
-    if (submitBtn.disabled) {
-        alert('Ставка уже обрабатывается. Пожалуйста, подождите.');
-        return false;
-    }
-    
-    if (isNaN(bidAmount)) {
-        alert('Введите корректную сумму');
-        bidInput.focus();
-        return false;
-    }
-    
-    if (bidAmount < minBid) {
-        alert('Минимальная ставка: ' + minBid + ' ⭐');
-        bidInput.focus();
-        return false;
-    }
-    
-    if (bidAmount > availablePoints) {
-        alert('Недостаточно доступных очков! Доступно: ' + availablePoints + ' ⭐');
-        bidInput.focus();
-        return false;
-    }
-    
-    var confirmMessage = 'Вы уверены, что хотите сделать ставку ' + bidAmount + ' ⭐?\n\n';
-    confirmMessage += '⚠️ ВНИМАНИЕ:\n';
-    confirmMessage += '• Очки будут заморожены до окончания аукциона\n';
-    confirmMessage += '• Вы не сможете использовать их для других ставок\n';
-    confirmMessage += '• Если вас перебьют, очки разморозятся\n';
-    confirmMessage += '• В случае выигрыша очки будут списаны';
-    
-    if (!confirm(confirmMessage)) {
-        return false;
-    }
-    
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Обработка...';
-    return true;
-}
-
-var bidInput = document.getElementById('id_bid_amount');
-if (bidInput) {
-    bidInput.addEventListener('input', function() {
-        var value = parseInt(this.value);
-        if (value > availablePoints) {
-            this.value = availablePoints;
-        }
-        if (value < minBid) {
-            this.value = minBid;
-        }
-    });
-}
-
-if (endTimestamp > 0) {
-    updateTimer();
-    setInterval(updateTimer, 1000);
-}
-
-window.addEventListener('pageshow', function() {
-    var submitBtn = document.getElementById('submit-bid-btn');
-    if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Сделать ставку';
-    }
-});
+    setTimeout(poll, 15000);
+    {% endif %}
+})();
 </script>
-{% elif lot.is_active and time_expired %}
-<script>
-var timerElement = document.getElementById('timer-value');
-if (timerElement) {
-    timerElement.textContent = '⏰ Время вышло';
-    timerElement.style.color = '#dc3545';
-}
-</script>
-{% endif %}
-
-{% if not lot.is_active and lot.status == 'ended' and lot.ended_at %}
-<script>
-console.log('Аукцион завершен администратором: {{ lot.ended_at|date:"d.m.Y H:i:s" }}');
-</script>
-{% endif %}
-
 {% endblock %}
