@@ -37,6 +37,9 @@ class ProfileInline(admin.StackedInline):
 
 class UserAdmin(NoRelatedPopupsMixin, BaseUserAdmin):
     inlines = [ProfileInline]
+    # Дата последнего входа и регистрации заполняются сами — править их вручную незачем.
+    fieldsets = tuple(fieldset for fieldset in BaseUserAdmin.fieldsets
+                      if 'last_login' not in fieldset[1]['fields'])
 
     def get_urls(self):
         urls = super().get_urls()

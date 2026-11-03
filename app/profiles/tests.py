@@ -259,3 +259,16 @@ class RegistrationCaptchaTests(TestCase):
             self.register(password2='different', **{'ddg-captcha-token': 'token'})
 
         urlopen.assert_not_called()
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class UserAdminFormTests(TestCase):
+    def test_no_important_dates_block(self):
+        admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('admin:auth_user_change', args=[admin.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="last_login_0"')
+        self.assertNotContains(response, 'name="date_joined_0"')
