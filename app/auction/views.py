@@ -5,9 +5,11 @@ from django.core.paginator import Paginator
 from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import PermissionDenied
+from django.urls import reverse
 from core.roles import is_guild_member
+from notifications.utils import send_notification
 from profiles.models import Profile
-from .models import AuctionLot, AuctionBid, PointsTransaction
+from .models import ANTI_SNIPE, ANTI_SNIPE_LIMIT, AuctionLot, AuctionBid, PointsTransaction
 
 def check_auction_access(user):
     """Аукцион открыт только членам гильдии (и суперпользователю)."""
@@ -77,6 +79,18 @@ def place_bid(request, lot_id, bid_amount):
             messages.error(request, f'Недостаточно доступных очков. Доступно: {available_points} ⭐ (Всего: {profile.activity_points} ⭐)')
             return
 
+        # Ставка в последние минуты продлевает торги, чтобы перебитый успел ответить,
+        # но не дальше предела от назначенного времени — иначе торги могли бы тянуться бесконечно.
+        extended = False
+        now = timezone.now()
+        if lot.end_date and lot.end_date - now < ANTI_SNIPE:
+            planned_end = lot.original_end_date or lot.end_date
+            new_end = min(now + ANTI_SNIPE, planned_end + ANTI_SNIPE_LIMIT)
+            if new_end > lot.end_date:
+                lot.original_end_date = planned_end
+                lot.end_date = new_end
+                extended = True
+
         # Находим текущего лидера (замороженную ставку).
         current_leader = lot.get_current_leader()
 
@@ -95,7 +109,16 @@ def place_bid(request, lot_id, bid_amount):
                 description=f'Разморозка очков - ставка перебита в аукционе: {lot.name}'
             )
 
-            messages.info(request, f'Ставка {current_leader.bid_amount} ⭐ была перебита! Очки разморожены.')
+            # Перебитый узнаёт сразу — особенно важно, когда игрок торгуется за несколько лотов.
+            extended_text = f' Торги продлены до {timezone.localtime(lot.end_date):%H:%M}.' if extended else ''
+            send_notification(
+                user=current_leader.bidder,
+                title='⚠️ Вашу ставку перебили',
+                message=f'Ставку {current_leader.bid_amount} ⭐ на лот «{lot.name}» перебили: теперь {bid_amount} ⭐. '
+                        f'Очки снова доступны — можно сделать новую ставку.{extended_text}',
+                notification_type='auction',
+                link=reverse('auction:lot_detail', args=[lot.slug]),
+            )
 
         # Создаем новую ставку (сразу замороженную).
         AuctionBid.objects.create(
@@ -107,9 +130,9 @@ def place_bid(request, lot_id, bid_amount):
             is_winner=False
         )
 
-        # Обновляем текущую цену лота.
+        # Обновляем текущую цену лота (и время окончания, если торги продлены).
         lot.current_price = bid_amount
-        lot.save(update_fields=['current_price', 'updated_at'])
+        lot.save(update_fields=['current_price', 'end_date', 'original_end_date', 'updated_at'])
 
         # Создаем транзакцию заморозки.
         PointsTransaction.objects.create(
@@ -121,6 +144,8 @@ def place_bid(request, lot_id, bid_amount):
         )
 
     messages.success(request, f'Ставка {bid_amount} ⭐ успешно сделана! Вы теперь лидер. Очки заморожены.')
+    if extended:
+        messages.info(request, f'Ставка в последние минуты — торги продлены до {timezone.localtime(lot.end_date):%H:%M}.')
 
 
 @login_required

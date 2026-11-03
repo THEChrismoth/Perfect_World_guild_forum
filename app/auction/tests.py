@@ -210,6 +210,15 @@ class LotAdminTests(AuctionTestCase):
         lot = AuctionLot.objects.get(name='Опал')
         self.assertEqual(timezone.localtime(lot.end_date).strftime('%Y-%m-%d %H:%M'), '2099-11-06 12:00')
 
+    def test_end_date_required(self):
+        response = self.client.post(reverse('admin:auction_auctionlot_add'), {
+            'name': 'Опал', 'description': '', 'initial_price': 10, 'min_step': 5,
+            'start_date': '2026-11-03T12:00', 'end_date': '',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(AuctionLot.objects.filter(name='Опал').exists())
+
     def test_bids_table_only_when_there_are_bids(self):
         add = self.client.get(reverse('admin:auction_auctionlot_add'))
         change = self.client.get(reverse('admin:auction_auctionlot_change', args=[self.lot.pk]))
@@ -233,3 +242,104 @@ class LotAdminTests(AuctionTestCase):
         self.assertContains(response, 'data:image/png;base64,')
         self.assertContains(response, 'без срока')
         self.assertFalse(AuctionLot.objects.filter(name='Пряжа времени').exists())
+
+
+class BiddingFlowTests(AuctionTestCase):
+    def test_outbid_player_is_notified(self):
+        self.bid(self.alice, 15)
+        self.bid(self.bob, 20)
+
+        notification = Notification.objects.get(user=self.alice, title='⚠️ Вашу ставку перебили')
+        self.assertIn('15 ⭐', notification.message)
+        self.assertIn('20 ⭐', notification.message)
+        self.assertFalse(Notification.objects.filter(user=self.bob, title='⚠️ Вашу ставку перебили').exists())
+
+    def test_late_bid_extends_auction(self):
+        AuctionLot.objects.filter(pk=self.lot.pk).update(end_date=timezone.now() + timedelta(minutes=2))
+
+        self.bid(self.alice, 15)
+
+        self.lot.refresh_from_db()
+        self.assertGreater(self.lot.end_date, timezone.now() + timedelta(minutes=4))
+
+    def test_extension_capped_at_30_minutes(self):
+        planned_end = timezone.now() + timedelta(minutes=2)
+        AuctionLot.objects.filter(pk=self.lot.pk).update(end_date=planned_end)
+        carol = self.make_user('carol', 100)
+
+        # Торги уже продлевали почти до предела: следующая ставка дотягивает только до него.
+        AuctionLot.objects.filter(pk=self.lot.pk).update(
+            original_end_date=planned_end - timedelta(minutes=28), end_date=planned_end)
+        self.bid(self.alice, 15)
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.end_date, planned_end + timedelta(minutes=2))
+
+        # Предел достигнут — новая ставка торги больше не продлевает.
+        self.bid(carol, 20)
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.end_date, planned_end + timedelta(minutes=2))
+
+    def test_admin_new_end_date_resets_limit(self):
+        admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        AuctionLot.objects.filter(pk=self.lot.pk).update(original_end_date=timezone.now())
+        self.client.force_login(admin)
+
+        self.client.post(reverse('admin:auction_auctionlot_change', args=[self.lot.pk]), {
+            'name': self.lot.name, 'description': '', 'initial_price': 10, 'min_step': 5,
+            'start_date': '2026-11-01T12:00', 'end_date': '2099-01-01T12:00', 'status': 'active',
+        })
+
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.end_date.year, 2099)
+        self.assertIsNone(self.lot.original_end_date)
+
+    def test_early_bid_keeps_end_date(self):
+        end_date = self.lot.end_date
+
+        self.bid(self.alice, 15)
+
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.end_date, end_date)
+
+
+class AutoFinishTests(AuctionTestCase):
+    def test_expired_lot_finishes_itself(self):
+        from .services import finish_expired_lots
+
+        self.bid(self.alice, 15)
+        self.bid(self.bob, 20)
+        self.expire_lot()
+
+        self.assertEqual(finish_expired_lots(), (1, 0))
+
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.status, 'ended')
+        self.assertEqual(self.lot.bids.get(is_winner=True).bidder, self.bob)
+        self.bob.profile.refresh_from_db()
+        self.assertEqual(self.bob.profile.activity_points, 80)
+
+    def test_payment_problem_notifies_admins_once(self):
+        from .services import PAYMENT_PROBLEM_TITLE, finish_expired_lots
+
+        admin = User.objects.create_superuser('admin', password='pass')
+        self.bid(self.alice, 50)
+        self.alice.profile.refresh_from_db()
+        self.alice.profile.activity_points = 10
+        self.alice.profile.save()
+        self.expire_lot()
+
+        self.assertEqual(finish_expired_lots(), (0, 1))
+        finish_expired_lots()
+
+        self.assertEqual(Notification.objects.filter(user=admin, title=PAYMENT_PROBLEM_TITLE).count(), 1)
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.status, 'active')
+
+    def test_active_lot_untouched(self):
+        from .services import finish_expired_lots
+
+        self.bid(self.alice, 15)
+
+        self.assertEqual(finish_expired_lots(), (0, 0))
+        self.lot.refresh_from_db()
+        self.assertEqual(self.lot.status, 'active')

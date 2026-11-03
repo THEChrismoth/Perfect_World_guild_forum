@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -5,6 +7,11 @@ from django.urls import reverse
 from django.core.validators import MinValueValidator
 from uuslug import uuslug
 from notifications.utils import send_notification
+
+# Ставка, сделанная меньше чем за это время до конца, продлевает торги на столько же...
+ANTI_SNIPE = timedelta(minutes=5)
+# ...но не дальше этого предела сверх назначенного времени окончания: потом торги заканчиваются в любом случае.
+ANTI_SNIPE_LIMIT = timedelta(minutes=30)
 
 
 class AuctionLot(models.Model):
@@ -33,8 +40,14 @@ class AuctionLot(models.Model):
     
     # Временные параметры.
     start_date = models.DateTimeField('Дата начала', default=timezone.now)
-    end_date = models.DateTimeField('Дата окончания (план)', null=True, blank=True, 
-                                     help_text='Плановая дата окончания. После этой даты ставки будут запрещены до завершения админом')
+    end_date = models.DateTimeField(
+        'Окончание торгов', null=True, blank=True,
+        help_text='Когда время выйдет, лот завершится сам: лидер платит, остальным очки возвращаются. '
+                  'Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут'
+    )
+    # Назначенное время окончания до продлений — от него считается предел продления.
+    # Пусто, пока торги не продлевали; сбрасывается, когда администратор меняет окончание.
+    original_end_date = models.DateTimeField('Окончание до продлений', null=True, blank=True, editable=False)
     
     # Статус.
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='active')

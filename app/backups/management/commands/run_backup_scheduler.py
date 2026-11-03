@@ -5,6 +5,7 @@ from django.core.management.base import BaseCommand
 from django.db import DatabaseError, close_old_connections
 from django.utils import timezone
 
+from auction.services import finish_expired_lots
 from backups.models import Backup, BackupSettings
 from backups.services import is_backup_due, recover_interrupted, run_backup
 
@@ -12,15 +13,15 @@ CHECK_INTERVAL = 30  # Секунд
 
 
 class Command(BaseCommand):
-    help = ('Планировщик резервных копий: создает копии по расписанию из админ-панели '
-            'и выполняет копии, запрошенные кнопкой «Сделать копию сейчас». Работает постоянно')
+    help = ('Планировщик: завершает лоты аукциона по окончании торгов, создает резервные копии по расписанию '
+            'из админ-панели и выполняет копии, запрошенные кнопкой «Сделать копию сейчас». Работает постоянно')
 
     def handle(self, *args, **options):
         self.running = True
         signal.signal(signal.SIGTERM, self._stop)
         signal.signal(signal.SIGINT, self._stop)
 
-        self.stdout.write('Планировщик резервных копий запущен')
+        self.stdout.write('Планировщик запущен: аукцион и резервные копии')
         recovered = False
 
         while self.running:
@@ -41,9 +42,19 @@ class Command(BaseCommand):
                     break
                 time.sleep(1)
 
-        self.stdout.write('Планировщик резервных копий остановлен')
+        self.stdout.write('Планировщик остановлен')
 
     def tick(self):
+        # Аукцион — первым: копия может идти долго, а итоги торгов игроки ждут сразу.
+        try:
+            finished, problems = finish_expired_lots()
+            if finished or problems:
+                self.stdout.write(f'Аукцион: завершено лотов {finished}, с проблемой {problems}')
+        except DatabaseError:
+            raise
+        except Exception as error:
+            self.stderr.write(f'Ошибка завершения аукционов: {error}')
+
         backup_settings = BackupSettings.load()
 
         # Первое включение расписания: запоминаем момент, первая копия — в ближайшее время по расписанию.

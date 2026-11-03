@@ -25,8 +25,9 @@ class AuctionLotForm(forms.ModelForm):
         widget=DateTimeLocalInput(quick=[('now', 'Сейчас')]),
     )
     end_date = datetime_local_field(
-        label='Окончание торгов', required=False,
-        help_text='После этого времени ставки закрываются, победителя выбирает администратор. '
+        label='Окончание торгов',
+        help_text='Когда время выйдет, лот завершится сам: лидер платит, остальным очки возвращаются. '
+                  'Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут. '
                   'Кнопки «+N дн.» считают от начала торгов',
         widget=DateTimeLocalInput(quick=[('+1', '+1 дн.'), ('+3', '+3 дн.'), ('+7', '+7 дн.')],
                                   from_field='start_date'),
@@ -42,7 +43,7 @@ class AuctionLotForm(forms.ModelForm):
         if start and end and end <= start:
             self.add_error('end_date', 'Окончание должно быть позже начала')
         if not self.instance.pk and end and end <= timezone.now():
-            self.add_error('end_date', 'Дата окончания уже прошла — ставки по лоту сразу будут закрыты')
+            self.add_error('end_date', 'Время окончания уже прошло — лот сразу завершится')
         initial_price, min_step = cleaned_data.get('initial_price'), cleaned_data.get('min_step')
         if initial_price and min_step and min_step > initial_price:
             self.add_error('min_step', 'Шаг ставки больше начальной цены — проверьте числа')
@@ -78,8 +79,9 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         }),
         ('Ставки', {
             'fields': ('initial_price', 'min_step', 'start_date', 'end_date'),
-            'description': 'Цены — в очках активности. После даты окончания ставки закрываются, а победителя '
-                           'выбирает администратор кнопкой «Завершить аукцион» вверху страницы лота.',
+            'description': 'Цены — в очках активности. Перебитый игрок сразу получает уведомление, а по окончании '
+                           'торгов лот завершается сам. Кнопка «Завершить аукцион» вверху страницы — чтобы закончить '
+                           'раньше или выбрать другого победителя, например если у лидера не хватает очков.',
         }),
     )
     status_fieldset = ('Состояние торгов', {
@@ -100,6 +102,12 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         return format_html('<img class="ga-lot-thumb" src="{}" alt="">', url)
 
     actions = ['force_end_auction', 'cancel_selected_auctions']
+
+    def save_model(self, request, obj, form, change):
+        # Новое окончание от администратора — предел продления считается уже от него.
+        if 'end_date' in form.changed_data:
+            obj.original_end_date = None
+        super().save_model(request, obj, form, change)
 
     def get_inlines(self, request, obj):
         # Таблица ставок нужна только у лота, по которому уже торгуются.
