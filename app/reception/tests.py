@@ -132,6 +132,16 @@ class VotingPageTests(TestCase):
         self.assertContains(response, 'Знаю его, норм')
         self.assertNotContains(response, '<html')
 
+    def test_site_feed_shows_only_texts(self):
+        ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user('Molchun'), vote='for')
+        ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user('Govorun'),
+                                       vote='against', comment='Мало урона')
+
+        items = self.client.get(reverse('reception:application_detail', args=[self.voting.id]),
+                                {'modal': 1}).context['items']
+
+        self.assertEqual([(item['author'].username, item['text']) for item in items], [('Govorun', 'Мало урона')])
+
     def test_comment_saved_with_vote(self):
         self.client.post(reverse('reception:application_vote', args=[self.voting.id]),
                          {'vote': 'against', 'comment': 'Был в ЧС'})

@@ -177,7 +177,8 @@ def _render_detail(request, application):
         'profile': application.user.profile,
         'stats': application.get_vote_stats(),
         'my_vote': my_vote,
-        'items': discussion_items(application) if access['can_discuss'] else [],
+        # На сайте в ленте только тексты: комментарии и комментарии к голосам, кто как голосовал — в админ-панели.
+        'items': [item for item in discussion_items(application) if item['text']] if access['can_discuss'] else [],
         **access,
     }
     # Во всплывающем окне — только содержимое, без каркаса сайта.

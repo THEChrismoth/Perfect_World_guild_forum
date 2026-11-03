@@ -93,7 +93,7 @@
 
     {% if can_discuss %}
         <section class="rc-section">
-            <h3 class="rc-section-title">Голоса и комментарии</h3>
+            <h3 class="rc-section-title">Комментарии</h3>
             {# Пока голос не отдан, комментарий пишется вместе с ним — второе поле только запутает. #}
             {% if can_comment and not can_vote or can_comment and my_vote %}
                 <form method="post" action="{% url 'reception:application_comment' id=application.id %}" class="rc-comment-form" data-discussion-form>
@@ -104,12 +104,6 @@
             {% endif %}
             {% if items %}
                 <div class="rc-feed-tools">
-                    <div class="rc-chips" role="group" aria-label="Фильтр">
-                        <button type="button" class="rc-chip is-active" data-feed-filter="all">Все</button>
-                        <button type="button" class="rc-chip" data-feed-filter="text">С комментарием</button>
-                        <button type="button" class="rc-chip" data-feed-filter="for">Только «за»</button>
-                        <button type="button" class="rc-chip" data-feed-filter="against">Только «против»</button>
-                    </div>
                     <select class="ui-input rc-select" data-feed-sort aria-label="Порядок">
                         <option value="new">Сначала новые</option>
                         <option value="old">Сначала старые</option>
@@ -117,23 +111,17 @@
                 </div>
                 <ul class="rc-feed" data-feed>
                     {% for item in items %}
-                        <li class="rc-feed-item" data-kind="{{ item.kind }}" data-has-text="{% if item.text %}1{% endif %}">
+                        <li class="rc-feed-item">
                             <div class="rc-feed-head">
                                 <a href="{% url 'profile_view' username=item.author.username %}" class="rc-feed-author">{{ item.author.username }}</a>
-                                <span class="ui-badge {% if item.kind == 'for' %}ui-badge-success{% elif item.kind == 'against' %}ui-badge-danger{% else %}ui-badge-muted{% endif %}">{{ item.label }}</span>
                                 <span class="rc-feed-date">{{ item.created_at|date:"d.m.Y H:i" }}</span>
                             </div>
-                            {% if item.text %}
-                                <div class="rc-feed-text">{{ item.text|linebreaksbr }}</div>
-                            {% else %}
-                                <div class="rc-feed-text rc-muted"><em>Без комментария</em></div>
-                            {% endif %}
+                            <div class="rc-feed-text">{{ item.text|linebreaksbr }}</div>
                         </li>
                     {% endfor %}
                 </ul>
-                <p class="rc-muted rc-feed-empty" data-feed-empty hidden>Под этот фильтр ничего нет</p>
             {% else %}
-                <p class="rc-muted">Пока никто не голосовал и не комментировал.</p>
+                <p class="rc-muted">Комментариев пока нет.</p>
             {% endif %}
         </section>
     {% endif %}

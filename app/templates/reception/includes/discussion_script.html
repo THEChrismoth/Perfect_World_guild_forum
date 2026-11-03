@@ -1,27 +1,5 @@
 <script>
 (function () {
-    // Фильтр ленты голосов и комментариев: все / с текстом / только «за» / только «против».
-    function applyFilter(root) {
-        var active = root.querySelector('[data-feed-filter].is-active');
-        var filter = active ? active.dataset.feedFilter : 'all';
-        var shown = 0;
-        root.querySelectorAll('[data-feed] > li').forEach(function (item) {
-            var visible = filter === 'all' || (filter === 'text' ? item.dataset.hasText === '1' : item.dataset.kind === filter);
-            item.hidden = !visible;
-            if (visible) shown++;
-        });
-        var empty = root.querySelector('[data-feed-empty]');
-        if (empty) empty.hidden = shown > 0;
-    }
-
-    document.addEventListener('click', function (event) {
-        var chip = event.target.closest('[data-feed-filter]');
-        if (!chip) return;
-        var root = chip.closest('[data-discussion]');
-        root.querySelectorAll('[data-feed-filter]').forEach(function (other) { other.classList.toggle('is-active', other === chip); });
-        applyFilter(root);
-    });
-
     // Порядок: лента приходит «сначала новые», для «сначала старые» просто разворачиваем.
     document.addEventListener('change', function (event) {
         if (!event.target.matches('[data-feed-sort]')) return;
