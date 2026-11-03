@@ -192,3 +192,44 @@ class AuctionAccessTests(AuctionTestCase):
         self.client.force_login(outsider)
         self.assertEqual(self.client.get(reverse('auction:auction_index')).status_code, 403)
         self.assertEqual(self.client.get(reverse('auction:lot_detail', args=[self.lot.slug])).status_code, 403)
+
+
+class LotAdminTests(AuctionTestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.client.force_login(self.admin)
+
+    def test_create_lot_with_single_datetime_fields(self):
+        response = self.client.post(reverse('admin:auction_auctionlot_add'), {
+            'name': 'Опал', 'description': '', 'initial_price': 10, 'min_step': 5,
+            'start_date': '2026-11-03T12:00', 'end_date': '2099-11-06T12:00',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        lot = AuctionLot.objects.get(name='Опал')
+        self.assertEqual(timezone.localtime(lot.end_date).strftime('%Y-%m-%d %H:%M'), '2099-11-06 12:00')
+
+    def test_bids_table_only_when_there_are_bids(self):
+        add = self.client.get(reverse('admin:auction_auctionlot_add'))
+        change = self.client.get(reverse('admin:auction_auctionlot_change', args=[self.lot.pk]))
+        self.assertNotContains(add, 'bids-group')
+        self.assertNotContains(change, 'bids-group')
+
+        self.bid(self.alice, 15)
+        self.client.force_login(self.admin)
+        change = self.client.get(reverse('admin:auction_auctionlot_change', args=[self.lot.pk]))
+        self.assertContains(change, 'bids-group')
+
+    def test_preview_shows_unsaved_values_and_image(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        image = SimpleUploadedFile('lot.png', b'\x89PNG\r\n\x1a\n', content_type='image/png')
+        response = self.client.post(reverse('admin:auction_lot_preview'), {
+            'name': 'Пряжа времени', 'initial_price': '25', 'min_step': '5', 'end_date': '', 'image': image,
+        })
+
+        self.assertContains(response, 'Пряжа времени')
+        self.assertContains(response, 'data:image/png;base64,')
+        self.assertContains(response, 'без срока')
+        self.assertFalse(AuctionLot.objects.filter(name='Пряжа времени').exists())

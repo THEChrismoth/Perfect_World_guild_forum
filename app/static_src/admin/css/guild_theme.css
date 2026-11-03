@@ -1316,14 +1316,26 @@ table.ga-votes td {
     border: 1px solid var(--hairline-color);
 }
 
-.ga-lot-preview {
+.ga-lot-thumb {
     display: block;
-    max-width: 96px;
-    max-height: 96px;
-    padding: 8px;
-    border-radius: 12px;
-    background: var(--darkened-bg);
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 8px;
     border: 1px solid var(--hairline-color);
+}
+
+.ga-lot-thumb-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+}
+
+.ga-lot-thumb-empty .ga-icon {
+    width: 18px;
+    height: 18px;
 }
 
 /* Кнопки собственных страниц и действий (используются в шаблонах проекта) */
@@ -2387,4 +2399,156 @@ input[type="submit"].ga-submit-success:hover {
 .ga-attendance-footer {
     padding: 12px 16px 16px;
     border-top: 1px solid var(--hairline-color);
+}
+
+/* ---------- Дата и время одним полем (core/widgets.py DateTimeLocalInput) ---------- */
+.ga-datetime {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ga-datetime input[type="datetime-local"] {
+    min-width: 220px;
+    font: inherit;
+    color-scheme: light;
+}
+
+html[data-theme="dark"] .ga-datetime input[type="datetime-local"] {
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]) .ga-datetime input[type="datetime-local"] {
+        color-scheme: dark;
+    }
+}
+
+.ga-datetime-quick {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ga-datetime-quick .ga-chip {
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ga-datetime-quick .ga-chip:hover {
+    border-color: var(--ga-accent);
+    color: var(--ga-accent);
+}
+
+/* ---------- Предпросмотр лота ---------- */
+.ga-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 12px;
+}
+
+.ga-preview-row .help {
+    margin: 0;
+    padding: 0;
+}
+
+.ga-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    font: 600 13px var(--font-family-primary);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ga-btn-secondary:hover {
+    border-color: var(--ga-accent);
+}
+
+.ga-btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.ga-btn-secondary .ga-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------- Окно по центру экрана (<dialog>) ---------- */
+.ga-modal {
+    width: min(520px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--hairline-color);
+    border-radius: 16px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+.ga-modal::backdrop {
+    background: rgba(3, 7, 18, 0.6);
+}
+
+.ga-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.ga-modal-head h2:focus {
+    outline: none;
+}
+
+.ga-modal-head h2 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--body-fg);
+}
+
+.ga-modal-frame {
+    display: block;
+    width: 100%;
+    height: min(640px, calc(100vh - 140px));
+    border: none;
+}
+
+/* Кнопка выбора файла — как остальные второстепенные кнопки */
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 7px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    font: 600 13px var(--font-family-primary);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    border-color: var(--ga-accent);
+}
+
+/* Ставки лота: строка-подпись Django над каждой ставкой повторяет то же, что в колонках */
+#bids-group td.original p {
+    display: none;
+}
+
+#bids-group tr.has_original td {
+    padding-top: 10px;
 }

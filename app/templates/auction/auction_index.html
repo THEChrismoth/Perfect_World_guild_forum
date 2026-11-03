@@ -30,40 +30,7 @@
             <h2>Активные лоты</h2>
             <div class="lots-grid">
                 {% for lot in active_lots %}
-                    <div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp }}">
-                        <div class="lot-image">
-                            {% if lot.get_image_url %}
-                                <img src="{{ lot.get_image_url }}" alt="{{ lot.name }}">
-                            {% else %}
-                                <div class="no-image">📦</div>
-                            {% endif %}
-                        </div>
-                        <div class="lot-info">
-                            <h3>
-                                <a href="{% url 'auction:lot_detail' slug=lot.slug %}">
-                                    {{ lot.name }}
-                                </a>
-                            </h3>
-                            <div class="lot-price">
-                                <div class="price-item">
-                                    <span class="price-label">Текущая цена:</span>
-                                    <span class="price-value">{{ lot.current_price }}</span>
-                                </div>
-                                <div class="price-item">
-                                    <span class="price-label">Начальная:</span>
-                                    <span class="price-value">{{ lot.initial_price }}</span>
-                                </div>
-                            </div>
-                            <div class="lot-timer">
-                                <span class="timer-label">Осталось:</span>
-                                <span class="timer-value" id="timer-{{ lot.id }}">--:--:--</span>
-                            </div>
-                            <div class="lot-stats">
-                                <span>📊 Ставок: {{ lot.total_bids_count }}</span>
-                            </div>
-                            <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="btn-bid">Сделать ставку</a>
-                        </div>
-                    </div>
+                    {% include 'auction/includes/lot_card.html' %}
                 {% empty %}
                     <div class="no-lots">
                         <p>Нет активных лотов</p>

@@ -1,26 +1,43 @@
+import base64
+
 from django import forms
 from django.contrib import admin
 from django.utils import timezone
 from django.contrib import messages
-from django.shortcuts import redirect
 from django.urls import path, reverse
 from django.template.response import TemplateResponse
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 
 from core.admin_mixins import NoRelatedPopupsMixin
+from core.templatetags.ga_admin import ga_icon
+from core.widgets import DateTimeLocalInput, datetime_local_field
 from .models import AuctionLot, AuctionBid, PointsTransaction
+
+PREVIEW_IMAGE_LIMIT = 5 * 1024 * 1024
 
 
 class AuctionLotForm(forms.ModelForm):
+    # Дата и время одним полем с календарём браузера и быстрыми кнопками.
+    start_date = datetime_local_field(
+        label='Начало торгов', initial=timezone.now,
+        widget=DateTimeLocalInput(quick=[('now', 'Сейчас')]),
+    )
+    end_date = datetime_local_field(
+        label='Окончание торгов', required=False,
+        help_text='После этого времени ставки закрываются, победителя выбирает администратор. '
+                  'Кнопки «+N дн.» считают от начала торгов',
+        widget=DateTimeLocalInput(quick=[('+1', '+1 дн.'), ('+3', '+3 дн.'), ('+7', '+7 дн.')],
+                                  from_field='start_date'),
+    )
+
     class Meta:
         model = AuctionLot
         fields = '__all__'
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get('icon_choice') == 'custom' and not cleaned_data.get('custom_image'):
-            self.add_error('custom_image', 'Загрузите картинку или выберите готовую иконку')
         start, end = cleaned_data.get('start_date'), cleaned_data.get('end_date')
         if start and end and end <= start:
             self.add_error('end_date', 'Окончание должно быть позже начала')
@@ -47,16 +64,17 @@ class AuctionBidInline(admin.TabularInline):
 @admin.register(AuctionLot)
 class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     form = AuctionLotForm
-    list_display = ('name', 'icon_choice', 'initial_price', 'current_price', 'status', 'ended_at', 'total_bids')
-    list_filter = ('status', 'icon_choice', 'created_at', 'ended_at')
+    list_display = ('image_thumb', 'name', 'initial_price', 'current_price', 'status', 'end_date', 'total_bids')
+    list_display_links = ('image_thumb', 'name')
+    list_filter = ('status', 'created_at', 'ended_at')
     search_fields = ('name', 'slug', 'description')
-    readonly_fields = ('icon_preview', 'current_price', 'ended_at', 'ended_by')
+    readonly_fields = ('current_price', 'ended_at', 'ended_by')
 
     main_fieldsets = (
         ('Лот', {
-            'fields': ('name', 'description', 'icon_choice', 'custom_image', 'icon_preview'),
-            'description': 'Так лот будет выглядеть на странице аукциона. Готовые иконки — предметы из игры; '
-                           'для другого предмета выберите «Своя картинка» и загрузите изображение.',
+            'fields': ('name', 'description', 'image'),
+            'description': 'Как лот будет выглядеть на сайте, покажет кнопка «Предпросмотр» внизу страницы — '
+                           'без сохранения.',
         }),
         ('Ставки', {
             'fields': ('initial_price', 'min_step', 'start_date', 'end_date'),
@@ -74,15 +92,18 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         # Новый лот всегда начинается активным — состояние торгов показываем только у созданных.
         return self.main_fieldsets + ((self.status_fieldset,) if obj else ())
 
-    @admin.display(description='Как выглядит')
-    def icon_preview(self, obj):
-        url = obj.get_image_url() if obj and obj.pk else ''
+    @admin.display(description='')
+    def image_thumb(self, obj):
+        url = obj.get_image_url()
         if not url:
-            return 'появится после сохранения'
-        return format_html('<img class="ga-lot-preview" src="{}" alt="">', url)
+            return format_html('<span class="ga-lot-thumb ga-lot-thumb-empty">{}</span>', ga_icon('gavel'))
+        return format_html('<img class="ga-lot-thumb" src="{}" alt="">', url)
 
     actions = ['force_end_auction', 'cancel_selected_auctions']
-    inlines = [AuctionBidInline]
+
+    def get_inlines(self, request, obj):
+        # Таблица ставок нужна только у лота, по которому уже торгуются.
+        return [AuctionBidInline] if obj and obj.bids.exists() else []
     
     def total_bids(self, obj):
         return obj.total_bids_count
@@ -141,9 +162,53 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.cancel_auction_view),
                 name='auction_cancel_auction',
             ),
+            path('preview/', self.admin_site.admin_view(require_POST(self.preview_view)), name='auction_lot_preview'),
         ]
         return custom_urls + urls
     
+    def preview_view(self, request):
+        """Карточка лота как на сайте — из того, что сейчас введено в форме, без сохранения."""
+        data = request.POST
+
+        def number(name, default):
+            try:
+                return max(int(data.get(name, '')), 0)
+            except ValueError:
+                return default
+
+        lot = AuctionLot(
+            name=data.get('name', '').strip() or 'Без названия',
+            description=data.get('description', ''),
+            initial_price=number('initial_price', 0),
+            min_step=number('min_step', 1),
+        )
+        lot.current_price = lot.initial_price
+        try:
+            lot.end_date = datetime_local_field(required=False).clean(data.get('end_date', ''))
+        except forms.ValidationError:
+            lot.end_date = None
+
+        # Новая картинка ещё не сохранена — встраиваем её прямо в страницу предпросмотра.
+        image_url = ''
+        bids_count = 0
+        upload = request.FILES.get('image')
+        if upload and upload.size <= PREVIEW_IMAGE_LIMIT and (upload.content_type or '').startswith('image/'):
+            image_url = f'data:{upload.content_type};base64,{base64.b64encode(upload.read()).decode()}'
+        saved = AuctionLot.objects.filter(pk=data['object_id']).first() if data.get('object_id') else None
+        if saved:
+            lot.current_price = max(saved.current_price, lot.initial_price)
+            bids_count = saved.total_bids_count
+            if not image_url and not data.get('image-clear'):
+                image_url = saved.get_image_url()
+
+        return TemplateResponse(request, 'admin/auction/lot_preview.html', {
+            'lot': lot,
+            'image_url': image_url,
+            'bids_count': bids_count,
+            'theme': 'dark' if data.get('theme') == 'dark' else 'light',
+            'accent': data.get('accent', 'indigo'),
+        })
+
     def end_auction_view(self, request, lot_id):
         """Индивидуальное завершение аукциона с выбором победителя."""
         lot = self.get_object(request, lot_id)

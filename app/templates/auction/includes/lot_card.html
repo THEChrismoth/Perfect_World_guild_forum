@@ -1,0 +1,37 @@
+{# Карточка лота в списке аукциона. Её же показывает предпросмотр в админ-панели (preview — ссылки никуда не ведут, image_url — несохранённая картинка). #}
+{% with url=image_url|default:lot.get_image_url %}
+<div class="lot-card" data-end-timestamp="{{ lot.end_date.timestamp }}">
+    <div class="lot-image">
+        {% if url %}
+            <img src="{{ url }}" alt="{{ lot.name }}">
+        {% else %}
+            <div class="no-image">📦</div>
+        {% endif %}
+    </div>
+    <div class="lot-info">
+        <h3>
+            <a href="{% if preview %}#{% else %}{% url 'auction:lot_detail' slug=lot.slug %}{% endif %}">
+                {{ lot.name }}
+            </a>
+        </h3>
+        <div class="lot-price">
+            <div class="price-item">
+                <span class="price-label">Текущая цена:</span>
+                <span class="price-value">{{ lot.current_price }}</span>
+            </div>
+            <div class="price-item">
+                <span class="price-label">Начальная:</span>
+                <span class="price-value">{{ lot.initial_price }}</span>
+            </div>
+        </div>
+        <div class="lot-timer">
+            <span class="timer-label">Осталось:</span>
+            <span class="timer-value" id="timer-{{ lot.id }}">{% if lot.end_date %}{{ lot.end_date|timeuntil }}{% else %}без срока{% endif %}</span>
+        </div>
+        <div class="lot-stats">
+            <span>📊 Ставок: {% if preview %}{{ bids_count|default:0 }}{% else %}{{ lot.total_bids_count }}{% endif %}</span>
+        </div>
+        <a href="{% if preview %}#{% else %}{% url 'auction:lot_detail' slug=lot.slug %}{% endif %}" class="btn-bid">Сделать ставку</a>
+    </div>
+</div>
+{% endwith %}

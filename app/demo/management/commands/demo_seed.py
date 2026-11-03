@@ -234,9 +234,9 @@ class Command(BaseCommand):
 
     # ===== Аукцион =====
 
-    def lot(self, name, icon, price, step, days_left, description, started_days_ago):
+    def lot(self, name, price, step, days_left, description, started_days_ago):
         lot = AuctionLot.objects.create(
-            name=name, icon_choice=icon, initial_price=price, min_step=step, description=description,
+            name=name, initial_price=price, min_step=step, description=description,
             start_date=self.now - datetime.timedelta(days=started_days_ago),
             end_date=self.now + datetime.timedelta(days=days_left),
         )
@@ -247,18 +247,18 @@ class Command(BaseCommand):
 
     def create_auction(self):
         members = self.members
-        stone = self.lot('Камень мироздания', 'stone_of_universe', 20, 5, 3, 'Выпал на КХ.', 2)
+        stone = self.lot('Камень мироздания', 20, 5, 3, 'Выпал на КХ.', 2)
         for user, amount in [(members[3], 25), (members[7], 35), (members[2], 45)]:
             self.bid(stone, user, amount)
-        wheel = self.lot('Колесо Судьбы', 'wheel_of_fate', 30, 5, 5, 'Выпало на КХ.', 1)
+        wheel = self.lot('Колесо Судьбы', 30, 5, 5, 'Выпало на КХ.', 1)
         self.bid(wheel, members[10], 35)
-        self.lot('Набор рун 9 ур', 'rune_set_9', 40, 10, 6, 'Ставок пока нет — можно стать первым.', 0)
+        self.lot('Набор рун 9 ур', 40, 10, 6, 'Ставок пока нет — можно стать первым.', 0)
 
         # Завершенные лоты — через то же завершение, что делает администратор в админ-панели.
-        opal = self.lot('Опал Лунной Кошки', 'opal', 15, 5, 1, 'Выпал на КХ.', 9)
+        opal = self.lot('Опал Лунной Кошки', 15, 5, 1, 'Выпал на КХ.', 9)
         for user, amount in [(members[5], 20), (members[8], 30), (members[5], 40)]:
             self.bid(opal, user, amount)
-        meteor = self.lot('Великий метеорит', 'great_meteorite', 10, 5, 1, 'Выпал с мирового босса.', 6)
+        meteor = self.lot('Великий метеорит', 10, 5, 1, 'Выпал с мирового босса.', 6)
         for user, amount in [(members[12], 15), (members[14], 25)]:
             self.bid(meteor, user, amount)
         for lot in (opal, meteor):
