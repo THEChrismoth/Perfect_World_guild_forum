@@ -1,0 +1,12 @@
+{# Голоса «за» и «против»: ширина блока — по проценту, без голосов оба блока поровну и серые. Параметр: stats. #}
+<div class="rc-votes{% if not stats.for and not stats.against %} is-empty{% endif %}">
+    <div class="rc-vote rc-vote-for" style="flex-grow: {% if stats.for or stats.against %}{{ stats.percent_for }}{% else %}1{% endif %}">
+        <span class="rc-vote-pct">{{ stats.percent_for }}%</span>
+        <span class="rc-vote-label">За · {{ stats.for }}</span>
+    </div>
+    <div class="rc-vote rc-vote-against" style="flex-grow: {% if stats.for or stats.against %}{{ stats.percent_against }}{% else %}1{% endif %}">
+        <span class="rc-vote-pct">{{ stats.percent_against }}%</span>
+        <span class="rc-vote-label">Против · {{ stats.against }}</span>
+    </div>
+</div>
+<p class="rc-votes-total">Всего голосов: {{ stats.total }}{% if stats.abstain %} · воздержались: {{ stats.abstain }}{% endif %}</p>

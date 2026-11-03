@@ -1,0 +1,140 @@
+{% load ga_admin %}
+{# Вся заявка и обсуждение: во всплывающем окне списка и на отдельной странице заявки. #}
+<div class="rc-discussion" data-discussion data-title="Обсуждение · {{ application.user.username }}">
+    <section class="rc-section">
+        <div class="rc-applicant">
+            <span class="rc-avatar">
+                {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ application.user.username|slice:":1"|upper }}{% endif %}
+            </span>
+            <div class="rc-applicant-main">
+                <div class="rc-applicant-name">
+                    <a href="{% url 'profile_view' username=application.user.username %}">{{ application.user.username }}</a>
+                    {% include 'reception/includes/status_badge.html' %}
+                </div>
+                <div class="rc-muted">
+                    {% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ application.player_class }}
+                    · подана {{ application.created_at|date:"d.m.Y" }}
+                </div>
+            </div>
+        </div>
+
+        <dl class="rc-facts">
+            <div><dt>Имя</dt><dd>{{ application.real_name|default:"не указано" }}</dd></div>
+            <div><dt>Возраст</dt><dd>{{ application.age|default:"не указан" }}</dd></div>
+            <div><dt>Часовой пояс</dt><dd>{{ application.timezone }}</dd></div>
+            <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="rc-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
+            <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>
+            <div><dt>Состоит в гильдиях</dt><dd>{{ application.other_guilds|default:"нет" }}</dd></div>
+            <div><dt>Поручители</dt><dd>{{ application.guarantors|default:"не указаны" }}</dd></div>
+        </dl>
+        {% if application.on_blacklist and application.blacklist_details %}
+            <div class="rc-text-block"><span class="rc-text-label">Пояснение по ЧС</span>{{ application.blacklist_details|linebreaksbr }}</div>
+        {% endif %}
+        <div class="rc-text-block"><span class="rc-text-label">Планы на 2 месяца</span>{{ application.development_plans|linebreaksbr }}</div>
+    </section>
+
+    <section class="rc-section">
+        <h3 class="rc-section-title">Характеристики</h3>
+        <dl class="rc-stats">
+            <div><dt>HP / MP</dt><dd>{{ profile.hp }} / {{ profile.mp }}</dd></div>
+            <div><dt>ПА / ФА / МА</dt><dd>{{ profile.pa }} / {{ profile.fa }} / {{ profile.ma }}</dd></div>
+            <div><dt>ПЗ / БД / БУ</dt><dd>{{ profile.pz }} / {{ profile.bd }} / {{ profile.bu }}</dd></div>
+            <div><dt>Физ. / маг. защита</dt><dd>{{ profile.physical_defense }} / {{ profile.magic_defense }}</dd></div>
+            <div><dt>Физ. / маг. пробив</dt><dd>{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</dd></div>
+            <div><dt>Крит. урон / шанс</dt><dd>{{ profile.crit_damage }}% / {{ profile.crit_chance }}%</dd></div>
+            <div><dt>Меткость / уклонение</dt><dd>{{ profile.accuracy }} / {{ profile.dodge }}</dd></div>
+        </dl>
+        {% if application.screenshot1 or application.screenshot2 or application.screenshot3 or application.screenshot4 or application.screenshot5 %}
+            <div class="rc-shots">
+                {% if application.screenshot1 %}<a href="{{ application.screenshot1.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot1.url }}" alt="Скриншот 1" loading="lazy"></a>{% endif %}
+                {% if application.screenshot2 %}<a href="{{ application.screenshot2.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot2.url }}" alt="Скриншот 2" loading="lazy"></a>{% endif %}
+                {% if application.screenshot3 %}<a href="{{ application.screenshot3.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot3.url }}" alt="Скриншот 3" loading="lazy"></a>{% endif %}
+                {% if application.screenshot4 %}<a href="{{ application.screenshot4.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot4.url }}" alt="Скриншот 4" loading="lazy"></a>{% endif %}
+                {% if application.screenshot5 %}<a href="{{ application.screenshot5.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot5.url }}" alt="Скриншот 5" loading="lazy"></a>{% endif %}
+            </div>
+        {% endif %}
+    </section>
+
+    <section class="rc-section">
+        <h3 class="rc-section-title">Голосование</h3>
+        {% include 'reception/includes/vote_bar.html' %}
+        {% if can_vote %}
+            {% if my_vote %}
+                <div class="rc-my-vote rc-my-vote-{{ my_vote.vote }}">
+                    {% ga_icon "check" %}
+                    <div>
+                        <strong>Ваш голос: {{ my_vote.get_vote_display }}</strong>
+                        <span class="rc-muted"> · {{ my_vote.created_at|date:"d.m.Y H:i" }}</span>
+                        {% if my_vote.comment %}<div class="rc-my-vote-text">{{ my_vote.comment|linebreaksbr }}</div>{% endif %}
+                    </div>
+                </div>
+            {% else %}
+                {# Сначала выбор, потом явная отправка: голос учитывается только по кнопке «Проголосовать». #}
+                <form method="post" action="{% url 'reception:application_vote' id=application.id %}" class="rc-vote-form" data-discussion-form data-vote-form>
+                    {% csrf_token %}
+                    <span class="ui-label">Ваш голос</span>
+                    <div class="rc-vote-choices" role="radiogroup" aria-label="Ваш голос">
+                        <label class="rc-choice rc-choice-for"><input type="radio" name="vote" value="for" required>{% ga_icon "trending-up" %}За</label>
+                        <label class="rc-choice rc-choice-against"><input type="radio" name="vote" value="against">{% ga_icon "trending-down" %}Против</label>
+                        <label class="rc-choice"><input type="radio" name="vote" value="abstain">Воздержаться</label>
+                    </div>
+                    <textarea name="comment" class="ui-input" rows="2" maxlength="2000" placeholder="Комментарий к голосу — необязательно"></textarea>
+                    <div class="rc-vote-submit">
+                        <button type="submit" class="ui-btn ui-btn-primary" disabled data-vote-submit>{% ga_icon "check" %}Проголосовать</button>
+                        <span class="ui-help">Голос нельзя будет изменить.</span>
+                    </div>
+                </form>
+            {% endif %}
+        {% endif %}
+        {% if application.admin_comment %}
+            <div class="rc-text-block"><span class="rc-text-label">Комментарий администратора</span>{{ application.admin_comment|linebreaksbr }}</div>
+        {% endif %}
+    </section>
+
+    {% if can_discuss %}
+        <section class="rc-section">
+            <h3 class="rc-section-title">Голоса и комментарии</h3>
+            {# Пока голос не отдан, комментарий пишется вместе с ним — второе поле только запутает. #}
+            {% if can_comment and not can_vote or can_comment and my_vote %}
+                <form method="post" action="{% url 'reception:application_comment' id=application.id %}" class="rc-comment-form" data-discussion-form>
+                    {% csrf_token %}
+                    <textarea name="text" class="ui-input" rows="2" maxlength="2000" placeholder="Написать комментарий…" required></textarea>
+                    <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "send" %}Отправить</button>
+                </form>
+            {% endif %}
+            {% if items %}
+                <div class="rc-feed-tools">
+                    <div class="rc-chips" role="group" aria-label="Фильтр">
+                        <button type="button" class="rc-chip is-active" data-feed-filter="all">Все</button>
+                        <button type="button" class="rc-chip" data-feed-filter="text">С комментарием</button>
+                        <button type="button" class="rc-chip" data-feed-filter="for">Только «за»</button>
+                        <button type="button" class="rc-chip" data-feed-filter="against">Только «против»</button>
+                    </div>
+                    <select class="ui-input rc-select" data-feed-sort aria-label="Порядок">
+                        <option value="new">Сначала новые</option>
+                        <option value="old">Сначала старые</option>
+                    </select>
+                </div>
+                <ul class="rc-feed" data-feed>
+                    {% for item in items %}
+                        <li class="rc-feed-item" data-kind="{{ item.kind }}" data-has-text="{% if item.text %}1{% endif %}">
+                            <div class="rc-feed-head">
+                                <a href="{% url 'profile_view' username=item.author.username %}" class="rc-feed-author">{{ item.author.username }}</a>
+                                <span class="ui-badge {% if item.kind == 'for' %}ui-badge-success{% elif item.kind == 'against' %}ui-badge-danger{% else %}ui-badge-muted{% endif %}">{{ item.label }}</span>
+                                <span class="rc-feed-date">{{ item.created_at|date:"d.m.Y H:i" }}</span>
+                            </div>
+                            {% if item.text %}
+                                <div class="rc-feed-text">{{ item.text|linebreaksbr }}</div>
+                            {% else %}
+                                <div class="rc-feed-text rc-muted"><em>Без комментария</em></div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+                <p class="rc-muted rc-feed-empty" data-feed-empty hidden>Под этот фильтр ничего нет</p>
+            {% else %}
+                <p class="rc-muted">Пока никто не голосовал и не комментировал.</p>
+            {% endif %}
+        </section>
+    {% endif %}
+</div>

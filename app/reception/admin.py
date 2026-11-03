@@ -5,7 +5,7 @@ from django.utils.html import format_html, format_html_join
 from django.urls import reverse
 
 from core.admin_mixins import NoRelatedPopupsMixin
-from .models import Application, ApplicationVote
+from .models import Application, ApplicationVote, ApplicationComment
 from notifications.utils import send_notification
 
 VOTE_CLASSES = {'for': 'ga-text-ok', 'against': 'ga-text-bad', 'abstain': 'ga-text-warn'}
@@ -17,6 +17,13 @@ class ApplicationVoteInline(NoRelatedPopupsMixin, admin.TabularInline):
     fields = ('voter', 'vote', 'comment', 'created_at')
     readonly_fields = ('voter', 'vote', 'comment', 'created_at')
     can_delete = False
+
+
+class ApplicationCommentInline(NoRelatedPopupsMixin, admin.TabularInline):
+    model = ApplicationComment
+    extra = 0
+    fields = ('author', 'text', 'created_at')
+    readonly_fields = ('author', 'text', 'created_at')
 
 
 class ApplicationForm(forms.ModelForm):
@@ -40,7 +47,7 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_filter = ('status', 'player_class', 'created_at')
     search_fields = ('user__username', 'real_name', 'previous_nicknames')
     readonly_fields = ('reviewed_by', 'created_at', 'updated_at', 'approved_at', 'display_screenshots', 'votes_detail')
-    inlines = [ApplicationVoteInline]
+    inlines = [ApplicationVoteInline, ApplicationCommentInline]
 
     fieldsets = (
         ('Решение', {

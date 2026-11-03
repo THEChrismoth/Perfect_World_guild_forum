@@ -19,28 +19,23 @@ class ApplicationForm(forms.ModelForm):
         widgets = {
             'previous_nicknames': forms.Textarea(attrs={
                 'rows': 2,
-                'placeholder': 'Например: xX_Player_Xx, OldNick',
-                'class': 'form-control'
+                'placeholder': 'Например: xX_Player_Xx, OldNick'
             }),
             'blacklist_details': forms.Textarea(attrs={
                 'rows': 2,
-                'placeholder': 'Если вы в ЧС, укажите причину',
-                'class': 'form-control'
+                'placeholder': 'Если вы в ЧС, укажите причину'
             }),
             'other_guilds': forms.Textarea(attrs={
                 'rows': 2,
-                'placeholder': 'Перечислите все гильдии',
-                'class': 'form-control'
+                'placeholder': 'Перечислите все гильдии'
             }),
             'development_plans': forms.Textarea(attrs={
                 'rows': 4,
-                'placeholder': 'Опишите свои планы на развитие...',
-                'class': 'form-control'
+                'placeholder': 'Опишите свои планы на развитие...'
             }),
             'guarantors': forms.Textarea(attrs={
                 'rows': 2,
-                'placeholder': 'Никнеймы поручителей',
-                'class': 'form-control'
+                'placeholder': 'Никнеймы поручителей'
             }),
         }
 
@@ -65,10 +60,3 @@ class ApplicationForm(forms.ModelForm):
             instance.save()
         return instance
 
-
-class VoteForm(forms.Form):
-    """Форма голосования."""
-    vote = forms.ChoiceField(choices=[
-        ('for', 'За'), ('against', 'Против'), ('abstain', 'Воздержался'),
-    ], widget=forms.RadioSelect)
-    comment = forms.CharField(widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ваш комментарий'}), required=False)

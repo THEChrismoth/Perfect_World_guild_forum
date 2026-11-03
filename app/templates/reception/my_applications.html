@@ -1,69 +1,60 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Мои заявки — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'reception/css/my_applications.css' %}">
+    <link rel="stylesheet" href="{% static 'reception/css/reception.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="reception-container">
-    <div class="reception-header">
-        <h1>📋 Мои заявки и уведомления</h1>
-        <p>Статус ваших заявок и уведомления</p>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Приём в гильдию</h1>
+        <p class="ui-page-sub">Ваши заявки и решения по ним</p>
     </div>
-    
-    {% if notifications %}
-        <div class="notifications-section">
-            <h2>🔔 Новые уведомления</h2>
-            {% for notification in notifications %}
-                <div class="notification-item">
-                    <div class="notification-message">{{ notification.message|safe }}</div>
-                    <div class="notification-date">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
-                </div>
-            {% endfor %}
+    {% if not has_active %}
+        <div class="ui-page-actions">
+            <a href="{% url 'reception:application_form' %}" class="ui-btn ui-btn-primary">{% ga_icon "plus" %}Подать заявку</a>
         </div>
     {% endif %}
-    
-    <div class="applications-section">
-        <h2>📝 Мои заявки</h2>
-        
-        {% if applications %}
-            <div class="my-applications-list">
-                {% for app in applications %}
-                    <div class="application-item status-{{ app.status }}">
-                        <div class="application-header">
-                            <span class="application-date">Подана: {{ app.created_at|date:"d.m.Y H:i" }}</span>
-                            <span class="status-badge status-{{ app.status }}">
-                                {% if app.status == 'pending' %}⏳ На рассмотрении
-                                {% elif app.status == 'voting' %}🗳️ Голосование
-                                {% elif app.status == 'approved' %}✅ Одобрена
-                                {% elif app.status == 'rejected' %}❌ Отклонена
-                                {% endif %}
-                            </span>
-                        </div>
-                        
-                        {% if app.status == 'rejected' and app.admin_comment %}
-                            <div class="rejection-reason">
-                                <strong>Причина отклонения:</strong> {{ app.admin_comment }}
-                            </div>
-                        {% endif %}
-                        
-                        <div class="application-actions">
-                            <a href="{% url 'reception:application_detail' id=app.id %}" class="btn-view">Подробнее</a>
-                            {% if app.status == 'rejected' %}
-                                <a href="{% url 'reception:application_form' %}" class="btn-new-application">Подать новую заявку</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div class="no-applications">
-                <p>У вас нет заявок</p>
-                <a href="{% url 'reception:application_form' %}" class="btn-primary">Подать заявку</a>
-            </div>
-        {% endif %}
-    </div>
 </div>
 
+{% if applications %}
+    <div class="ui-stack">
+        {% for application in applications %}
+            <article class="ui-card rc-row">
+                <div class="rc-row-info">
+                    <div class="rc-applicant-name">
+                        Заявка от {{ application.created_at|date:"d.m.Y H:i" }}
+                        {% include 'reception/includes/status_badge.html' %}
+                    </div>
+                    <p class="rc-muted rc-status-text">
+                        {% if application.status == 'pending' %}Администратор проверяет анкету, потом её вынесут на голосование.
+                        {% elif application.status == 'voting' %}Члены гильдии голосуют по вашей заявке.
+                        {% elif application.status == 'approved' %}Заявка одобрена — свяжитесь с администратором для вступления.
+                        {% else %}Заявка отклонена.{% endif %}
+                    </p>
+                    {% if application.status == 'rejected' and application.admin_comment %}
+                        <div class="rc-text-block"><span class="rc-text-label">Причина</span>{{ application.admin_comment|linebreaksbr }}</div>
+                    {% endif %}
+                </div>
+                <div class="rc-row-votes">
+                    {% if application.status != 'pending' %}
+                        {% include 'reception/includes/vote_bar.html' with stats=application.stats %}
+                    {% endif %}
+                    <a href="{% url 'reception:application_detail' id=application.id %}" class="ui-btn ui-btn-secondary">{% ga_icon "file-text" %}Открыть заявку</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="ui-card">
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "file-text" %}</span>
+            <p class="ui-empty-title">Заявок пока нет</p>
+            <p class="ui-empty-text">Заполните анкету — администратор проверит её и вынесет на голосование членов гильдии.</p>
+        </div>
+    </div>
+{% endif %}
 {% endblock %}

@@ -37,6 +37,78 @@ class GuildMemberReceptionTests(TestCase):
         self.assertRedirects(response, reverse('reception:application_list'))
 
 
+@override_settings(SECURE_SSL_REDIRECT=False)
+class VotingPageTests(TestCase):
+    def setUp(self):
+        from django.contrib.auth.models import Group
+        from django.utils import timezone
+
+        self.member = User.objects.create_user('member', password='pass')
+        self.member.groups.add(Group.objects.create(name='Член гильдии'))
+        self.candidate = User.objects.create_user('candidate', password='pass')
+        self.voting = Application.objects.create(user=self.candidate, player_class='Маг', development_plans='Расти',
+                                                 status='voting', approved_at=timezone.now())
+        self.client.force_login(self.member)
+
+    def test_tabs_show_history(self):
+        from django.utils import timezone
+        other = User.objects.create_user('old')
+        Application.objects.create(user=other, player_class='Жрец', development_plans='-', status='rejected',
+                                   approved_at=timezone.now())
+        # Отклонена на проверке, до голосования не дошла — в истории её нет.
+        Application.objects.create(user=User.objects.create_user('early'), player_class='Жрец',
+                                   development_plans='-', status='rejected')
+
+        open_page = self.client.get(reverse('reception:application_list'))
+        rejected = self.client.get(reverse('reception:application_list'), {'tab': 'rejected'})
+        everything = self.client.get(reverse('reception:application_list'), {'tab': 'all', 'q': 'old'})
+
+        self.assertEqual([a.user.username for a in open_page.context['page']], ['candidate'])
+        self.assertEqual([a.user.username for a in rejected.context['page']], ['old'])
+        self.assertEqual([a.user.username for a in everything.context['page']], ['old'])
+
+    def test_percent_from_for_and_against(self):
+        for i, vote in enumerate(['for', 'for', 'for', 'against', 'abstain']):
+            ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user(f'v{i}'), vote=vote)
+
+        stats = self.client.get(reverse('reception:application_list')).context['page'][0].stats
+
+        self.assertEqual((stats['percent_for'], stats['percent_against'], stats['total']), (75, 25, 5))
+
+    def test_vote_once_and_comment_separately(self):
+        vote_url = reverse('reception:application_vote', args=[self.voting.id])
+        self.client.post(vote_url, {'vote': 'for', 'comment': ''})
+        self.client.post(vote_url, {'vote': 'against'})
+        response = self.client.post(reverse('reception:application_comment', args=[self.voting.id]),
+                                    {'text': 'Знаю его, норм'}, HTTP_X_REQUESTED_WITH='fetch')
+
+        self.assertEqual(list(self.voting.votes.values_list('vote', flat=True)), ['for'])
+        self.assertEqual(self.voting.comments.get().text, 'Знаю его, норм')
+        # Из окна обсуждения возвращается только содержимое окна, без каркаса сайта.
+        self.assertContains(response, 'Знаю его, норм')
+        self.assertNotContains(response, '<html')
+
+    def test_comment_saved_with_vote(self):
+        self.client.post(reverse('reception:application_vote', args=[self.voting.id]),
+                         {'vote': 'against', 'comment': 'Был в ЧС'})
+
+        vote = self.voting.votes.get()
+        self.assertEqual((vote.vote, vote.comment), ('against', 'Был в ЧС'))
+
+    def test_candidate_sees_own_application_without_names(self):
+        voter = User.objects.create_user('ZloyGolos')
+        ApplicationVote.objects.create(application=self.voting, voter=voter, vote='against', comment='Нет')
+        self.client.force_login(self.candidate)
+
+        # Содержимое заявки без каркаса: в списке «Онлайн» в меню имя голосовавшего есть всегда.
+        response = self.client.get(reverse('reception:application_detail', args=[self.voting.id]), {'modal': 1})
+
+        self.assertContains(response, 'Против · 1')
+        self.assertNotContains(response, 'ZloyGolos')
+        self.assertEqual(self.client.post(reverse('reception:application_comment', args=[self.voting.id]),
+                                          {'text': 'Я'}).status_code, 403)
+
+
 class ApplicationFormTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('candidate', password='pass')

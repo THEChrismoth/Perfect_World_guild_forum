@@ -1,45 +1,694 @@
-/* Стили для категории приема заявок - без полосы сверху */
-.reception-card {
+/* =====================================================================
+   Приём в гильдию: список заявок, окно обсуждения, мои заявки, анкета.
+   Карточки, кнопки и поля — общие из css/ui.css, здесь только раскладка раздела.
+   ===================================================================== */
+
+.rc-muted {
+    color: var(--text-muted);
+}
+
+.rc-bad {
+    color: var(--danger);
+    font-weight: 600;
+}
+
+/* ---------- Вкладки-фильтры и панель поиска ---------- */
+.rc-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.rc-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rc-chip {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.rc-chip:hover {
+    background: var(--hover);
+    color: var(--text-strong);
+}
+
+.rc-chip.is-active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-fg);
+}
+
+.rc-toolbar-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.rc-search {
     position: relative;
+    flex: 1 1 280px;
+}
+
+.rc-search .ga-icon {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.rc-search .ui-input {
+    padding-left: 36px;
+}
+
+.rc-select {
+    width: auto;
+    padding-right: 30px;
+    cursor: pointer;
+}
+
+.rc-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.rc-count {
+    margin: 0;
+    font-size: 13px;
+}
+
+/* ---------- Заявка строкой: анкета слева, голоса справа ---------- */
+.rc-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+    gap: 20px 28px;
+    align-items: start;
+}
+
+.rc-row-info {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.rc-row-votes {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.rc-row-votes .rc-votes {
+    align-self: stretch;
+}
+
+.rc-status-text {
+    margin: 0;
+    font-size: 14px;
+}
+
+.rc-applicant {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rc-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
     overflow: hidden;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--accent-light);
+    font-size: 17px;
+    font-weight: 700;
 }
 
-.reception-badge {
-    background: linear-gradient(135deg, #28a745, #20c997);
-    color: #ffffff !important;
-    padding: 8px 15px;
-    border-radius: 20px;
+.rc-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rc-applicant-main {
+    min-width: 0;
+    font-size: 13px;
+}
+
+.rc-applicant-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.rc-applicant-name a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.rc-applicant-name a:hover {
+    color: var(--accent-light);
+}
+
+.rc-class-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    vertical-align: -3px;
+}
+
+.rc-text-block {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.rc-text-label {
+    display: block;
+    margin-bottom: 2px;
     font-size: 12px;
-    font-weight: bold;
-    display: inline-block;
-    transition: all 0.3s ease;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
-.subcategory-card:hover .reception-badge {
-    background: linear-gradient(135deg, #34ce57, #26e6a5);
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+.rc-text-block .rc-text-label:not(:first-child) {
+    margin-top: 10px;
 }
 
-/* Стили для категории просмотра заявок - без полосы сверху */
-.reception-view-card {
-    position: relative;
+/* ---------- Голоса: ширина блока по проценту ---------- */
+.rc-votes {
+    display: flex;
+    gap: 8px;
+}
+
+.rc-vote {
+    display: flex;
+    flex-basis: 0;
+    flex-direction: column;
+    min-width: 108px;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    transition: flex-grow 0.3s ease;
+}
+
+.rc-vote-for {
+    background: rgba(var(--success-rgb), 0.14);
+    color: var(--success);
+}
+
+.rc-vote-against {
+    align-items: flex-end;
+    background: rgba(var(--danger-rgb), 0.14);
+    color: var(--danger);
+    text-align: right;
+}
+
+.rc-votes.is-empty .rc-vote {
+    background: var(--hover);
+    color: var(--text-muted);
+}
+
+.rc-vote-pct {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.rc-vote-label {
+    font-size: 12px;
+    font-weight: 600;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.rc-votes-total {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Форма голоса: выбор варианта, комментарий, отправка */
+.rc-vote-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.rc-vote-form textarea {
+    resize: vertical;
+}
+
+.rc-vote-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rc-choice {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.rc-choice input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.rc-choice .ga-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.rc-choice:hover {
+    background: var(--hover);
+}
+
+.rc-choice:has(input:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* Выбранный вариант заливается своим цветом */
+.rc-choice:has(input:checked) {
+    border-color: var(--text-muted);
+    background: var(--hover);
+    color: var(--text-strong);
+}
+
+.rc-choice-for:has(input:checked) {
+    border-color: var(--success);
+    background: rgba(var(--success-rgb), 0.16);
+    color: var(--success);
+}
+
+.rc-choice-against:has(input:checked) {
+    border-color: var(--danger);
+    background: rgba(var(--danger-rgb), 0.16);
+    color: var(--danger);
+}
+
+.rc-vote-submit {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Голос уже отдан */
+.rc-my-vote {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--hover);
+    color: var(--text-strong);
+    font-size: 14px;
+}
+
+.rc-my-vote > .ga-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.rc-my-vote-for {
+    background: rgba(var(--success-rgb), 0.14);
+}
+
+.rc-my-vote-for > .ga-icon {
+    color: var(--success);
+}
+
+.rc-my-vote-against {
+    background: rgba(var(--danger-rgb), 0.14);
+}
+
+.rc-my-vote-against > .ga-icon {
+    color: var(--danger);
+}
+
+.rc-my-vote-text {
+    margin-top: 4px;
+    color: var(--text);
+    font-weight: 400;
+}
+
+/* ---------- Окно обсуждения ---------- */
+.rc-modal {
+    width: min(860px, calc(100vw - 32px));
+    max-height: calc(100vh - 48px);
+}
+
+.rc-modal-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--hairline);
+    background: var(--surface);
+}
+
+/* Фокус при открытии окна — на заголовке, без рамки (иначе браузер ставит его на крестик) */
+.rc-modal-head h2:focus {
+    outline: none;
+}
+
+.rc-modal-body {
+    padding: 4px 24px 24px;
+}
+
+.rc-detail-card {
+    padding-top: 4px;
+}
+
+.rc-section {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--hairline);
+}
+
+.rc-section:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.rc-section > .rc-applicant {
+    margin-bottom: 16px;
+}
+
+.rc-section > .rc-text-block {
+    margin-top: 12px;
+}
+
+.rc-section-title {
+    margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.rc-facts,
+.rc-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 10px 20px;
+    margin: 0;
+}
+
+.rc-stats {
+    margin-top: 14px;
+}
+
+.rc-facts dt,
+.rc-stats dt {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.rc-facts dd,
+.rc-stats dd {
+    margin: 1px 0 0;
+    color: var(--text-strong);
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.rc-shots {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.rc-shots a {
+    display: block;
+    aspect-ratio: 4 / 3;
     overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
 }
 
-.reception-view-badge {
-    background: linear-gradient(135deg, #17a2b8, #6f42c1);
-    color: #ffffff !important;
-    padding: 8px 15px;
-    border-radius: 20px;
+.rc-shots img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ---------- Лента голосов и комментариев ---------- */
+.rc-comment-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.rc-comment-form textarea {
+    flex: 1;
+    min-height: 44px;
+    resize: vertical;
+}
+
+.rc-feed-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.rc-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.rc-feed-item {
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.rc-feed-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.rc-feed-author {
+    color: var(--text-strong);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.rc-feed-author:hover {
+    color: var(--accent-light);
+}
+
+.rc-feed-date {
+    margin-left: auto;
     font-size: 12px;
-    font-weight: bold;
-    display: inline-block;
-    transition: all 0.3s ease;
+    color: var(--text-muted);
 }
 
-.subcategory-card:hover .reception-view-badge {
-    background: linear-gradient(135deg, #1eb9d0, #7b4bc9);
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
+.rc-feed-text {
+    margin-top: 6px;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.rc-feed-empty {
+    margin: 8px 0 0;
+}
+
+/* ---------- Страницы ---------- */
+.rc-pages {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+/* ---------- Анкета ---------- */
+.rc-form-page {
+    max-width: 860px;
+}
+
+/* Высота полей — по rows из формы, а не общий минимум ui.css */
+.rc-form-page .ui-field textarea {
+    min-height: 0;
+}
+
+.rc-hint {
+    margin: -6px 0 14px;
+    font-size: 13px;
+}
+
+.rc-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.rc-check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--accent);
+}
+
+.rc-shot-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.rc-shot-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.rc-shot-field input[type="file"] {
+    display: none;
+}
+
+.rc-shot-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 12px;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.rc-shot-field:hover .rc-shot-preview {
+    border-color: var(--accent);
+    color: var(--accent-light);
+}
+
+.rc-shot-preview .ga-icon {
+    width: 22px;
+    height: 22px;
+}
+
+.rc-shot-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.rc-narrow {
+    max-width: 560px;
+    margin: 40px auto 0;
+}
+
+.rc-center {
+    justify-content: center;
+    margin-top: 12px;
+}
+
+/* ---------- Узкие экраны ---------- */
+@media (max-width: 900px) {
+    .rc-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .rc-modal-head {
+        padding: 14px 16px;
+    }
+
+    .rc-modal-body {
+        padding: 0 16px 16px;
+    }
+
+    .rc-comment-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .rc-vote {
+        min-width: 92px;
+        padding: 8px 10px;
+    }
+
+    .rc-vote-pct {
+        font-size: 18px;
+    }
 }

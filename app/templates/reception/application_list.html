@@ -1,81 +1,144 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Заявки в гильдию — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'reception/css/application_list.css' %}">
+    <link rel="stylesheet" href="{% static 'reception/css/reception.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="reception-container">
-    <div class="reception-header">
-        <h1>📋 Заявки на вступление</h1>
-        <p>Заявки, ожидающие голосования членов гильдии</p>
-    </div>
-    
-    {% if applications %}
-        <div class="applications-grid">
-            {% for application in applications %}
-                <div class="application-card">
-                    <div class="application-header">
-                        <div class="applicant-info">
-                            <div class="applicant-avatar">
-                                {% if application.user.profile.avatar %}
-                                    <img src="{{ application.user.profile.avatar.url }}" alt="{{ application.user.username }}">
-                                {% else %}
-                                    <div class="avatar-placeholder">
-                                        {{ application.user.username|make_list|first|upper }}
-                                    </div>
-                                {% endif %}
-                            </div>
-                            <div class="applicant-details">
-                                <h3>{{ application.user.username }}</h3>
-                                <span class="player-class">{{ application.get_player_class_display }}</span>
-                            </div>
-                        </div>
-                        <div class="application-date">
-                            Подана: {{ application.created_at|date:"d.m.Y" }}
-                        </div>
-                    </div>
-                    
-                    <div class="application-preview">
-                        <div class="preview-item">
-                            <strong>📝 Планы развития:</strong>
-                            <p>{{ application.development_plans|truncatechars:100 }}</p>
-                        </div>
-                        <div class="preview-item">
-                            <strong>👥 Поручители:</strong>
-                            <p>{{ application.guarantors|default:"Не указаны" }}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="application-stats">
-                        <div class="stat-badge for">
-                            ✅ За: {{ application.get_vote_stats.for }}
-                        </div>
-                        <div class="stat-badge against">
-                            ❌ Против: {{ application.get_vote_stats.against }}
-                        </div>
-                        <div class="stat-badge abstain">
-                            ⚪ Воздержались: {{ application.get_vote_stats.abstain }}
-                        </div>
-                    </div>
-                    
-                    <a href="{% url 'reception:application_detail' id=application.id %}" class="btn-view-application">
-                        Подробнее и голосовать →
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="no-applications">
-            <div class="no-data-icon">📭</div>
-            <h3>Нет активных заявок</h3>
-            <p>В данный момент нет заявок, ожидающих голосования</p>
-        </div>
-    {% endif %}
-    
-    <div class="back-link">
-        <a href="/" class="btn-back">← Вернуться на форум</a>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Заявки в гильдию</h1>
+        <p class="ui-page-sub">Голосование сокланов и история решений по анкетам</p>
     </div>
 </div>
+
+<form method="get" class="ui-card rc-toolbar">
+    <div class="rc-chips" role="tablist">
+        {% for key, label in tabs %}
+            <a href="?{% if tab_query %}{{ tab_query }}&amp;{% endif %}tab={{ key }}" class="rc-chip{% if key == tab %} is-active{% endif %}"
+               {% if key == tab %}aria-current="page"{% endif %}>{{ label }}</a>
+        {% endfor %}
+    </div>
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <div class="rc-toolbar-row">
+        <label class="rc-search">
+            {% ga_icon "search" %}
+            <input type="search" name="q" value="{{ query }}" class="ui-input" placeholder="Поиск по нику, email, имени, ответам…" aria-label="Поиск">
+        </label>
+        <select name="sort" class="ui-input rc-select" aria-label="Порядок" onchange="this.form.submit()">
+            {% for key, label in sorts %}<option value="{{ key }}"{% if key == sort %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <label class="rc-per-page">
+            <span>На странице</span>
+            <select name="per_page" class="ui-input rc-select" onchange="this.form.submit()">
+                {% for size in per_page_choices %}<option value="{{ size }}"{% if size == per_page %} selected{% endif %}>{{ size }}</option>{% endfor %}
+            </select>
+        </label>
+    </div>
+    <p class="rc-muted rc-count">
+        {% if page.paginator.count %}{{ page.start_index }}–{{ page.end_index }} из {{ page.paginator.count }}{% else %}Ничего не найдено{% endif %}
+    </p>
+</form>
+
+{% if page.object_list %}
+    <div class="ui-stack">
+        {% for application in page.object_list %}
+            {% with profile=application.user.profile %}
+                <article class="ui-card rc-row">
+                    <div class="rc-row-info">
+                        <div class="rc-applicant">
+                            <span class="rc-avatar">
+                                {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ application.user.username|slice:":1"|upper }}{% endif %}
+                            </span>
+                            <div class="rc-applicant-main">
+                                <div class="rc-applicant-name">
+                                    <a href="{% url 'profile_view' username=application.user.username %}">{{ application.user.username }}</a>
+                                    {% include 'reception/includes/status_badge.html' %}
+                                </div>
+                                <div class="rc-muted">
+                                    {% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ application.player_class }}
+                                    · {{ application.created_at|date:"d.m.Y" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rc-text-block rc-row-plans">
+                            <span class="rc-text-label">Планы на 2 месяца</span>{{ application.development_plans|truncatechars:220 }}
+                            {% if application.guarantors %}<span class="rc-text-label">Поручители</span>{{ application.guarantors|truncatechars:120 }}{% endif %}
+                        </div>
+                    </div>
+                    <div class="rc-row-votes">
+                        {% include 'reception/includes/vote_bar.html' with stats=application.stats %}
+                        <a href="{% url 'reception:application_detail' id=application.id %}" class="ui-btn ui-btn-secondary"
+                           data-discussion-open="{% url 'reception:application_detail' id=application.id %}?modal=1">
+                            {% ga_icon "message" %}Обсуждение ({{ application.discussion_count }})
+                        </a>
+                    </div>
+                </article>
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+    {% if page.has_other_pages %}
+        <nav class="rc-pages" aria-label="Страницы">
+            {% if page.has_previous %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.previous_page_number }}">← Назад</a>{% endif %}
+            <span class="rc-muted">Страница {{ page.number }} из {{ page.paginator.num_pages }}</span>
+            {% if page.has_next %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="?{% if page_query %}{{ page_query }}&amp;{% endif %}page={{ page.next_page_number }}">Вперёд →</a>{% endif %}
+        </nav>
+    {% endif %}
+{% else %}
+    <div class="ui-card">
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "file-text" %}</span>
+            <p class="ui-empty-title">{% if query %}Ничего не найдено{% elif tab == 'open' %}Открытых заявок нет{% else %}Заявок нет{% endif %}</p>
+            <p class="ui-empty-text">{% if query %}Попробуйте другой запрос.{% elif tab == 'open' %}Когда администратор допустит заявку до голосования, она появится здесь.{% else %}Здесь будут заявки, которые прошли голосование.{% endif %}</p>
+        </div>
+    </div>
+{% endif %}
+
+<dialog class="site-modal rc-modal" id="rc-dialog" aria-labelledby="rc-dialog-title">
+    <div class="site-modal-head rc-modal-head">
+        <h2 id="rc-dialog-title" tabindex="-1" autofocus>Обсуждение</h2>
+        <button type="button" class="site-icon-btn" data-dialog-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+    </div>
+    <div class="rc-modal-body" id="rc-dialog-body"></div>
+</dialog>
+
+{% include 'reception/includes/discussion_script.html' %}
+<script>
+(function () {
+    // «Обсуждение» открывает всю заявку во всплывающем окне; без JavaScript — обычная страница заявки.
+    var dialog = document.getElementById('rc-dialog');
+    var body = document.getElementById('rc-dialog-body');
+    var title = document.getElementById('rc-dialog-title');
+    var changed = false;
+
+    document.querySelectorAll('[data-discussion-open]').forEach(function (link) {
+        link.addEventListener('click', function (event) {
+            if (!window.fetch || !dialog.showModal) return;
+            event.preventDefault();
+            body.innerHTML = '<p class="rc-muted">Загрузка…</p>';
+            title.textContent = 'Обсуждение';
+            dialog.showModal();
+            fetch(link.dataset.discussionOpen, {headers: {'X-Requested-With': 'fetch'}})
+                .then(function (response) {
+                    if (!response.ok) throw new Error(response.status);
+                    return response.text();
+                })
+                .then(function (html) {
+                    body.innerHTML = html;
+                    var root = body.querySelector('[data-discussion]');
+                    if (root) title.textContent = root.dataset.title;
+                })
+                .catch(function () { window.location.href = link.href; });
+        });
+    });
+
+    // После голоса или комментария обновляем список, когда окно закроют: проценты и счётчики поменялись.
+    document.addEventListener('discussion:changed', function () { changed = true; });
+    dialog.addEventListener('close', function () { if (changed) window.location.reload(); });
+})();
+</script>
 {% endblock %}

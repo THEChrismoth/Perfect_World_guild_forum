@@ -98,14 +98,21 @@ class Application(models.Model):
         votes_for = self.votes.filter(vote='for').count()
         votes_against = self.votes.filter(vote='against').count()
         votes_abstain = self.votes.filter(vote='abstain').count()
-        total = self.votes.count()
+        return vote_stats(votes_for, votes_against, votes_abstain)
 
-        return {
-            'for': votes_for,
-            'against': votes_against,
-            'abstain': votes_abstain,
-            'total': total,
-        }
+
+def vote_stats(votes_for, votes_against, votes_abstain):
+    """Голоса и проценты «за» и «против» (воздержавшиеся в процент не входят)."""
+    decided = votes_for + votes_against
+    percent_for = round(votes_for * 100 / decided) if decided else 0
+    return {
+        'for': votes_for,
+        'against': votes_against,
+        'abstain': votes_abstain,
+        'total': decided + votes_abstain,
+        'percent_for': percent_for,
+        'percent_against': 100 - percent_for if decided else 0,
+    }
 
 
 class ApplicationVote(models.Model):
@@ -128,3 +135,20 @@ class ApplicationVote(models.Model):
 
     def __str__(self):
         return f'{self.voter.username} - {self.get_vote_display()}'
+
+
+class ApplicationComment(models.Model):
+    """Комментарий в обсуждении заявки — отдельно от голоса, писать можно сколько угодно."""
+
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='comments', verbose_name='Заявка')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_comments', verbose_name='Автор')
+    text = models.TextField('Комментарий')
+    created_at = models.DateTimeField('Дата', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Комментарий к заявке'
+        verbose_name_plural = 'Комментарии к заявкам'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'{self.author.username}: {self.text[:40]}'
