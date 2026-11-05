@@ -36,7 +36,7 @@
         {% include 'reception/includes/field.html' with field=form.development_plans %}
 
         <h2 class="ui-card-title">Подтверждение характеристик</h2>
-        <p class="rc-muted rc-hint">Откройте в игре окно характеристик персонажа в каждом сете и приложите скриншоты — по ним администратор сверит статы из профиля.</p>
+        <p class="rc-muted rc-hint">Откройте в игре окно характеристик персонажа в каждом сете и приложите скриншоты — по ним администратор сверит статы из профиля. Скриншоты видит только администратор.</p>
         <div class="rc-shot-fields">
             {% for field in form %}
                 {% if field.name|slice:":10" == 'screenshot' %}

@@ -34,6 +34,28 @@ class ApplicationAdminTests(TestCase):
         with self.assertRaises(Exception):
             reverse('admin:reception_applicationvote_changelist')
 
+    def test_screenshots_only_in_admin(self):
+        import tempfile
+        from django.contrib.auth.models import Group
+        from django.utils import timezone
+
+        with self.settings(MEDIA_ROOT=tempfile.mkdtemp()):
+            self.candidate.gear_sets.filter(kind='pa').update(hp=30000)
+            self.application.screenshot_pa = screenshot()
+            self.application.status, self.application.approved_at = 'voting', timezone.now()
+            self.application.save()
+            url = self.application.screenshot_pa.url
+
+            admin_page = self.client.get(reverse('admin:reception_application_change', args=[self.application.pk]))
+            member = User.objects.create_user('member')
+            member.groups.add(Group.objects.create(name='Член гильдии'))
+            self.client.force_login(member)
+            site_page = self.client.get(reverse('reception:application_detail', args=[self.application.pk]))
+
+        self.assertContains(admin_page, url)
+        self.assertEqual(site_page.status_code, 200)
+        self.assertNotContains(site_page, url)
+
     def test_card_shows_application_and_escaped_comments(self):
         voter = User.objects.create_user('voter')
         ApplicationVote.objects.create(application=self.application, voter=voter, vote='for',
