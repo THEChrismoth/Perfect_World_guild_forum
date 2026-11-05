@@ -307,7 +307,7 @@ class ProfilePageTests(TestCase):
 
         data = {name: 0 for name in ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
                                      'pz', 'physical_defense', 'magic_defense')}
-        data.update(username='owner', player_class='mag', timezone='UTC+3', hp=42000, ma=15000)
+        data.update(username='owner', player_class='mag', hp=42000, ma=15000)
         response = self.client.post(reverse('profile_edit'), data)
 
         self.assertRedirects(response, reverse('profile_view', args=['owner']))

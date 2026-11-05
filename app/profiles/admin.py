@@ -14,7 +14,7 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     fieldsets = (
         ('Основная информация', {
-            'fields': ('avatar', 'ts3_id', 'birth_date', 'city', 'player_class')
+            'fields': ('avatar', 'ts3_id', 'player_class')
         }),
         ('Характеристики', {
             'fields': ('hp', 'bd', 'bu')

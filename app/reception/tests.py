@@ -1,4 +1,3 @@
-from datetime import date
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -175,18 +174,14 @@ class ApplicationFormTests(TestCase):
         self.assertRedirects(response, reverse('profile_edit'))
         self.assertContains(response, 'заполните профиль')
 
-    def test_personal_data_taken_from_profile(self):
+    def test_class_and_stats_taken_from_profile(self):
         profile = self.user.profile
         profile.player_class = 'mag'
-        profile.real_name = 'Даниил'
-        profile.birth_date = date(2000, 1, 15)
-        profile.timezone = 'UTC+5'
+        profile.ma = 15000
         profile.save()
 
         page = self.client.get(reverse('reception:application_form'))
-        self.assertNotContains(page, 'name="real_name"')
-        self.assertNotContains(page, 'name="age"')
-        self.assertContains(page, 'Даниил')
+        self.assertContains(page, '0 / 15000')
         self.assertContains(page, 'Изменить в профиле')
 
         response = self.client.post(reverse('reception:application_form'), {
@@ -195,13 +190,10 @@ class ApplicationFormTests(TestCase):
 
         self.assertRedirects(response, reverse('reception:application_success'))
         application = Application.objects.get(user=self.user)
-        self.assertEqual(application.real_name, 'Даниил')
-        self.assertEqual(application.age, profile.age())
-        self.assertEqual(application.timezone, 'UTC+5')
         self.assertEqual(application.player_class, 'Маг')
 
-        # Снимок: изменение профиля не меняет уже поданную заявку.
-        profile.real_name = 'Другое имя'
+        # Снимок: смена класса в профиле не меняет уже поданную заявку.
+        profile.player_class = 'var'
         profile.save()
         application.refresh_from_db()
-        self.assertEqual(application.real_name, 'Даниил')
+        self.assertEqual(application.player_class, 'Маг')

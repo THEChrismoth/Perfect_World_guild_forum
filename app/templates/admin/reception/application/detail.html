@@ -65,9 +65,6 @@
             <section class="ga-card">
                 <div class="ga-card-head"><h2 class="ga-card-title">Анкета</h2></div>
                 <dl class="ga-app-facts">
-                    <div><dt>Имя</dt><dd>{{ application.real_name|default:"не указано" }}</dd></div>
-                    <div><dt>Возраст</dt><dd>{{ application.age|default:"не указан" }}</dd></div>
-                    <div><dt>Часовой пояс</dt><dd>{{ application.timezone }}</dd></div>
                     <div><dt>Email</dt><dd>{{ application.user.email|default:"—" }}</dd></div>
                     <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="ga-text-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
                     <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>

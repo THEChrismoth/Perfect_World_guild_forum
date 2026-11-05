@@ -80,12 +80,11 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model = Profile
         fields = [
-            'avatar', 'ts3_id', 'real_name', 'birth_date', 'city', 'timezone', 'player_class',
+            'avatar', 'ts3_id', 'player_class',
             'hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
             'pz', 'physical_defense', 'magic_defense',
         ]
         widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'avatar': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
 

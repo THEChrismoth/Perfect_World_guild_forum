@@ -19,9 +19,6 @@
         </div>
 
         <dl class="rc-facts">
-            <div><dt>Имя</dt><dd>{{ application.real_name|default:"не указано" }}</dd></div>
-            <div><dt>Возраст</dt><dd>{{ application.age|default:"не указан" }}</dd></div>
-            <div><dt>Часовой пояс</dt><dd>{{ application.timezone }}</dd></div>
             <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="rc-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
             <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>
             <div><dt>Состоит в гильдиях</dt><dd>{{ application.other_guilds|default:"нет" }}</dd></div>

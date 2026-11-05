@@ -2,24 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import date
 from django.templatetags.static import static
-# Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль.
-from django.utils import timezone as django_timezone
+from django.utils import timezone
 
 from core.accents import ACCENT_CHOICES
-
-TIMEZONE_CHOICES = [
-    ('UTC-12', 'UTC-12:00'), ('UTC-11', 'UTC-11:00'), ('UTC-10', 'UTC-10:00'),
-    ('UTC-9', 'UTC-09:00'), ('UTC-8', 'UTC-08:00'), ('UTC-7', 'UTC-07:00'),
-    ('UTC-6', 'UTC-06:00'), ('UTC-5', 'UTC-05:00'), ('UTC-4', 'UTC-04:00'),
-    ('UTC-3', 'UTC-03:00'), ('UTC-2', 'UTC-02:00'), ('UTC-1', 'UTC-01:00'),
-    ('UTC+0', 'UTC±00:00'), ('UTC+1', 'UTC+01:00'), ('UTC+2', 'UTC+02:00 (Калининград)'),
-    ('UTC+3', 'UTC+03:00 (Москва)'), ('UTC+4', 'UTC+04:00 (Самара)'), ('UTC+5', 'UTC+05:00 (Екатеринбург)'),
-    ('UTC+6', 'UTC+06:00 (Омск)'), ('UTC+7', 'UTC+07:00 (Новосибирск)'), ('UTC+8', 'UTC+08:00 (Иркутск)'),
-    ('UTC+9', 'UTC+09:00 (Якутск)'), ('UTC+10', 'UTC+10:00 (Владивосток)'), ('UTC+11', 'UTC+11:00 (Магадан)'),
-    ('UTC+12', 'UTC+12:00 (Камчатка)'),
-]
 
 # Иконки классов персонажей (static_src/class_icon/).
 CLASS_ICONS = {
@@ -76,13 +62,6 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField('Аватар', upload_to='avatars/', blank=True, null=True)
     ts3_id = models.CharField('TS3 ID', max_length=100, blank=True, null=True)
-    real_name = models.CharField(
-        'Имя', max_length=100, blank=True,
-        help_text='Видно только в вашей заявке в гильдию, на странице профиля не показывается'
-    )
-    timezone = models.CharField('Часовой пояс', max_length=10, choices=TIMEZONE_CHOICES, default='UTC+3')
-    birth_date = models.DateField('Дата рождения', blank=True, null=True)
-    city = models.CharField('Город', max_length=100, blank=True, null=True)
     player_class = models.CharField('Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
     
     # Характеристики (заполняются пользователем). Физ. и маг. атака и пробив — пары для физ. и маг. ДД.
@@ -103,7 +82,7 @@ class Profile(models.Model):
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
-    last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
+    last_activity = models.DateTimeField('Последняя активность', default=timezone.now, null=True, blank=True)
 
     # Цвет оформления (пока — в админ-панели), список цветов — core/accents.py.
     accent_color = models.CharField('Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES,
@@ -184,13 +163,6 @@ class Profile(models.Model):
     def get_icon_url(self):
         """Возвращает URL иконки для класса персонажа."""
         return class_icon_url(self.player_class)
-    
-    def age(self):
-        """Возвращает возраст пользователя."""
-        if self.birth_date:
-            today = date.today()
-            return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
-        return None
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):

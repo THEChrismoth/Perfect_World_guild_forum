@@ -3,7 +3,6 @@
 По кнопке роли создается новый игрок (Гость_4821 и т.п.). Какие аккаунты уже выданы этому
 браузеру, хранится в подписанной cookie: повторный вход в ту же роль возвращает в тот же аккаунт.
 """
-import datetime
 import json
 import random
 
@@ -26,7 +25,6 @@ GUEST_PAST_EVENTS = 2
 
 MAGIC_CLASSES = {'mag', 'zhrec', 'dru', 'sham', 'mist', 'bard'}
 GUEST_CLASSES = ['var', 'mag', 'luk', 'zhrec', 'obor', 'dru', 'sin', 'sham', 'strazh', 'strel']
-CITIES = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Минск', 'Самара', 'Краснодар']
 
 
 def fill_profile(user, player_class, rng):
@@ -34,8 +32,6 @@ def fill_profile(user, player_class, rng):
     magic = player_class in MAGIC_CLASSES
     profile = user.profile
     profile.player_class = player_class
-    profile.city = rng.choice(CITIES)
-    profile.birth_date = datetime.date(rng.randint(1985, 2005), rng.randint(1, 12), rng.randint(1, 28))
     profile.hp = rng.randint(18, 45) * 1000
     profile.pa = rng.randint(150, 260)
     profile.pz = rng.randint(150, 260)

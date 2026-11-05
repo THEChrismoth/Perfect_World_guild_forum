@@ -23,10 +23,6 @@
         </div>
         <p class="rc-muted rc-hint">Эти данные попадут в заявку автоматически — если что-то не так, исправьте профиль перед отправкой.</p>
         <dl class="rc-facts">
-            <div><dt>Имя</dt><dd>{{ profile.real_name|default:"не указано" }}</dd></div>
-            <div><dt>Возраст</dt><dd>{% if profile.age %}{{ profile.age }}{% else %}не указан{% endif %}</dd></div>
-            <div><dt>Город</dt><dd>{{ profile.city|default:"не указан" }}</dd></div>
-            <div><dt>Часовой пояс</dt><dd>{{ profile.get_timezone_display }}</dd></div>
             <div><dt>Класс</dt><dd>{% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ profile.get_player_class_display }}</dd></div>
         </dl>
         <dl class="rc-stats">

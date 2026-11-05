@@ -11,7 +11,7 @@
 <div class="ui-page-head">
     <div>
         <h1 class="ui-page-title">Редактирование профиля</h1>
-        <p class="ui-page-sub">Имя, возраст, часовой пояс и характеристики попадут в заявку в гильдию автоматически</p>
+        <p class="ui-page-sub">Класс и характеристики попадут в заявку в гильдию автоматически</p>
     </div>
 </div>
 
@@ -44,10 +44,6 @@
         <div class="pf-fields">
             {% include 'profiles/includes/field.html' with field=user_form.username %}
             {% include 'profiles/includes/field.html' with field=profile_form.player_class %}
-            {% include 'profiles/includes/field.html' with field=profile_form.real_name %}
-            {% include 'profiles/includes/field.html' with field=profile_form.birth_date %}
-            {% include 'profiles/includes/field.html' with field=profile_form.city %}
-            {% include 'profiles/includes/field.html' with field=profile_form.timezone %}
         </div>
     </section>
 

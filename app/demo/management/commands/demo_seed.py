@@ -271,8 +271,8 @@ class Command(BaseCommand):
     def application(self, user, status, plans, **extra):
         profile = user.profile
         return Application.objects.create(
-            user=user, player_class=profile.get_player_class_display(), timezone=profile.timezone,
-            age=profile.age(), development_plans=plans, status=status, **extra,
+            user=user, player_class=profile.get_player_class_display(), development_plans=plans, status=status,
+            **extra,
         )
 
     def create_reception(self):

@@ -4,8 +4,7 @@ from .models import Application
 class ApplicationForm(forms.ModelForm):
     """Форма подачи заявки.
 
-    Личные данные (имя, возраст, часовой пояс) и класс персонажа не вводятся заново —
-    они берутся из профиля в момент подачи, как и характеристики персонажа.
+    Класс персонажа и характеристики не вводятся заново — они берутся из профиля.
     """
 
     class Meta:
@@ -48,14 +47,9 @@ class ApplicationForm(forms.ModelForm):
         if self.user:
             instance.user = self.user
             profile = getattr(self.user, 'profile', None)
-            if profile:
-                # Снимок данных профиля на момент подачи: если профиль потом изменится,
-                # в заявке останется то, что видели проголосовавшие.
-                instance.real_name = profile.real_name
-                instance.age = profile.age()
-                instance.timezone = profile.timezone
-                if profile.player_class:
-                    instance.player_class = profile.get_player_class_display()
+            # Класс — снимок на момент подачи: если игрок потом сменит его в профиле, в заявке останется прежний.
+            if profile and profile.player_class:
+                instance.player_class = profile.get_player_class_display()
         if commit:
             instance.save()
         return instance

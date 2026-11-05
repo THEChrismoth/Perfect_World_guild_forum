@@ -20,7 +20,7 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
 
     list_display = ('user', 'player_class', 'status', 'created_at', 'votes_summary')
     list_filter = ('status', 'created_at')
-    search_fields = ('user__username', 'real_name', 'previous_nicknames')
+    search_fields = ('user__username', 'previous_nicknames')
     actions = ['send_to_voting_action']
 
     def has_add_permission(self, request):

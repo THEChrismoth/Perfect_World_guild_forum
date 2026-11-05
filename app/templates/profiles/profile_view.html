@@ -20,11 +20,6 @@
             {% endif %}
             {% if is_guild_member %}<span class="ui-badge ui-badge-success">{% ga_icon "shield" %}Член гильдии</span>{% endif %}
         </div>
-        {% if profile.city or profile.age %}
-            <p class="pf-meta">
-                {% if profile.city %}{{ profile.city }}{% endif %}{% if profile.city and profile.age %} · {% endif %}{% if profile.age %}{{ profile.age }} лет{% endif %}
-            </p>
-        {% endif %}
     </div>
     {% if is_owner %}
         <div class="pf-side">

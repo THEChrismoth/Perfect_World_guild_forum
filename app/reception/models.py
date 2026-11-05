@@ -24,9 +24,6 @@ class Application(models.Model):
     player_class = models.CharField('Класс персонажа', max_length=20)
 
     previous_nicknames = models.TextField('Прошлые никнеймы', blank=True)
-    timezone = models.CharField('Часовой пояс', max_length=50, default='UTC+3')
-    real_name = models.CharField('Имя', max_length=100, blank=True)
-    age = models.PositiveIntegerField('Возраст', null=True, blank=True)
     on_blacklist = models.BooleanField('Нахождение в ЧС других гильдий', default=False)
     blacklist_details = models.TextField('Пояснение по ЧС', blank=True)
     other_guilds = models.TextField('Гильдии в которых состоит', blank=True)

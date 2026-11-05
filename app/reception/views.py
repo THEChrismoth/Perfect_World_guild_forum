@@ -110,8 +110,7 @@ def application_list(request):
     applications = Application.objects.filter(status__in=TABS[tab][1], approved_at__isnull=False)
     if query:
         applications = applications.filter(
-            Q(user__username__icontains=query) | Q(user__email__icontains=query) | Q(real_name__icontains=query)
-            | Q(player_class__icontains=query) | Q(previous_nicknames__icontains=query)
+            Q(user__username__icontains=query) | Q(user__email__icontains=query) | Q(player_class__icontains=query) | Q(previous_nicknames__icontains=query)
             | Q(other_guilds__icontains=query) | Q(development_plans__icontains=query)
             | Q(guarantors__icontains=query)
         )
