@@ -18,9 +18,11 @@ class ProfileInline(admin.StackedInline):
         }),
         ('Очки активности', {
             'fields': ('activity_points', 'spent_points', 'earned_points'),
-            'description': 'Управляйте очками активности здесь или на специальной странице'
+            'description': 'Меняются в «Таблице активности» — так правка попадёт в историю очков игрока',
         }),
     )
+    # Правка здесь не попала бы в «Движение моих очков» у игрока — только просмотр.
+    readonly_fields = ('activity_points', 'spent_points', 'earned_points')
     extra = 0
     max_num = 1
     min_num = 1

@@ -294,7 +294,6 @@ class ProfilePageTests(TestCase):
         self.assertContains(own, 'Очки активности')
         self.assertContains(own, 'class="pf-side"')
         self.assertContains(other, '31000')
-        self.assertNotContains(other, 'Очки активности')
         # «Редактировать профиль» в меню сверху есть всегда — проверяем кнопку в самом профиле.
         self.assertNotContains(other, 'class="pf-side"')
 
@@ -322,3 +321,56 @@ class ProfilePageTests(TestCase):
 
     def test_every_new_user_gets_two_sets(self):
         self.assertEqual(sorted(self.guest.gear_sets.values_list('kind', flat=True)), ['pa', 'pz'])
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class PointsHistoryTests(TestCase):
+    def setUp(self):
+        from auction.models import PointsTransaction
+
+        self.owner = User.objects.create_user('owner', password='pass')
+        self.owner.profile.activity_points = 6
+        self.owner.profile.save()
+        PointsTransaction.objects.create(user=self.owner, amount=3, transaction_type='credit',
+                                         description='Участие в ивенте: Садэман')
+        PointsTransaction.objects.create(user=self.owner, amount=2, transaction_type='debit',
+                                         description='Отсутствие на ивенте: ТВ')
+        self.url = reverse('profile_view', args=['owner'])
+
+    def test_owner_sees_balance_and_history(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'Движение моих очков')
+        self.assertContains(response, '+3')
+        self.assertContains(response, 'Участие в ивенте: Садэман')
+        self.assertEqual(response.context['points']['balance'], 6)
+
+    def test_filter_by_type(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.url, {'points': 'debit'})
+
+        self.assertEqual([item.description for item in response.context['points_page']], ['Отсутствие на ивенте: ТВ'])
+
+    def test_other_players_see_points_too(self):
+        self.client.force_login(User.objects.create_user('guest', password='pass'))
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'Движение очков')
+        self.assertNotContains(response, 'Движение моих очков')
+        self.assertContains(response, 'Садэман')
+        self.assertEqual(response.context['points']['balance'], 6)
+
+    def test_admin_correction_goes_to_history(self):
+        import json
+        from auction.models import PointsTransaction
+
+        admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.client.force_login(admin)
+        self.client.post(reverse('admin:update_activity_points'),
+                         json.dumps({'profile_id': self.owner.profile.id, 'field': 'current', 'value': 10}),
+                         content_type='application/json')
+
+        correction = PointsTransaction.objects.filter(user=self.owner).latest('id')
+        self.assertEqual((correction.transaction_type, correction.amount), ('credit', 4))
+        self.assertIn('boss', correction.description)

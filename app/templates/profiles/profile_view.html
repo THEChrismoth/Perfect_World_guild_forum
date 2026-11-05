@@ -23,10 +23,6 @@
     </div>
     {% if is_owner %}
         <div class="pf-side">
-            <div class="pf-points" title="Видно только вам">
-                <span class="pf-points-label">Очки активности</span>
-                <span class="pf-points-value">{{ profile.activity_points }} <span class="pf-star">⭐</span></span>
-            </div>
             <a href="{% url 'profile_edit' %}" class="ui-btn ui-btn-secondary">{% ga_icon "pencil" %}Редактировать</a>
         </div>
     {% endif %}
@@ -82,6 +78,8 @@
     {% endfor %}
 </section>
 {% include 'profiles/includes/tabs_script.html' %}
+
+{% include 'profiles/includes/points_card.html' %}
 
 {% if is_owner and ts_enabled and ts_is_guild_member %}
     {% include 'teamspeak/profile_card.html' %}

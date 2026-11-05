@@ -84,25 +84,6 @@
     gap: 12px;
 }
 
-.pf-points {
-    display: flex;
-    flex-direction: column;
-    padding: 8px 16px;
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-}
-
-.pf-points-label {
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.pf-points-value {
-    font-size: 20px;
-    font-weight: 700;
-    color: var(--text-strong);
-}
-
 .pf-star {
     font-size: 0.65em;
     vertical-align: 0.12em;
@@ -234,6 +215,169 @@
     color: var(--text-strong);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Очки активности (только владельцу) ---------- */
+.pf-points-card {
+    margin-bottom: 16px;
+}
+
+.pf-points-card .ui-card-title,
+.pf-history-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pf-points-card .ui-card-title .ga-icon,
+.pf-history-title .ga-icon {
+    width: 18px;
+    height: 18px;
+    color: var(--accent-light);
+}
+
+.pf-points-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.pf-point {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 16px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.pf-point-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.pf-point-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.pf-muted {
+    color: var(--text-muted);
+}
+
+.pf-points-help {
+    margin: 10px 0 0;
+}
+
+.pf-history-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+}
+
+.pf-history-title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.pf-history-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.pf-select {
+    width: auto;
+    padding-right: 30px;
+    cursor: pointer;
+}
+
+.pf-per-page {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.pf-history-count {
+    margin: 12px 0 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.pf-history {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-sm);
+    list-style: none;
+}
+
+.pf-history li {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 14px;
+}
+
+.pf-history li:last-child {
+    border-bottom: none;
+}
+
+.pf-history-amount {
+    flex-shrink: 0;
+    min-width: 52px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+}
+
+.pf-amount-credit {
+    color: var(--success);
+}
+
+.pf-amount-debit {
+    color: var(--danger);
+}
+
+.pf-history-text {
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.pf-history-date {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.pf-history-pages {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 12px;
+    font-size: 13px;
+}
+
+.pf-points-card .pf-empty {
+    margin-top: 12px;
 }
 
 /* ---------- Редактирование ---------- */
@@ -466,5 +610,22 @@
 
     .pf-side {
         width: 100%;
+    }
+
+    .pf-points-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .pf-point:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .pf-history li {
+        flex-wrap: wrap;
+    }
+
+    .pf-history-date {
+        width: 100%;
+        padding-left: 64px;
     }
 }

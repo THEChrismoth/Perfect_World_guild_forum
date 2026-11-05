@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_not_required, login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db import transaction
 from django.urls import reverse
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -133,10 +134,48 @@ def profile_view(request, username):
         'is_guild_member': is_guild_member,
         'gear_sets': profile.gear_sets(),
     }
+    # Очки и их история открыты всем: в гильдии всё прозрачно.
+    context.update(_points_context(request, profile))
     if is_owner:
         from teamspeak.views import card_context
         context.update(card_context(request, user))
     return render(request, 'profiles/profile_view.html', context)
+
+
+# Фильтр «Движения моих очков»: подпись и типы операций.
+POINTS_FILTERS = {
+    'all': ('Все', None),
+    'credit': ('Начисления', ['credit']),
+    'debit': ('Списания', ['debit']),
+    'freeze': ('Заморозка на аукционе', ['freeze', 'unfreeze']),
+}
+POINTS_PER_PAGE = (10, 20, 50)
+
+
+def _points_context(request, profile):
+    """Очки активности игрока и история операций с фильтром и страницами."""
+    from auction.models import PointsTransaction
+
+    available = profile.get_available_points()
+    kind = request.GET.get('points') if request.GET.get('points') in POINTS_FILTERS else 'all'
+    per_page = (int(request.GET['per_page']) if request.GET.get('per_page') in map(str, POINTS_PER_PAGE)
+                else POINTS_PER_PAGE[0])
+    history = PointsTransaction.objects.filter(user=profile.user)
+    if POINTS_FILTERS[kind][1]:
+        history = history.filter(transaction_type__in=POINTS_FILTERS[kind][1])
+
+    params = request.GET.copy()
+    params.pop('page', None)
+    return {
+        'points': {'available': available, 'frozen': profile.activity_points - available,
+                   'balance': profile.activity_points},
+        'points_page': Paginator(history, per_page).get_page(request.GET.get('page')),
+        'points_filters': [(key, label) for key, (label, _) in POINTS_FILTERS.items()],
+        'points_filter': kind,
+        'points_per_page': per_page,
+        'points_per_page_choices': POINTS_PER_PAGE,
+        'points_query': params.urlencode(),
+    }
 
 @login_required
 def profile_edit(request):

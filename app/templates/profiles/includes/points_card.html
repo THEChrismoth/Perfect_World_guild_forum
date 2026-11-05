@@ -1,0 +1,67 @@
+{% load ga_admin %}
+{# Очки активности игрока: баланс и история операций. Открыты всем, кто смотрит профиль. Данные — profiles/views.py: _points_context. #}
+<section class="ui-card pf-points-card" id="points">
+    <div class="ui-card-head">
+        <h2 class="ui-card-title">{% ga_icon "star" %}Очки активности</h2>
+    </div>
+    <div class="pf-points-grid">
+        <div class="pf-point">
+            <span class="pf-point-label">Доступно</span>
+            <span class="pf-point-value">{{ points.available }} <span class="pf-star">⭐</span></span>
+        </div>
+        <div class="pf-point">
+            <span class="pf-point-label">Заморожено в ставках</span>
+            <span class="pf-point-value{% if not points.frozen %} pf-muted{% endif %}">{{ points.frozen }} <span class="pf-star">⭐</span></span>
+        </div>
+        <div class="pf-point">
+            <span class="pf-point-label">Всего</span>
+            <span class="pf-point-value">{{ points.balance }} <span class="pf-star">⭐</span></span>
+        </div>
+    </div>
+    <p class="ui-help pf-points-help">Начисляются за посещение ивентов, снимаются за пропуски, тратятся на аукционе.</p>
+
+    <div class="pf-history-head">
+        <h3 class="pf-history-title">{% ga_icon "activity" %}{% if is_owner %}Движение моих очков{% else %}Движение очков{% endif %}</h3>
+        <form method="get" action="#points" class="pf-history-filters">
+            <select name="points" class="ui-input pf-select" aria-label="Какие операции" onchange="this.form.submit()">
+                {% for key, label in points_filters %}<option value="{{ key }}"{% if key == points_filter %} selected{% endif %}>{{ label }}</option>{% endfor %}
+            </select>
+            <label class="pf-per-page">
+                <span>На странице</span>
+                <select name="per_page" class="ui-input pf-select" onchange="this.form.submit()">
+                    {% for size in points_per_page_choices %}<option value="{{ size }}"{% if size == points_per_page %} selected{% endif %}>{{ size }}</option>{% endfor %}
+                </select>
+            </label>
+        </form>
+    </div>
+
+    {% if points_page.paginator.count %}
+        <p class="pf-history-count">{{ points_page.start_index }}–{{ points_page.end_index }} из {{ points_page.paginator.count }}</p>
+        <ul class="pf-history">
+            {% for item in points_page %}
+                <li>
+                    <span class="pf-history-amount pf-amount-{{ item.transaction_type }}">
+                        {% if item.transaction_type == 'credit' %}+{{ item.amount }}
+                        {% elif item.transaction_type == 'debit' %}−{{ item.amount }}
+                        {% else %}{{ item.amount }}{% endif %}
+                    </span>
+                    <span class="pf-history-text">
+                        {% if item.transaction_type == 'freeze' %}Заморожено · {% elif item.transaction_type == 'unfreeze' %}Разморожено · {% endif %}{{ item.description }}
+                    </span>
+                    <span class="pf-history-date">{{ item.created_at|date:"d.m.Y, H:i" }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+        {% if points_page.has_other_pages %}
+            <nav class="pf-history-pages" aria-label="Страницы">
+                <span class="pf-muted">Страница {{ points_page.number }} из {{ points_page.paginator.num_pages }}</span>
+                <span class="ui-form-actions">
+                    {% if points_page.has_previous %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="?{% if points_query %}{{ points_query }}&amp;{% endif %}page={{ points_page.previous_page_number }}#points">← Назад</a>{% endif %}
+                    {% if points_page.has_next %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="?{% if points_query %}{{ points_query }}&amp;{% endif %}page={{ points_page.next_page_number }}#points">Вперёд →</a>{% endif %}
+                </span>
+            </nav>
+        {% endif %}
+    {% else %}
+        <p class="pf-empty">{% if points_filter == 'all' %}Операций с очками пока не было.{% else %}Таких операций пока не было.{% endif %}</p>
+    {% endif %}
+</section>
