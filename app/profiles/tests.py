@@ -302,13 +302,15 @@ class ProfilePageTests(TestCase):
         self.client.force_login(self.owner)
         page = self.client.get(reverse('profile_edit'))
         self.assertContains(page, 'Показатель атаки (ПА)')
+        self.assertContains(page, 'Физ. / маг. атака')
+        self.assertNotContains(page, 'name="mp"')
 
-        data = {name: 0 for group in ('hp', 'mp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
-                                      'crit_damage', 'crit_chance', 'pz', 'physical_defense', 'magic_defense',
-                                      'accuracy', 'dodge') for name in [group]}
-        data.update(username='owner', player_class='mag', timezone='UTC+3', hp=42000)
+        data = {name: 0 for name in ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
+                                     'pz', 'physical_defense', 'magic_defense')}
+        data.update(username='owner', player_class='mag', timezone='UTC+3', hp=42000, ma=15000)
         response = self.client.post(reverse('profile_edit'), data)
 
         self.assertRedirects(response, reverse('profile_view', args=['owner']))
         self.owner.profile.refresh_from_db()
-        self.assertEqual(self.owner.profile.hp, 42000)
+        self.assertEqual((self.owner.profile.hp, self.owner.profile.ma), (42000, 15000))
+        self.assertContains(self.client.get(reverse('profile_view', args=['owner'])), '0 / 15000')

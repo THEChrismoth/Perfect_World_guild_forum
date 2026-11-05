@@ -30,13 +30,7 @@
             <div><dt>Класс</dt><dd>{% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ profile.get_player_class_display }}</dd></div>
         </dl>
         <dl class="rc-stats">
-            <div><dt>HP / MP</dt><dd>{{ profile.hp }} / {{ profile.mp }}</dd></div>
-            <div><dt>ПА / ФА / МА</dt><dd>{{ profile.pa }} / {{ profile.fa }} / {{ profile.ma }}</dd></div>
-            <div><dt>ПЗ / БД / БУ</dt><dd>{{ profile.pz }} / {{ profile.bd }} / {{ profile.bu }}</dd></div>
-            <div><dt>Физ. / маг. защита</dt><dd>{{ profile.physical_defense }} / {{ profile.magic_defense }}</dd></div>
-            <div><dt>Физ. / маг. пробив</dt><dd>{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</dd></div>
-            <div><dt>Крит. урон / шанс</dt><dd>{{ profile.crit_damage }}% / {{ profile.crit_chance }}%</dd></div>
-            <div><dt>Меткость / уклонение</dt><dd>{{ profile.accuracy }} / {{ profile.dodge }}</dd></div>
+            {% include 'profiles/includes/stats_rows.html' %}
         </dl>
     </section>
 

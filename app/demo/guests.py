@@ -37,7 +37,6 @@ def fill_profile(user, player_class, rng):
     profile.city = rng.choice(CITIES)
     profile.birth_date = datetime.date(rng.randint(1985, 2005), rng.randint(1, 12), rng.randint(1, 28))
     profile.hp = rng.randint(18, 45) * 1000
-    profile.mp = rng.randint(8, 25) * 1000
     profile.pa = rng.randint(150, 260)
     profile.pz = rng.randint(150, 260)
     profile.fa = 0 if magic else rng.randint(9, 24) * 1000
@@ -48,10 +47,6 @@ def fill_profile(user, player_class, rng):
     profile.magic_defense = rng.randint(20, 60) * 1000
     profile.physical_pierce = 0 if magic else rng.randint(10, 60)
     profile.magic_pierce = rng.randint(10, 60) if magic else 0
-    profile.crit_damage = rng.randint(200, 350)
-    profile.crit_chance = rng.randint(5, 40)
-    profile.accuracy = rng.randint(3, 15) * 1000
-    profile.dodge = rng.randint(2, 10) * 1000
     profile.save()
 
 

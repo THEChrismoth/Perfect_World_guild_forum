@@ -47,7 +47,6 @@
             <h3 class="pf-group-title">Основные</h3>
             <dl>
                 <div><dt>HP</dt><dd>{{ profile.hp }}</dd></div>
-                <div><dt>MP</dt><dd>{{ profile.mp }}</dd></div>
                 <div><dt>Боевой дух</dt><dd>{{ profile.bd }}</dd></div>
                 <div><dt>Бонус уровня</dt><dd>{{ profile.bu }}</dd></div>
             </dl>
@@ -56,12 +55,8 @@
             <h3 class="pf-group-title">Атака</h3>
             <dl>
                 <div><dt>Показатель атаки</dt><dd>{{ profile.pa }}</dd></div>
-                <div><dt>Физ. атака</dt><dd>{{ profile.fa }}</dd></div>
-                <div><dt>Маг. атака</dt><dd>{{ profile.ma }}</dd></div>
-                <div><dt>Физ. пробив</dt><dd>{{ profile.physical_pierce }}</dd></div>
-                <div><dt>Маг. пробив</dt><dd>{{ profile.magic_pierce }}</dd></div>
-                <div><dt>Крит. урон</dt><dd>{{ profile.crit_damage }}%</dd></div>
-                <div><dt>Крит. шанс</dt><dd>{{ profile.crit_chance }}%</dd></div>
+                <div><dt>Физ. / маг. атака</dt><dd>{{ profile.fa }} / {{ profile.ma }}</dd></div>
+                <div><dt>Физ. / маг. пробив</dt><dd>{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</dd></div>
             </dl>
         </div>
         <div class="pf-group">
@@ -70,13 +65,6 @@
                 <div><dt>Показатель защиты</dt><dd>{{ profile.pz }}</dd></div>
                 <div><dt>Физ. защита</dt><dd>{{ profile.physical_defense }}</dd></div>
                 <div><dt>Маг. защита</dt><dd>{{ profile.magic_defense }}</dd></div>
-            </dl>
-        </div>
-        <div class="pf-group">
-            <h3 class="pf-group-title">Точность</h3>
-            <dl>
-                <div><dt>Меткость</dt><dd>{{ profile.accuracy }}</dd></div>
-                <div><dt>Уклонение</dt><dd>{{ profile.dodge }}</dd></div>
             </dl>
         </div>
     </div>

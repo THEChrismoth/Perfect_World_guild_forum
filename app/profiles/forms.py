@@ -81,43 +81,27 @@ class ProfileForm(forms.ModelForm):
         model = Profile
         fields = [
             'avatar', 'ts3_id', 'real_name', 'birth_date', 'city', 'timezone', 'player_class',
-            'hp', 'mp', 'bd',
-            'pa', 'fa', 'ma','crit_damage', 'crit_chance', 'bu', 'accuracy',
-            'pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce',  'dodge'
+            'hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
+            'pz', 'physical_defense', 'magic_defense',
         ]
         widgets = {
             'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'avatar': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
-        labels = {
-            'hp': 'HP',
-            'mp': 'MP',
-            'fa': 'Физ. атака (ФА)',
-            'ma': 'Маг. атака (МА)',
-            'pa': 'Показатель атаки (ПА)',
-            'pz': 'Показатель защиты (ПЗ)',
-            'bd': 'Боевой дух (БД)',
-            'bu': 'Бонус уровня (БУ)',
-            'physical_defense': 'Физ. защита',
-            'magic_defense': 'Маг. защита',
-            'physical_pierce': 'Физ. пробив',
-            'magic_pierce': 'Маг. пробив',
-            'crit_damage': 'Крит. урон, %',
-            'crit_chance': 'Крит. шанс, %',
-            'accuracy': 'Меткость',
-            'dodge': 'Уклонение',
-        }
 
-    # Характеристики по группам — как на странице профиля.
+    # Характеристики по группам — как на странице профиля. Пара полей — одна строка «физ. / маг.».
     STAT_GROUPS = {
-        'main': ('hp', 'mp', 'bd', 'bu'),
-        'attack': ('pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce', 'crit_damage', 'crit_chance'),
-        'defense': ('pz', 'physical_defense', 'magic_defense'),
-        'accuracy': ('accuracy', 'dodge'),
+        'main': [('HP', 'hp'), ('Боевой дух (БД)', 'bd'), ('Бонус уровня (БУ)', 'bu')],
+        'attack': [('Показатель атаки (ПА)', 'pa'), ('Физ. / маг. атака', 'fa', 'ma'),
+                   ('Физ. / маг. пробив', 'physical_pierce', 'magic_pierce')],
+        'defense': [('Показатель защиты (ПЗ)', 'pz'), ('Физ. защита', 'physical_defense'),
+                    ('Маг. защита', 'magic_defense')],
     }
 
     def stat_groups(self):
-        return {group: [self[name] for name in names] for group, names in self.STAT_GROUPS.items()}
+        return {group: [{'label': label, 'fields': [self[name] for name in names]} for label, *names in items]
+                for group, items in self.STAT_GROUPS.items()}
+
 
 class UserForm(forms.ModelForm):
     class Meta:

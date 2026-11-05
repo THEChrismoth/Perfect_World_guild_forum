@@ -204,6 +204,27 @@
     gap: 12px 14px;
 }
 
+/* Пара «физ. / маг.» — два поля в одной строке, на две колонки сетки */
+.pf-pair {
+    grid-column: span 2;
+}
+
+.pf-pair-inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pf-pair-inputs input {
+    flex: 1;
+    min-width: 0;
+}
+
+.pf-pair-sep {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
 .pf-stat-groups {
     display: flex;
     flex-direction: column;

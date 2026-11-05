@@ -65,25 +65,19 @@
             <div>
                 <h3 class="pf-group-title">Основные</h3>
                 <div class="pf-fields pf-fields-tight">
-                    {% for field in stat_groups.main %}{% include 'profiles/includes/field.html' %}{% endfor %}
+                    {% for stat in stat_groups.main %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
                 </div>
             </div>
             <div>
                 <h3 class="pf-group-title">Атака</h3>
                 <div class="pf-fields pf-fields-tight">
-                    {% for field in stat_groups.attack %}{% include 'profiles/includes/field.html' %}{% endfor %}
+                    {% for stat in stat_groups.attack %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
                 </div>
             </div>
             <div>
                 <h3 class="pf-group-title">Защита</h3>
                 <div class="pf-fields pf-fields-tight">
-                    {% for field in stat_groups.defense %}{% include 'profiles/includes/field.html' %}{% endfor %}
-                </div>
-            </div>
-            <div>
-                <h3 class="pf-group-title">Точность</h3>
-                <div class="pf-fields pf-fields-tight">
-                    {% for field in stat_groups.accuracy %}{% include 'profiles/includes/field.html' %}{% endfor %}
+                    {% for stat in stat_groups.defense %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
                 </div>
             </div>
         </div>

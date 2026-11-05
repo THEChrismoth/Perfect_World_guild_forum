@@ -17,13 +17,13 @@ class ProfileInline(admin.StackedInline):
             'fields': ('avatar', 'ts3_id', 'birth_date', 'city', 'player_class')
         }),
         ('Характеристики', {
-            'fields': ('hp', 'mp', 'bd')
+            'fields': ('hp', 'bd', 'bu')
         }),
-        ('атака', {
-            'fields': ('pa', 'fa', 'ma', 'crit_damage', 'crit_chance', 'bu', 'accuracy')
+        ('Атака', {
+            'fields': ('pa', ('fa', 'ma'), ('physical_pierce', 'magic_pierce'))
         }),
         ('Защита', {
-            'fields': ('pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce', 'dodge')
+            'fields': ('pz', 'physical_defense', 'magic_defense')
         }),
         ('Очки активности', {
             'fields': ('activity_points', 'spent_points', 'earned_points'),
