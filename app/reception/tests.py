@@ -6,6 +6,17 @@ from django.urls import reverse
 from .models import Application, ApplicationVote
 
 
+def screenshot():
+    """Настоящая маленькая PNG-картинка: поле скриншота проверяет, что это изображение."""
+    import io
+    from django.core.files.uploadedfile import SimpleUploadedFile
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new('RGB', (4, 4), '#6366f1').save(buffer, 'PNG')
+    return SimpleUploadedFile('stats.png', buffer.getvalue(), content_type='image/png')
+
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class ApplicationAdminTests(TestCase):
     def setUp(self):
@@ -186,15 +197,34 @@ class ApplicationFormTests(TestCase):
         self.assertContains(page, 'Изменить в профиле')
 
         response = self.client.post(reverse('reception:application_form'), {
-            'previous_nicknames': '', 'other_guilds': '', 'development_plans': 'Качаться', 'guarantors': '',
+            'development_plans': 'Качаться', 'screenshot_pa': screenshot(),
         })
 
         self.assertRedirects(response, reverse('reception:application_success'))
         application = Application.objects.get(user=self.user)
         self.assertEqual(application.player_class, 'Маг')
+        self.assertTrue(application.screenshot_pa)
 
         # Снимок: смена класса в профиле не меняет уже поданную заявку.
         profile.player_class = 'var'
         profile.save()
         application.refresh_from_db()
         self.assertEqual(application.player_class, 'Маг')
+
+    def test_screenshots_required_for_filled_sets(self):
+        self.user.profile.player_class = 'mag'
+        self.user.profile.save()
+        url = reverse('reception:application_form')
+
+        # Без скриншота сета ПА заявку не отправить.
+        response = self.client.post(url, {'development_plans': 'Качаться'})
+        self.assertContains(response, 'скриншот окна характеристик в сете ПА')
+
+        # Сет ПЗ заполнен — его скриншот тоже нужен.
+        self.user.gear_sets.filter(kind='pz').update(hp=50000)
+        response = self.client.post(url, {'development_plans': 'Качаться', 'screenshot_pa': screenshot()})
+        self.assertContains(response, 'скриншот окна характеристик в сете ПЗ')
+
+        response = self.client.post(url, {'development_plans': 'Качаться', 'screenshot_pa': screenshot(),
+                                          'screenshot_pz': screenshot()})
+        self.assertRedirects(response, reverse('reception:application_success'))

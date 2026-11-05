@@ -32,24 +32,16 @@
         {% csrf_token %}
         {% if form.non_field_errors %}<div class="ui-error">{{ form.non_field_errors }}</div>{% endif %}
 
-        <h2 class="ui-card-title">Игровой опыт</h2>
-        {% include 'reception/includes/field.html' with field=form.previous_nicknames optional=True %}
-        {% include 'reception/includes/field.html' with field=form.other_guilds optional=True %}
-        <label class="rc-check">{{ form.on_blacklist }} {{ form.on_blacklist.label }}</label>
-        <div id="blacklist-details-group" hidden>
-            {% include 'reception/includes/field.html' with field=form.blacklist_details %}
-        </div>
-
-        <h2 class="ui-card-title">Планы и поручители</h2>
+        <h2 class="ui-card-title">Планы</h2>
         {% include 'reception/includes/field.html' with field=form.development_plans %}
-        {% include 'reception/includes/field.html' with field=form.guarantors optional=True %}
 
-        <h2 class="ui-card-title">Скриншоты из игры <span class="rc-muted">— до 5, необязательно</span></h2>
+        <h2 class="ui-card-title">Подтверждение характеристик</h2>
+        <p class="rc-muted rc-hint">Откройте в игре окно характеристик персонажа в каждом сете и приложите скриншоты — по ним администратор сверит статы из профиля.</p>
         <div class="rc-shot-fields">
             {% for field in form %}
                 {% if field.name|slice:":10" == 'screenshot' %}
                     <label class="rc-shot-field">
-                        <span class="rc-shot-preview" id="preview-{{ field.name }}">{% ga_icon "image" %}<span>{{ field.label }}</span></span>
+                        <span class="rc-shot-preview" id="preview-{{ field.name }}">{% ga_icon "image" %}<span>{{ field.label }}{% if not field.field.required %} — необязательно{% endif %}</span></span>
                         {{ field }}
                         {% if field.errors %}<span class="ui-error">{{ field.errors|join:" " }}</span>{% endif %}
                     </label>
@@ -77,16 +69,5 @@ document.querySelectorAll('.rc-shot-field input[type="file"]').forEach(function 
         }
     });
 });
-
-// Пояснение по ЧС показывается, только если отмечено, что игрок в черном списке.
-(function () {
-    var checkbox = document.querySelector('input[name="on_blacklist"]');
-    var details = document.getElementById('blacklist-details-group');
-    function toggle() { details.hidden = !checkbox.checked; }
-    if (checkbox) {
-        checkbox.addEventListener('change', toggle);
-        toggle();
-    }
-})();
 </script>
 {% endblock %}

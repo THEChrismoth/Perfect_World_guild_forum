@@ -23,18 +23,13 @@ class Application(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications', verbose_name='Кандидат')
     player_class = models.CharField('Класс персонажа', max_length=20)
 
-    previous_nicknames = models.TextField('Прошлые никнеймы', blank=True)
-    on_blacklist = models.BooleanField('Нахождение в ЧС других гильдий', default=False)
-    blacklist_details = models.TextField('Пояснение по ЧС', blank=True)
-    other_guilds = models.TextField('Гильдии в которых состоит', blank=True)
     development_plans = models.TextField('Планы на развитие персонажа на 2 месяца')
-    guarantors = models.TextField('Поручители', blank=True)
 
-    screenshot1 = models.ImageField('Скриншот 1', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot2 = models.ImageField('Скриншот 2', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot3 = models.ImageField('Скриншот 3', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot4 = models.ImageField('Скриншот 4', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot5 = models.ImageField('Скриншот 5', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
+    # Скриншоты окна характеристик из игры — по ним администратор сверяет статы сетов из анкеты.
+    screenshot_pa = models.ImageField('Скриншот сета ПА', upload_to='applications/screenshots/%Y/%m/%d/',
+                                      blank=True, null=True)
+    screenshot_pz = models.ImageField('Скриншот сета ПЗ', upload_to='applications/screenshots/%Y/%m/%d/',
+                                      blank=True, null=True)
 
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
     admin_comment = models.TextField('Комментарий администратора', blank=True)

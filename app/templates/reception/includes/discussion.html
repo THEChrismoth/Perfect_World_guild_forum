@@ -18,30 +18,12 @@
             </div>
         </div>
 
-        <dl class="rc-facts">
-            <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="rc-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
-            <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>
-            <div><dt>Состоит в гильдиях</dt><dd>{{ application.other_guilds|default:"нет" }}</dd></div>
-            <div><dt>Поручители</dt><dd>{{ application.guarantors|default:"не указаны" }}</dd></div>
-        </dl>
-        {% if application.on_blacklist and application.blacklist_details %}
-            <div class="rc-text-block"><span class="rc-text-label">Пояснение по ЧС</span>{{ application.blacklist_details|linebreaksbr }}</div>
-        {% endif %}
         <div class="rc-text-block"><span class="rc-text-label">Планы на 2 месяца</span>{{ application.development_plans|linebreaksbr }}</div>
     </section>
 
     <section class="rc-section">
         <h3 class="rc-section-title">Характеристики</h3>
         {% include 'profiles/includes/gear_sets.html' with dl_class='rc-stats' %}
-        {% if application.screenshot1 or application.screenshot2 or application.screenshot3 or application.screenshot4 or application.screenshot5 %}
-            <div class="rc-shots">
-                {% if application.screenshot1 %}<a href="{{ application.screenshot1.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot1.url }}" alt="Скриншот 1" loading="lazy"></a>{% endif %}
-                {% if application.screenshot2 %}<a href="{{ application.screenshot2.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot2.url }}" alt="Скриншот 2" loading="lazy"></a>{% endif %}
-                {% if application.screenshot3 %}<a href="{{ application.screenshot3.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot3.url }}" alt="Скриншот 3" loading="lazy"></a>{% endif %}
-                {% if application.screenshot4 %}<a href="{{ application.screenshot4.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot4.url }}" alt="Скриншот 4" loading="lazy"></a>{% endif %}
-                {% if application.screenshot5 %}<a href="{{ application.screenshot5.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot5.url }}" alt="Скриншот 5" loading="lazy"></a>{% endif %}
-            </div>
-        {% endif %}
     </section>
 
     <section class="rc-section">

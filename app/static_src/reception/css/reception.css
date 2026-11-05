@@ -455,8 +455,12 @@
 }
 
 /* Сеты брони кандидата (profiles/includes/gear_sets.html): основной первым */
-.gear-set + .gear-set {
+.gear-set {
     margin-top: 16px;
+}
+
+.rc-section-title + .gear-set {
+    margin-top: 0;
 }
 
 .gear-set-title {
@@ -482,6 +486,44 @@
     color: var(--text-muted);
 }
 
+/* Скриншот окна характеристик из игры — справа от статов сета */
+.gear-set-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: start;
+}
+
+.gear-set-shot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 150px;
+    aspect-ratio: 4 / 3;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.gear-set-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gear-set-shot-missing {
+    border: 1px dashed var(--border);
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 640px) {
+    .gear-set-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 .rc-facts dt,
 .rc-stats dt {
     font-size: 12px;
@@ -495,27 +537,6 @@
     font-size: 14px;
     font-weight: 600;
     overflow-wrap: anywhere;
-}
-
-.rc-shots {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
-    margin-top: 16px;
-}
-
-.rc-shots a {
-    display: block;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: var(--radius-sm);
-    background: var(--bg);
-}
-
-.rc-shots img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
 }
 
 /* ---------- Лента голосов и комментариев ---------- */
@@ -612,25 +633,10 @@
     font-size: 13px;
 }
 
-.rc-check {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--text);
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.rc-check input {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--accent);
-}
-
 .rc-shot-fields {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
 }
 
 .rc-shot-field {

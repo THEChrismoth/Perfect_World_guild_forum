@@ -280,7 +280,6 @@ class Command(BaseCommand):
         voting_user, pending_user, rejected_user = self.applicants
         voting = self.application(
             voting_user, 'voting', 'Докачать оружие до +10, собрать сет на пробив, ходить на все ТВ.',
-            previous_nicknames='Ночной_Лучник', other_guilds='Нет', guarantors='Искра, Сокол',
             reviewed_by=admin, approved_at=self.now - datetime.timedelta(days=1),
         )
         votes = [(self.members[5], 'for', 'Играли вместе, адекватный.'), (self.members[7], 'for', ''),
@@ -289,10 +288,8 @@ class Command(BaseCommand):
         for voter, vote, comment in votes:
             ApplicationVote.objects.create(application=voting, voter=voter, vote=vote, comment=comment)
 
-        self.application(pending_user, 'pending', 'Хочу в активную гильдию для ТВ и КХ.',
-                         other_guilds='Обсидиан (ухожу)')
-        self.application(rejected_user, 'rejected', 'Просто поиграть.', on_blacklist=True,
-                         blacklist_details='В ЧС гильдии Багровый Рассвет за кидок на аукционе.',
+        self.application(pending_user, 'pending', 'Хочу в активную гильдию для ТВ и КХ.')
+        self.application(rejected_user, 'rejected', 'Просто поиграть.',
                          admin_comment='Находится в ЧС союзной гильдии.', reviewed_by=admin)
         self.application(self.members[11], 'approved', 'Ходить на ТВ и КХ, качать жнеца.', reviewed_by=admin,
                          approved_at=self.now - datetime.timedelta(days=60))

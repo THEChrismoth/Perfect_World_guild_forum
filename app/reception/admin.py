@@ -20,7 +20,7 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
 
     list_display = ('user', 'player_class', 'status', 'created_at', 'votes_summary')
     list_filter = ('status', 'created_at')
-    search_fields = ('user__username', 'previous_nicknames')
+    search_fields = ('user__username', 'development_plans')
     actions = ['send_to_voting_action']
 
     def has_add_permission(self, request):
@@ -54,9 +54,6 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                                         pk=object_id)
         if not self.has_view_or_change_permission(request, application):
             raise PermissionDenied
-        screenshots = [shot.url for shot in (application.screenshot1, application.screenshot2,
-                                             application.screenshot3, application.screenshot4,
-                                             application.screenshot5) if shot]
         context = {
             **self.admin_site.each_context(request),
             'title': f'Заявка · {application.user.username}',
@@ -66,7 +63,6 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
             'profile': application.user.profile,
             'stats': application.get_vote_stats(),
             'items': services.discussion_items(application),
-            'screenshots': screenshots,
             'can_change': self.has_change_permission(request, application),
             'can_delete': self.has_delete_permission(request, application),
             'can_vote_out': services.can_decide(application, 'voting'),

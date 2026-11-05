@@ -2709,27 +2709,6 @@ input[type="file"]::file-selector-button:hover {
     background: color-mix(in srgb, var(--ga-danger) 10%, transparent);
 }
 
-.ga-app-shots {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.ga-app-shots a {
-    display: block;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 1px solid var(--hairline-color);
-}
-
-.ga-app-shots img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
 /* Голоса: ширина блока по проценту, как на сайте */
 .ga-app-votes {
     display: flex;
@@ -2925,4 +2904,36 @@ input[type="file"]::file-selector-button:hover {
     margin: 0;
     color: var(--body-quiet-color);
     font-size: 13px;
+}
+
+/* Скриншот окна характеристик из игры — справа от статов сета, админ сверяет по нему */
+.gear-set-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+}
+
+.gear-set-shot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--hairline-color);
+    border-radius: 10px;
+    background: var(--darkened-bg);
+}
+
+.gear-set-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gear-set-shot-missing {
+    border-style: dashed;
+    color: var(--body-quiet-color);
+    font-size: 12px;
 }

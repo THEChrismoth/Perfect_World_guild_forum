@@ -66,14 +66,7 @@
                 <div class="ga-card-head"><h2 class="ga-card-title">Анкета</h2></div>
                 <dl class="ga-app-facts">
                     <div><dt>Email</dt><dd>{{ application.user.email|default:"—" }}</dd></div>
-                    <div><dt>В ЧС других гильдий</dt><dd>{% if application.on_blacklist %}<span class="ga-text-bad">Да</span>{% else %}Нет{% endif %}</dd></div>
-                    <div><dt>Прошлые ники</dt><dd>{{ application.previous_nicknames|default:"нет" }}</dd></div>
-                    <div><dt>Состоит в гильдиях</dt><dd>{{ application.other_guilds|default:"нет" }}</dd></div>
-                    <div><dt>Поручители</dt><dd>{{ application.guarantors|default:"не указаны" }}</dd></div>
                 </dl>
-                {% if application.on_blacklist and application.blacklist_details %}
-                    <div class="ga-app-text"><span>Пояснение по ЧС</span>{{ application.blacklist_details|linebreaksbr }}</div>
-                {% endif %}
                 <div class="ga-app-text"><span>Планы на 2 месяца</span>{{ application.development_plans|linebreaksbr }}</div>
                 {% if application.admin_comment %}
                     <div class="ga-app-text ga-app-text-reason"><span>Причина отказа</span>{{ application.admin_comment|linebreaksbr }}</div>
@@ -81,13 +74,8 @@
             </section>
 
             <section class="ga-card">
-                <div class="ga-card-head"><h2 class="ga-card-title">Характеристики</h2><span class="ga-empty">из профиля, текущие</span></div>
+                <div class="ga-card-head"><h2 class="ga-card-title">Характеристики</h2><span class="ga-empty">сверьте статы со скриншотами из игры</span></div>
                 {% include 'profiles/includes/gear_sets.html' with dl_class='ga-app-facts' %}
-                {% if screenshots %}
-                    <div class="ga-app-shots">
-                        {% for url in screenshots %}<a href="{{ url }}" target="_blank" rel="noopener"><img src="{{ url }}" alt="Скриншот {{ forloop.counter }}"></a>{% endfor %}
-                    </div>
-                {% endif %}
             </section>
         </div>
 
