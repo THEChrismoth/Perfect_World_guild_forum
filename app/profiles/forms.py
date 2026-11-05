@@ -90,25 +90,38 @@ class ProfileForm(forms.ModelForm):
             'avatar': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
         labels = {
-            'hp': '❤️ HP',
-            'mp': '💧 MP',
-            'fa': 'ФА - Физическая атака',
-            'ma': 'МА - Магическая атака',
-            'pa': 'ПА - Показатель Атаки',
-            'pz': 'ПЗ - Прямая защита',
-            'bd': 'БД - Боевой дух',
-            'bu': 'БУ - Бонус уровня',
-            'physical_defense': 'Физическая защита',
-            'magic_defense': 'Магическая защита',
-            'physical_pierce': 'Физический пробив',
-            'magic_pierce': 'Магический пробив',
-            'crit_damage': 'Критический урон',
-            'crit_chance': 'Критический шанс',
+            'hp': 'HP',
+            'mp': 'MP',
+            'fa': 'Физ. атака (ФА)',
+            'ma': 'Маг. атака (МА)',
+            'pa': 'Показатель атаки (ПА)',
+            'pz': 'Показатель защиты (ПЗ)',
+            'bd': 'Боевой дух (БД)',
+            'bu': 'Бонус уровня (БУ)',
+            'physical_defense': 'Физ. защита',
+            'magic_defense': 'Маг. защита',
+            'physical_pierce': 'Физ. пробив',
+            'magic_pierce': 'Маг. пробив',
+            'crit_damage': 'Крит. урон, %',
+            'crit_chance': 'Крит. шанс, %',
             'accuracy': 'Меткость',
             'dodge': 'Уклонение',
         }
+
+    # Характеристики по группам — как на странице профиля.
+    STAT_GROUPS = {
+        'main': ('hp', 'mp', 'bd', 'bu'),
+        'attack': ('pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce', 'crit_damage', 'crit_chance'),
+        'defense': ('pz', 'physical_defense', 'magic_defense'),
+        'accuracy': ('accuracy', 'dodge'),
+    }
+
+    def stat_groups(self):
+        return {group: [self[name] for name in names] for group, names in self.STAT_GROUPS.items()}
 
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username']
+        labels = {'username': 'Никнейм'}
+        help_texts = {'username': 'Буквы, цифры и символы @ . + - _'}

@@ -1,0 +1,7 @@
+{# Поле формы профиля. Параметр: field. #}
+<div class="ui-field">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {% if field.help_text %}<span class="ui-help">{{ field.help_text }}</span>{% endif %}
+    {% if field.errors %}<div class="ui-error">{{ field.errors|join:" " }}</div>{% endif %}
+</div>

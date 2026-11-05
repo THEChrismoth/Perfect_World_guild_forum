@@ -1,153 +1,88 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
 
-{% block title %}{{ profile_user.username }} | Профиль{% endblock %}
+{% block title %}{{ profile_user.username }} — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <div class="profile-header">
-        {% if is_owner %}
-            <div class="profile-actions">
-                <a href="{% url 'profile_edit' %}" class="btn-edit-profile">✏️ Редактировать</a>
-            </div>
+<section class="ui-card pf-head">
+    <span class="pf-avatar">
+        {% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ profile_user.username|slice:":1"|upper }}{% endif %}
+    </span>
+    <div class="pf-main">
+        <h1 class="pf-name">{{ profile_user.username }}</h1>
+        <div class="pf-tags">
+            {% if profile.player_class %}
+                <span class="pf-class"><img src="{{ profile.get_icon_url }}" alt="">{{ profile.get_player_class_display }}</span>
+            {% endif %}
+            {% if is_guild_member %}<span class="ui-badge ui-badge-success">{% ga_icon "shield" %}Член гильдии</span>{% endif %}
+        </div>
+        {% if profile.city or profile.age %}
+            <p class="pf-meta">
+                {% if profile.city %}{{ profile.city }}{% endif %}{% if profile.city and profile.age %} · {% endif %}{% if profile.age %}{{ profile.age }} лет{% endif %}
+            </p>
         {% endif %}
-        <div class="profile-avatar">
-            {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}" alt="Аватар">
-            {% else %}
-                <div class="default-avatar">{{ profile_user.username|make_list|first|upper }}</div>
-            {% endif %}
-        </div>
-        <div class="profile-info">
-            <h1>{{ profile_user.username }}</h1>
-            <div class="player-tags">
-                {% if profile.player_class %}
-                    <div class="class-badge">
-                        {% if profile.get_icon_url %}
-                            <img src="{{ profile.get_icon_url }}" alt="{{ profile.get_player_class_display }}" class="class-icon">
-                        {% endif %}
-                        <span>{{ profile.get_player_class_display }}</span>
-                    </div>
-                {% endif %}
-                
-                {% if is_guild_member %}
-                    <div class="guild-badge">
-                        <span class="guild-icon">🏰</span>
-                        <span>Член гильдии</span>
-                    </div>
-                {% endif %}
-            </div>
-            
-            {% if profile.city %}
-                <p>📍 Город: {{ profile.city }}</p>
-            {% endif %}
-            {% if profile.age %}
-                <p>🎂 Возраст: {{ profile.age }} лет</p>
-            {% endif %}
-            {% if is_owner and profile.ts3_id %}
-                <p>🎧 TS3 ID: {{ profile.ts3_id }}</p>
-            {% endif %}
-            
-            {% if is_owner %}
-                <div class="activity-points">
-                    <span class="activity-label">⭐ Очки активности:</span>
-                    <span class="activity-value">{{ profile.activity_points }}</span>
-                </div>
-            {% endif %}
-        </div>
     </div>
-
-    {% if is_owner and ts_enabled and ts_is_guild_member %}
-        {% include 'teamspeak/profile_card.html' %}
+    {% if is_owner %}
+        <div class="pf-side">
+            <div class="pf-points" title="Видно только вам">
+                <span class="pf-points-label">Очки активности</span>
+                <span class="pf-points-value">{{ profile.activity_points }} <span class="pf-star">⭐</span></span>
+            </div>
+            <a href="{% url 'profile_edit' %}" class="ui-btn ui-btn-secondary">{% ga_icon "pencil" %}Редактировать</a>
+        </div>
     {% endif %}
+</section>
 
-    <div class="profile-stats">
-        <div class="stats-title">📊 Характеристики персонажа</div>
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-card-title">❤️ Основные</div>
-                <div class="stat-row">
-                    <span class="stat-label">HP:</span>
-                    <span class="stat-value">{{ profile.hp|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">MP:</span>
-                    <span class="stat-value">{{ profile.mp|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">БД (Боевой дух):</span>
-                    <span class="stat-value">{{ profile.bd|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">БУ (Бонус уровня):</span>
-                    <span class="stat-value">{{ profile.bu|default:"0"|floatformat:0 }}</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-card-title">🛡️ Защита</div>
-                <div class="stat-row">
-                    <span class="stat-label">ПЗ (Прямая защита):</span>
-                    <span class="stat-value">{{ profile.pz|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Физ. защита:</span>
-                    <span class="stat-value">{{ profile.physical_defense|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Маг. защита:</span>
-                    <span class="stat-value">{{ profile.magic_defense|default:"0"|floatformat:0 }}</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-card-title">⚔️ Атака</div>
-                <div class="stat-row">
-                    <span class="stat-label">ПА (Показатель атаки):</span>
-                    <span class="stat-value">{{ profile.pa|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">ФА (Физ. атака):</span>
-                    <span class="stat-value">{{ profile.fa|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">МА (Маг. атака):</span>
-                    <span class="stat-value">{{ profile.ma|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Физ. пробив:</span>
-                    <span class="stat-value">{{ profile.physical_pierce|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Маг. пробив:</span>
-                    <span class="stat-value">{{ profile.magic_pierce|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                      <span class="stat-label">Крит. урон:</span>
-                    <span class="stat-value">{{ profile.crit_damage|default:"0" }}%</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Крит. шанс:</span>
-                    <span class="stat-value">{{ profile.crit_chance|default:"0" }}%</span>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-card-title">🎯 Точность</div>
-                <div class="stat-row">
-                    <span class="stat-label">Меткость:</span>
-                    <span class="stat-value">{{ profile.accuracy|default:"0"|floatformat:0 }}</span>
-                </div>
-                <div class="stat-row">
-                    <span class="stat-label">Уклонение:</span>
-                    <span class="stat-value">{{ profile.dodge|default:"0"|floatformat:0 }}</span>
-                </div>
-            </div>
+<section class="ui-card pf-stats-card">
+    <div class="ui-card-head">
+        <h2 class="ui-card-title">Характеристики персонажа</h2>
+        {% if is_owner %}<a href="{% url 'profile_edit' %}#stats" class="ui-card-link">Изменить</a>{% endif %}
+    </div>
+    <div class="pf-stats">
+        <div class="pf-group">
+            <h3 class="pf-group-title">Основные</h3>
+            <dl>
+                <div><dt>HP</dt><dd>{{ profile.hp }}</dd></div>
+                <div><dt>MP</dt><dd>{{ profile.mp }}</dd></div>
+                <div><dt>Боевой дух</dt><dd>{{ profile.bd }}</dd></div>
+                <div><dt>Бонус уровня</dt><dd>{{ profile.bu }}</dd></div>
+            </dl>
+        </div>
+        <div class="pf-group">
+            <h3 class="pf-group-title">Атака</h3>
+            <dl>
+                <div><dt>Показатель атаки</dt><dd>{{ profile.pa }}</dd></div>
+                <div><dt>Физ. атака</dt><dd>{{ profile.fa }}</dd></div>
+                <div><dt>Маг. атака</dt><dd>{{ profile.ma }}</dd></div>
+                <div><dt>Физ. пробив</dt><dd>{{ profile.physical_pierce }}</dd></div>
+                <div><dt>Маг. пробив</dt><dd>{{ profile.magic_pierce }}</dd></div>
+                <div><dt>Крит. урон</dt><dd>{{ profile.crit_damage }}%</dd></div>
+                <div><dt>Крит. шанс</dt><dd>{{ profile.crit_chance }}%</dd></div>
+            </dl>
+        </div>
+        <div class="pf-group">
+            <h3 class="pf-group-title">Защита</h3>
+            <dl>
+                <div><dt>Показатель защиты</dt><dd>{{ profile.pz }}</dd></div>
+                <div><dt>Физ. защита</dt><dd>{{ profile.physical_defense }}</dd></div>
+                <div><dt>Маг. защита</dt><dd>{{ profile.magic_defense }}</dd></div>
+            </dl>
+        </div>
+        <div class="pf-group">
+            <h3 class="pf-group-title">Точность</h3>
+            <dl>
+                <div><dt>Меткость</dt><dd>{{ profile.accuracy }}</dd></div>
+                <div><dt>Уклонение</dt><dd>{{ profile.dodge }}</dd></div>
+            </dl>
         </div>
     </div>
-</div>
+</section>
+
+{% if is_owner and ts_enabled and ts_is_guild_member %}
+    {% include 'teamspeak/profile_card.html' %}
+{% endif %}
 {% endblock %}

@@ -272,3 +272,43 @@ class UserAdminFormTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, 'name="last_login_0"')
         self.assertNotContains(response, 'name="date_joined_0"')
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ProfilePageTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner', password='pass')
+        self.owner.profile.activity_points = 77
+        self.owner.profile.hp = 31000
+        self.owner.profile.save()
+        self.guest = User.objects.create_user('guest', password='pass')
+
+    def test_points_and_edit_only_for_owner(self):
+        url = reverse('profile_view', args=['owner'])
+        self.client.force_login(self.owner)
+        own = self.client.get(url)
+        self.client.force_login(self.guest)
+        other = self.client.get(url)
+
+        self.assertContains(own, '31000')
+        self.assertContains(own, 'Очки активности')
+        self.assertContains(own, 'class="pf-side"')
+        self.assertContains(other, '31000')
+        self.assertNotContains(other, 'Очки активности')
+        # «Редактировать профиль» в меню сверху есть всегда — проверяем кнопку в самом профиле.
+        self.assertNotContains(other, 'class="pf-side"')
+
+    def test_edit_saves_stats(self):
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse('profile_edit'))
+        self.assertContains(page, 'Показатель атаки (ПА)')
+
+        data = {name: 0 for group in ('hp', 'mp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
+                                      'crit_damage', 'crit_chance', 'pz', 'physical_defense', 'magic_defense',
+                                      'accuracy', 'dodge') for name in [group]}
+        data.update(username='owner', player_class='mag', timezone='UTC+3', hp=42000)
+        response = self.client.post(reverse('profile_edit'), data)
+
+        self.assertRedirects(response, reverse('profile_view', args=['owner']))
+        self.owner.profile.refresh_from_db()
+        self.assertEqual(self.owner.profile.hp, 42000)

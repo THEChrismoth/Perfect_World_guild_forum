@@ -165,5 +165,6 @@ def profile_edit(request):
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
+        'stat_groups': profile_form.stat_groups(),
     }
     return render(request, 'profiles/profile_edit.html', context)
