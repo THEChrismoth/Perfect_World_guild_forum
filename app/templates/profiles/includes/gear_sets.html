@@ -1,0 +1,12 @@
+{# Оба сета брони игрока, основной первым: анкета, окно обсуждения заявки, заявка в админ-панели. #}
+{# Параметры: profile, dl_class — класс сетки характеристик того места, где показываем. #}
+{% for gear in profile.gear_sets %}
+    <div class="gear-set">
+        <div class="gear-set-title">{{ gear.get_kind_display }}{% if gear.kind == profile.main_set %}<span class="gear-set-main">основной</span>{% endif %}</div>
+        {% if gear.is_empty %}
+            <p class="gear-set-empty">Не заполнен</p>
+        {% else %}
+            <dl class="{{ dl_class }}">{% include 'profiles/includes/stats_rows.html' %}</dl>
+        {% endif %}
+    </div>
+{% endfor %}

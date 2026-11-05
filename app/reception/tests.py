@@ -177,10 +177,11 @@ class ApplicationFormTests(TestCase):
     def test_class_and_stats_taken_from_profile(self):
         profile = self.user.profile
         profile.player_class = 'mag'
-        profile.ma = 15000
         profile.save()
+        self.user.gear_sets.filter(kind='pa').update(ma=15000)
 
         page = self.client.get(reverse('reception:application_form'))
+        self.assertContains(page, 'Сет ПЗ')
         self.assertContains(page, '0 / 15000')
         self.assertContains(page, 'Изменить в профиле')
 

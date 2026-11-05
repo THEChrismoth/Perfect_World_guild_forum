@@ -13,6 +13,7 @@ from django.utils import timezone
 from auction.models import PointsTransaction
 from events.models import EventAttendance, EventNotification
 from notifications.utils import VOTE_BUTTON, send_notification
+from profiles.models import GearSet
 from teamspeak.models import GUILD_GROUP
 
 from .accounts import ADMIN_APPS, ADMIN_GROUP, DEMO_ROLES, GUEST_GROUP
@@ -28,22 +29,37 @@ GUEST_CLASSES = ['var', 'mag', 'luk', 'zhrec', 'obor', 'dru', 'sin', 'sham', 'st
 
 
 def fill_profile(user, player_class, rng):
-    """Класс и правдоподобные характеристики персонажа."""
+    """Класс и правдоподобные характеристики обоих сетов: в сете ПЗ атака ниже, а защита и HP выше."""
     magic = player_class in MAGIC_CLASSES
     profile = user.profile
     profile.player_class = player_class
-    profile.hp = rng.randint(18, 45) * 1000
-    profile.pa = rng.randint(150, 260)
-    profile.pz = rng.randint(150, 260)
-    profile.fa = 0 if magic else rng.randint(9, 24) * 1000
-    profile.ma = rng.randint(9, 24) * 1000 if magic else 0
-    profile.bd = rng.randint(60, 150)
-    profile.bu = rng.randint(5, 30)
-    profile.physical_defense = rng.randint(20, 60) * 1000
-    profile.magic_defense = rng.randint(20, 60) * 1000
-    profile.physical_pierce = 0 if magic else rng.randint(10, 60)
-    profile.magic_pierce = rng.randint(10, 60) if magic else 0
     profile.save()
+
+    attack = {
+        'hp': rng.randint(18, 45) * 1000,
+        'pa': rng.randint(150, 260),
+        'pz': rng.randint(100, 180),
+        'fa': 0 if magic else rng.randint(9, 24) * 1000,
+        'ma': rng.randint(9, 24) * 1000 if magic else 0,
+        'bd': rng.randint(60, 150),
+        'bu': rng.randint(5, 30),
+        'physical_defense': rng.randint(20, 60) * 1000,
+        'magic_defense': rng.randint(20, 60) * 1000,
+        'physical_pierce': 0 if magic else rng.randint(10, 60),
+        'magic_pierce': rng.randint(10, 60) if magic else 0,
+    }
+    defense = {
+        **attack,
+        'hp': int(attack['hp'] * 1.3),
+        'pa': attack['pa'] - rng.randint(40, 80),
+        'pz': attack['pz'] + rng.randint(60, 120),
+        'fa': int(attack['fa'] * 0.7),
+        'ma': int(attack['ma'] * 0.7),
+        'physical_defense': int(attack['physical_defense'] * 1.4),
+        'magic_defense': int(attack['magic_defense'] * 1.4),
+    }
+    GearSet.objects.filter(user=user, kind='pa').update(**attack)
+    GearSet.objects.filter(user=user, kind='pz').update(**defense)
 
 
 def admin_group():

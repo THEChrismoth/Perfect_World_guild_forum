@@ -37,33 +37,51 @@
         <h2 class="ui-card-title">Характеристики персонажа</h2>
         {% if is_owner %}<a href="{% url 'profile_edit' %}#stats" class="ui-card-link">Изменить</a>{% endif %}
     </div>
-    <div class="pf-stats">
-        <div class="pf-group">
-            <h3 class="pf-group-title">Основные</h3>
-            <dl>
-                <div><dt>HP</dt><dd>{{ profile.hp }}</dd></div>
-                <div><dt>Боевой дух</dt><dd>{{ profile.bd }}</dd></div>
-                <div><dt>Бонус уровня</dt><dd>{{ profile.bu }}</dd></div>
-            </dl>
-        </div>
-        <div class="pf-group">
-            <h3 class="pf-group-title">Атака</h3>
-            <dl>
-                <div><dt>Показатель атаки</dt><dd>{{ profile.pa }}</dd></div>
-                <div><dt>Физ. / маг. атака</dt><dd>{{ profile.fa }} / {{ profile.ma }}</dd></div>
-                <div><dt>Физ. / маг. пробив</dt><dd>{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</dd></div>
-            </dl>
-        </div>
-        <div class="pf-group">
-            <h3 class="pf-group-title">Защита</h3>
-            <dl>
-                <div><dt>Показатель защиты</dt><dd>{{ profile.pz }}</dd></div>
-                <div><dt>Физ. защита</dt><dd>{{ profile.physical_defense }}</dd></div>
-                <div><dt>Маг. защита</dt><dd>{{ profile.magic_defense }}</dd></div>
-            </dl>
-        </div>
+    {# Два сета брони — как в игре, где их меняют одной кнопкой. Основной открыт первым. #}
+    <div class="pf-tabs" role="tablist" data-tabs>
+        {% for gear in gear_sets %}
+            <button type="button" role="tab" class="pf-tab{% if forloop.first %} is-active{% endif %}" data-tab="set-{{ gear.kind }}"
+                    aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                {{ gear.get_kind_display }}{% if gear.kind == profile.main_set %}<span class="pf-tab-mark" title="Основной сет">основной</span>{% endif %}
+            </button>
+        {% endfor %}
     </div>
+    {% for gear in gear_sets %}
+        <div class="pf-tab-panel" id="set-{{ gear.kind }}" role="tabpanel" {% if not forloop.first %}hidden{% endif %}>
+            {% if gear.is_empty %}
+                <p class="pf-empty">{{ gear.get_kind_display }} не заполнен.{% if is_owner %} <a href="{% url 'profile_edit' %}#stats" class="ui-card-link">Заполнить</a>{% endif %}</p>
+            {% else %}
+                <div class="pf-stats">
+                    <div class="pf-group">
+                        <h3 class="pf-group-title">Основные</h3>
+                        <dl>
+                            <div><dt>HP</dt><dd>{{ gear.hp }}</dd></div>
+                            <div><dt>Боевой дух</dt><dd>{{ gear.bd }}</dd></div>
+                            <div><dt>Бонус уровня</dt><dd>{{ gear.bu }}</dd></div>
+                        </dl>
+                    </div>
+                    <div class="pf-group">
+                        <h3 class="pf-group-title">Атака</h3>
+                        <dl>
+                            <div><dt>Показатель атаки</dt><dd>{{ gear.pa }}</dd></div>
+                            <div><dt>Физ. / маг. атака</dt><dd>{{ gear.fa }} / {{ gear.ma }}</dd></div>
+                            <div><dt>Физ. / маг. пробив</dt><dd>{{ gear.physical_pierce }} / {{ gear.magic_pierce }}</dd></div>
+                        </dl>
+                    </div>
+                    <div class="pf-group">
+                        <h3 class="pf-group-title">Защита</h3>
+                        <dl>
+                            <div><dt>Показатель защиты</dt><dd>{{ gear.pz }}</dd></div>
+                            <div><dt>Физ. защита</dt><dd>{{ gear.physical_defense }}</dd></div>
+                            <div><dt>Маг. защита</dt><dd>{{ gear.magic_defense }}</dd></div>
+                        </dl>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
 </section>
+{% include 'profiles/includes/tabs_script.html' %}
 
 {% if is_owner and ts_enabled and ts_is_guild_member %}
     {% include 'teamspeak/profile_card.html' %}

@@ -2897,3 +2897,32 @@ input[type="file"]::file-selector-button:hover {
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* Сеты брони кандидата в заявке (profiles/includes/gear_sets.html): основной первым */
+.gear-set + .gear-set {
+    margin-top: 18px;
+}
+
+.gear-set-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--body-loud-color);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gear-set-main {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+    font-size: 11px;
+}
+
+.gear-set-empty {
+    margin: 0;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}

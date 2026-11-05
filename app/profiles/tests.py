@@ -279,8 +279,8 @@ class ProfilePageTests(TestCase):
     def setUp(self):
         self.owner = User.objects.create_user('owner', password='pass')
         self.owner.profile.activity_points = 77
-        self.owner.profile.hp = 31000
         self.owner.profile.save()
+        self.owner.gear_sets.filter(kind='pa').update(hp=31000)
         self.guest = User.objects.create_user('guest', password='pass')
 
     def test_points_and_edit_only_for_owner(self):
@@ -298,19 +298,27 @@ class ProfilePageTests(TestCase):
         # «Редактировать профиль» в меню сверху есть всегда — проверяем кнопку в самом профиле.
         self.assertNotContains(other, 'class="pf-side"')
 
-    def test_edit_saves_stats(self):
+    def test_edit_saves_both_sets_and_main(self):
+        from .models import GearSet
+
         self.client.force_login(self.owner)
         page = self.client.get(reverse('profile_edit'))
-        self.assertContains(page, 'Показатель атаки (ПА)')
         self.assertContains(page, 'Физ. / маг. атака')
-        self.assertNotContains(page, 'name="mp"')
+        self.assertContains(page, 'name="pa-hp"')
+        self.assertContains(page, 'name="pz-hp"')
 
-        data = {name: 0 for name in ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
-                                     'pz', 'physical_defense', 'magic_defense')}
-        data.update(username='owner', player_class='mag', hp=42000, ma=15000)
+        data = {f'{kind}-{name}': 0 for kind in ('pa', 'pz') for name in GearSet.STAT_FIELDS}
+        data.update({'username': 'owner', 'player_class': 'mag', 'main_set': 'pz',
+                     'pa-hp': 42000, 'pa-ma': 15000, 'pz-hp': 55000, 'pz-pz': 300})
         response = self.client.post(reverse('profile_edit'), data)
 
         self.assertRedirects(response, reverse('profile_view', args=['owner']))
+        sets = {gear.kind: gear for gear in self.owner.gear_sets.all()}
+        self.assertEqual((sets['pa'].hp, sets['pa'].ma, sets['pz'].hp, sets['pz'].pz), (42000, 15000, 55000, 300))
         self.owner.profile.refresh_from_db()
-        self.assertEqual((self.owner.profile.hp, self.owner.profile.ma), (42000, 15000))
-        self.assertContains(self.client.get(reverse('profile_view', args=['owner'])), '0 / 15000')
+        self.assertEqual(self.owner.profile.main_set, 'pz')
+        # Основной сет — первым.
+        self.assertEqual([gear.kind for gear in self.owner.profile.gear_sets()], ['pz', 'pa'])
+
+    def test_every_new_user_gets_two_sets(self):
+        self.assertEqual(sorted(self.guest.gear_sets.values_list('kind', flat=True)), ['pa', 'pz'])

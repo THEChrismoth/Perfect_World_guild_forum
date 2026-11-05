@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from core.captcha import TOKEN_FIELD, verify_captcha
 from core.models import SiteSettings
-from .models import Profile, class_icon_url
+from .models import GearSet, Profile, class_icon_url
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -79,14 +79,18 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = [
-            'avatar', 'ts3_id', 'player_class',
-            'hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
-            'pz', 'physical_defense', 'magic_defense',
-        ]
+        fields = ['avatar', 'ts3_id', 'player_class', 'main_set']
         widgets = {
             'avatar': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
+
+
+class GearSetForm(forms.ModelForm):
+    """Характеристики одного сета брони. На странице две такие формы — с приставками pa- и pz-."""
+
+    class Meta:
+        model = GearSet
+        fields = GearSet.STAT_FIELDS
 
     # Характеристики по группам — как на странице профиля. Пара полей — одна строка «физ. / маг.».
     STAT_GROUPS = {

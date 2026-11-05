@@ -32,9 +32,7 @@
 
     <section class="rc-section">
         <h3 class="rc-section-title">Характеристики</h3>
-        <dl class="rc-stats">
-            {% include 'profiles/includes/stats_rows.html' %}
-        </dl>
+        {% include 'profiles/includes/gear_sets.html' with dl_class='rc-stats' %}
         {% if application.screenshot1 or application.screenshot2 or application.screenshot3 or application.screenshot4 or application.screenshot5 %}
             <div class="rc-shots">
                 {% if application.screenshot1 %}<a href="{{ application.screenshot1.url }}" target="_blank" rel="noopener"><img src="{{ application.screenshot1.url }}" alt="Скриншот 1" loading="lazy"></a>{% endif %}

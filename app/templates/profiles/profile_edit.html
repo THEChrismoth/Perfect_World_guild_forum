@@ -57,26 +57,45 @@
 
     <section class="ui-card" id="stats">
         <div class="ui-card-head"><h2 class="ui-card-title">Характеристики персонажа</h2></div>
-        <div class="pf-stat-groups">
-            <div>
-                <h3 class="pf-group-title">Основные</h3>
-                <div class="pf-fields pf-fields-tight">
-                    {% for stat in stat_groups.main %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
-                </div>
+        <p class="ui-help pf-sets-help">В игре два комплекта брони — на атаку и на защиту, они меняются одной кнопкой в бою. Заполните оба и выберите основной: он показывается первым в профиле и в заявке в гильдию.</p>
+        {% with main=profile_form.main_set.value %}
+            <div class="pf-tabs" role="tablist" data-tabs>
+                {% for set in sets %}
+                    <button type="button" role="tab" class="pf-tab{% if forloop.first %} is-active{% endif %}" data-tab="edit-set-{{ set.kind }}"
+                            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                        {{ set.label }}<span class="pf-tab-mark" data-main-mark="{{ set.kind }}" {% if set.kind != main %}hidden{% endif %}>основной</span>
+                    </button>
+                {% endfor %}
             </div>
-            <div>
-                <h3 class="pf-group-title">Атака</h3>
-                <div class="pf-fields pf-fields-tight">
-                    {% for stat in stat_groups.attack %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+            {% for set in sets %}
+                <div class="pf-tab-panel" id="edit-set-{{ set.kind }}" role="tabpanel" {% if not forloop.first %}hidden{% endif %}>
+                    <label class="pf-main-choice">
+                        <input type="radio" name="main_set" value="{{ set.kind }}" {% if set.kind == main %}checked{% endif %}>
+                        Основной сет — показывается первым в профиле и в заявке
+                    </label>
+                    <div class="pf-stat-groups">
+                        <div>
+                            <h3 class="pf-group-title">Основные</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.main %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="pf-group-title">Атака</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.attack %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="pf-group-title">Защита</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.defense %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <h3 class="pf-group-title">Защита</h3>
-                <div class="pf-fields pf-fields-tight">
-                    {% for stat in stat_groups.defense %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
-                </div>
-            </div>
-        </div>
+            {% endfor %}
+        {% endwith %}
     </section>
 
     <div class="ui-form-actions pf-actions">
@@ -97,5 +116,15 @@ document.getElementById('id_avatar_custom').addEventListener('change', function 
     img.alt = '';
     preview.appendChild(img);
 });
+
+// Метка «основной» на вкладке переезжает вслед за выбором основного сета.
+document.querySelectorAll('input[name="main_set"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        document.querySelectorAll('[data-main-mark]').forEach(function (mark) {
+            mark.hidden = mark.dataset.mainMark !== radio.value;
+        });
+    });
+});
 </script>
+{% include 'profiles/includes/tabs_script.html' %}
 {% endblock %}

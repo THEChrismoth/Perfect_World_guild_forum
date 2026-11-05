@@ -1,0 +1,15 @@
+<script>
+// Вкладки сетов брони: [data-tabs] с кнопками [data-tab="id панели"].
+document.querySelectorAll('[data-tabs]').forEach(function (tabs) {
+    tabs.addEventListener('click', function (event) {
+        var tab = event.target.closest('[data-tab]');
+        if (!tab) return;
+        tabs.querySelectorAll('[data-tab]').forEach(function (other) {
+            var active = other === tab;
+            other.classList.toggle('is-active', active);
+            other.setAttribute('aria-selected', active ? 'true' : 'false');
+            document.getElementById(other.dataset.tab).hidden = !active;
+        });
+    });
+});
+</script>

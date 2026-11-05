@@ -248,8 +248,7 @@ class SyncSignalTests(TestCase):
 class TsIdValidationTests(TestCase):
     def test_format(self):
         user = User.objects.create_user('x')
-        base = {**{f: 0 for f in ['hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'pz', 'physical_defense',
-                                                       'magic_defense', 'physical_pierce', 'magic_pierce']}}
+        base = {'main_set': 'pa'}
         self.assertTrue(ProfileForm({**base, 'ts3_id': UID_A}, instance=user.profile).is_valid())
         form = ProfileForm({**base, 'ts3_id': 'мой ник в тс'}, instance=user.profile)
         self.assertFalse(form.is_valid())

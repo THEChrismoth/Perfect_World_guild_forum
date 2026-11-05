@@ -82,9 +82,7 @@
 
             <section class="ga-card">
                 <div class="ga-card-head"><h2 class="ga-card-title">Характеристики</h2><span class="ga-empty">из профиля, текущие</span></div>
-                <dl class="ga-app-facts">
-                    {% include 'profiles/includes/stats_rows.html' %}
-                </dl>
+                {% include 'profiles/includes/gear_sets.html' with dl_class='ga-app-facts' %}
                 {% if screenshots %}
                     <div class="ga-app-shots">
                         {% for url in screenshots %}<a href="{{ url }}" target="_blank" rel="noopener"><img src="{{ url }}" alt="Скриншот {{ forloop.counter }}"></a>{% endfor %}

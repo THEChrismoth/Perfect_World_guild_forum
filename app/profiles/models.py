@@ -63,20 +63,10 @@ class Profile(models.Model):
     avatar = models.ImageField('Аватар', upload_to='avatars/', blank=True, null=True)
     ts3_id = models.CharField('TS3 ID', max_length=100, blank=True, null=True)
     player_class = models.CharField('Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
-    
-    # Характеристики (заполняются пользователем). Физ. и маг. атака и пробив — пары для физ. и маг. ДД.
-    hp = models.IntegerField(default=0, verbose_name='HP')
-    pa = models.IntegerField(default=0, verbose_name='Показатель атаки (ПА)')
-    fa = models.IntegerField(default=0, verbose_name='Физ. атака')
-    ma = models.IntegerField(default=0, verbose_name='Маг. атака')
-    pz = models.IntegerField(default=0, verbose_name='Показатель защиты (ПЗ)')
-    bd = models.IntegerField(default=0, verbose_name='Боевой дух (БД)')
-    bu = models.IntegerField(default=0, verbose_name='Бонус уровня (БУ)')
-    physical_defense = models.IntegerField(default=0, verbose_name='Физ. защита')
-    magic_defense = models.IntegerField(default=0, verbose_name='Маг. защита')
-    physical_pierce = models.IntegerField(default=0, verbose_name='Физ. пробив')
-    magic_pierce = models.IntegerField(default=0, verbose_name='Маг. пробив')
-    
+    # Какой из двух комплектов брони показывать первым (характеристики — в GearSet).
+    main_set = models.CharField('Основной сет', max_length=2, default='pa',
+                                choices=[('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')])
+
     # Очки активности (только для админа).
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
@@ -164,8 +154,60 @@ class Profile(models.Model):
         """Возвращает URL иконки для класса персонажа."""
         return class_icon_url(self.player_class)
 
+    def gear_sets(self):
+        """Оба комплекта: основной первым. Создаются вместе с пользователем, но старые аккаунты — на всякий случай."""
+        sets = {gear.kind: gear for gear in self.user.gear_sets.all()}
+        for kind in GearSet.KINDS:
+            if kind not in sets:
+                sets[kind] = GearSet.objects.create(user=self.user, kind=kind)
+        return sorted(sets.values(), key=lambda gear: gear.kind != self.main_set)
+
+    def main_gear(self):
+        return self.gear_sets()[0]
+
+
+class GearSet(models.Model):
+    """Комплект брони. В игре их два — на атаку (ПА) и на защиту (ПЗ), меняются одной кнопкой в бою,
+    поэтому у игрока два набора характеристик. Какой основной — Profile.main_set."""
+
+    KIND_CHOICES = [('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')]
+    KINDS = [kind for kind, _ in KIND_CHOICES]
+    # Характеристики сета — порядок для форм и копирования.
+    STAT_FIELDS = ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
+                   'pz', 'physical_defense', 'magic_defense')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gear_sets', verbose_name='Игрок')
+    kind = models.CharField('Сет', max_length=2, choices=KIND_CHOICES)
+
+    # Физ. и маг. атака и пробив — пары для физ. и маг. ДД.
+    hp = models.IntegerField(default=0, verbose_name='HP')
+    bd = models.IntegerField(default=0, verbose_name='Боевой дух (БД)')
+    bu = models.IntegerField(default=0, verbose_name='Бонус уровня (БУ)')
+    pa = models.IntegerField(default=0, verbose_name='Показатель атаки (ПА)')
+    fa = models.IntegerField(default=0, verbose_name='Физ. атака')
+    ma = models.IntegerField(default=0, verbose_name='Маг. атака')
+    physical_pierce = models.IntegerField(default=0, verbose_name='Физ. пробив')
+    magic_pierce = models.IntegerField(default=0, verbose_name='Маг. пробив')
+    pz = models.IntegerField(default=0, verbose_name='Показатель защиты (ПЗ)')
+    physical_defense = models.IntegerField(default=0, verbose_name='Физ. защита')
+    magic_defense = models.IntegerField(default=0, verbose_name='Маг. защита')
+
+    class Meta:
+        verbose_name = 'Сет брони'
+        verbose_name_plural = 'Сеты брони'
+        ordering = ['kind']
+        constraints = [models.UniqueConstraint(fields=['user', 'kind'], name='unique_gear_set_per_user')]
+
+    def __str__(self):
+        return f'{self.get_kind_display()} — {self.user.username}'
+
+    def is_empty(self):
+        return not any(getattr(self, field) for field in self.STAT_FIELDS)
+
+
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создает профиль только когда пользователь создается."""
+    """Создает профиль и оба сета брони только когда пользователь создается."""
     if created:
         Profile.objects.create(user=instance)
+        GearSet.objects.bulk_create([GearSet(user=instance, kind=kind) for kind in GearSet.KINDS])

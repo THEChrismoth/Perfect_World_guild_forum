@@ -14,7 +14,7 @@ from django.contrib.auth.tokens import default_token_generator
 from core import captcha
 from core.mail import send_site_mail
 from core.models import SiteSettings
-from .forms import RegistrationForm, ProfileForm, UserForm
+from .forms import GearSetForm, RegistrationForm, ProfileForm, UserForm
 
 logger = logging.getLogger(__name__)
 
@@ -131,6 +131,7 @@ def profile_view(request, username):
         'profile': profile,
         'is_owner': is_owner,
         'is_guild_member': is_guild_member,
+        'gear_sets': profile.gear_sets(),
     }
     if is_owner:
         from teamspeak.views import card_context
@@ -139,32 +140,36 @@ def profile_view(request, username):
 
 @login_required
 def profile_edit(request):
+    profile = request.user.profile
+    data = request.POST if request.method == 'POST' else None
+    user_form = UserForm(data, instance=request.user)
+    profile_form = ProfileForm(data, request.FILES or None, instance=profile)
+    # Два сета брони — две формы с приставками pa- и pz-, чтобы поля не путались.
+    set_forms = [GearSetForm(data, instance=gear, prefix=gear.kind) for gear in profile.gear_sets()]
+    set_forms.sort(key=lambda form: form.instance.kind)
+
     if request.method == 'POST':
-        user_form = UserForm(request.POST, instance=request.user)
-        profile_form = ProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        
-        if user_form.is_valid() and profile_form.is_valid():
+        if all(form.is_valid() for form in [user_form, profile_form, *set_forms]):
             user_form.save()
             profile = profile_form.save(commit=False)
-            
+
             # Обработка очистки аватара.
             if request.POST.get('avatar-clear') == 'on':
                 if profile.avatar:
                     profile.avatar.delete(save=False)
                     profile.avatar = None
-            
+
             profile.save()
+            for form in set_forms:
+                form.save()
             messages.success(request, 'Профиль успешно обновлен!')
             return redirect('profile_view', username=request.user.username)
-        else:
-            messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
-    else:
-        user_form = UserForm(instance=request.user)
-        profile_form = ProfileForm(instance=request.user.profile)
-    
+        messages.error(request, 'Пожалуйста, исправьте ошибки в форме.')
+
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
-        'stat_groups': profile_form.stat_groups(),
+        'sets': [{'kind': form.instance.kind, 'label': form.instance.get_kind_display(), 'form': form,
+                  'groups': form.stat_groups()} for form in set_forms],
     }
     return render(request, 'profiles/profile_edit.html', context)

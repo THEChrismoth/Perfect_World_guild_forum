@@ -113,6 +113,85 @@
     margin-bottom: 16px;
 }
 
+/* Вкладки сетов брони: ПА и ПЗ */
+.pf-tabs {
+    display: inline-flex;
+    gap: 4px;
+    margin-bottom: 16px;
+    padding: 4px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+}
+
+.pf-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.pf-tab:hover {
+    color: var(--text-strong);
+}
+
+.pf-tab.is-active {
+    background: var(--surface);
+    color: var(--text-strong);
+    box-shadow: var(--card-shadow);
+}
+
+.pf-tab-mark {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--accent-light);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.pf-tab-mark[hidden] {
+    display: none;
+}
+
+.pf-empty {
+    margin: 0;
+    padding: 18px;
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.pf-sets-help {
+    margin: -6px 0 14px;
+}
+
+.pf-main-choice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.pf-main-choice input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+}
+
 .pf-stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));

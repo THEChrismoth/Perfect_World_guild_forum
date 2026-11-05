@@ -25,9 +25,7 @@
         <dl class="rc-facts">
             <div><dt>Класс</dt><dd>{% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ profile.get_player_class_display }}</dd></div>
         </dl>
-        <dl class="rc-stats">
-            {% include 'profiles/includes/stats_rows.html' %}
-        </dl>
+        {% include 'profiles/includes/gear_sets.html' with dl_class='rc-stats' %}
     </section>
 
     <form method="post" enctype="multipart/form-data" class="ui-card ui-form">
