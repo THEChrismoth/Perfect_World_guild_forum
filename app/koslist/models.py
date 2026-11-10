@@ -1,5 +1,6 @@
 from django.db import models
-from django.templatetags.static import static
+
+from profiles.models import class_icon_url
 
 class Guild(models.Model):
     name = models.CharField('Название гильдии', max_length = 100)
@@ -47,29 +48,8 @@ class Player(models.Model):
         return self.name
 
     def get_icon_url(self):
-        """Возвращает URL иконки для класса персонажа."""
-        icons = {
-            'var': 'class_icon/voin.png',
-            'mag': 'class_icon/mag.png',
-            'luk': 'class_icon/luk.png',
-            'zhrec': 'class_icon/zhrec.png',
-            'obor': 'class_icon/obor.png',
-            'dru': 'class_icon/dru.png',
-            'sin': 'class_icon/sin.png',
-            'sham': 'class_icon/sham.png',
-            'mist': 'class_icon/mist.png',
-            'strazh': 'class_icon/strazh.png',
-            'pal': 'class_icon/pal.png',
-            'strel': 'class_icon/strel.png',
-            'priz': 'class_icon/priz.png',
-            'zhnec': 'class_icon/zhnec.png',
-            'makaka': 'class_icon/makaka.png',
-            'bard': 'class_icon/bard1.png',
-        }
-        icon_path = icons.get(self.player_class, '')
-        if icon_path:
-            return static(icon_path)
-        return ''
+        """Возвращает URL иконки для класса персонажа (иконки общие с профилями)."""
+        return class_icon_url(self.player_class)
 
 
 

@@ -4,10 +4,15 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from core.captcha import TOKEN_FIELD, verify_captcha
 from core.models import SiteSettings
-from .models import Profile
+from .models import Profile, class_icon_url
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
+    # Выбирается в списке с иконками (registration/class_picker.html), поэтому без своего виджета.
+    player_class = forms.ChoiceField(label='Класс персонажа', choices=Profile.CLASS_CHOICES,
+                                     error_messages={'required': 'Выберите класс персонажа'})
+
+    field_order = ['username', 'email', 'player_class', 'password1', 'password2']
 
     class Meta:
         model = User
@@ -16,6 +21,19 @@ class RegistrationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         self.site_settings = kwargs.pop('site_settings', None) or SiteSettings.load()
         super().__init__(*args, **kwargs)
+
+    def class_options(self):
+        """Классы для выпадающего списка: значение, название, иконка, выбран ли."""
+        selected = self['player_class'].value()
+        return [{'value': value, 'label': label, 'icon': class_icon_url(value), 'selected': value == selected}
+                for value, label in Profile.CLASS_CHOICES]
+
+    def selected_class(self):
+        return next((option for option in self.class_options() if option['selected']), None)
+
+    def save_profile(self, user):
+        """Класс хранится в профиле, а профиль появляется только после сохранения пользователя."""
+        Profile.objects.filter(user=user).update(player_class=self.cleaned_data['player_class'])
 
     def clean_email(self):
         email = self.cleaned_data['email']
@@ -38,6 +56,7 @@ class RegistrationForm(UserCreationForm):
         user.email = self.cleaned_data['email']
         if commit:
             user.save()
+            self.save_profile(user)
         return user
 
 TS3_UID_RE = re.compile(r'^[A-Za-z0-9+/]{27}=$')

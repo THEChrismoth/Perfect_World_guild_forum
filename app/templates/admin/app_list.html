@@ -1,4 +1,4 @@
-{% load i18n %}
+{% load i18n ga_admin %}
 {# Копия стандартного шаблона Django с иконками разделов (иконки задаются в core/admin_site.py). #}
 
 {% if app_list %}
@@ -7,7 +7,7 @@
       <table>
         <caption>
           <a href="{{ app.app_url }}" class="section" title="{% blocktranslate with name=app.name %}Models in the {{ name }} application{% endblocktranslate %}">
-            {% if app.icon %}<span class="app-icon" aria-hidden="true">{{ app.icon }}</span>{% endif %}{{ app.name }}
+            {% if app.icon %}<span class="app-icon">{% ga_icon app.icon %}</span>{% endif %}{{ app.name }}
           </a>
         </caption>
         <thead class="visually-hidden">

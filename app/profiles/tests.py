@@ -15,6 +15,43 @@ from notifications.models import Notification
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+class ClosedSiteTests(TestCase):
+    """Без входа сайт не виден: открываются только вход, регистрация и служебные адреса."""
+
+    def test_guest_redirected_to_login(self):
+        for url in ['/', '/koslist/', reverse('auction:auction_index'), reverse('events:event_index'),
+                    reverse('notifications:notification_list')]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertRedirects(response, f'{reverse("login")}?next={url}', fetch_redirect_response=False)
+
+    def test_auth_pages_use_guild_accent(self):
+        site = SiteSettings.load()
+        site.accent_color = 'teal'
+        site.save()
+
+        self.assertContains(self.client.get(reverse('login')), 'data-accent="teal"')
+        self.assertContains(self.client.get(reverse('register')), 'data-accent="teal"')
+
+    def test_login_and_register_open_for_guest(self):
+        self.assertEqual(self.client.get(reverse('login')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('register')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('admin:login')).status_code, 200)
+
+    def test_bot_api_checks_token_not_login(self):
+        # Бот не входит в аккаунт: без токена API отвечает отказом, а не уводит на страницу входа.
+        response = self.client.get('/api/tsbot/state/')
+        self.assertEqual(response.status_code, 403)
+
+    def test_logged_in_user_sees_site_and_skips_login(self):
+        self.client.force_login(User.objects.create_user('member', password='pass'))
+
+        self.assertEqual(self.client.get('/').status_code, 200)
+        self.assertRedirects(self.client.get(reverse('login')), '/', fetch_redirect_response=False)
+        self.assertRedirects(self.client.get(reverse('register')), '/', fetch_redirect_response=False)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ActivityMenuTests(TestCase):
     def test_menu_item_opens_activity_page(self):
         admin = User.objects.create_superuser('admin', password='pass')
@@ -42,6 +79,7 @@ class RegistrationTests(TestCase):
     FORM = {
         'username': 'newbie',
         'email': 'newbie@example.com',
+        'player_class': 'mag',
         'password1': 'Very-Strong-Pass-42',
         'password2': 'Very-Strong-Pass-42',
     }
@@ -62,6 +100,22 @@ class RegistrationTests(TestCase):
         user = User.objects.get(username='newbie')
         self.assertTrue(user.is_active)
         self.assertEqual(int(self.client.session['_auth_user_id']), user.pk)
+        self.assertEqual(user.profile.player_class, 'mag')
+
+    def test_class_required_and_shown_with_icons(self):
+        page = self.client.get(reverse('register'))
+        self.assertContains(page, 'class_icon/priest.png')
+        self.assertContains(page, 'Выберите класс')
+
+        response = self.register(player_class='')
+        self.assertContains(response, 'Выберите класс персонажа')
+        self.assertFalse(User.objects.filter(username='newbie').exists())
+
+        response = self.register(player_class='hacker')
+        self.assertFalse(User.objects.filter(username='newbie').exists())
+        # Выбранный класс не теряется, если в форме другая ошибка.
+        response = self.register(player_class='dru', password2='different')
+        self.assertContains(response, 'value="dru" checked')
 
     @mock.patch('core.mail.get_mail_connection', locmem_connection)
     def test_with_verification_email_sent_and_link_activates(self):
@@ -75,6 +129,8 @@ class RegistrationTests(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, ['newbie@example.com'])
         self.assertEqual(mail.outbox[0].from_email, 'Гильдия <noreply@example.com>')
+
+        self.assertEqual(user.profile.player_class, 'mag')
 
         link = re.search(r'https?://\S+', mail.outbox[0].body).group(0)
         self.client.get(link)

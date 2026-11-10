@@ -187,6 +187,7 @@ class AuctionAccessTests(AuctionTestCase):
     def test_two_auction_subcategories_do_not_close_auction(self):
         category = Category.objects.get(slug='guild')
         SubCategory.objects.create(title='Аукцион 2', slug='auction-2', category=category, is_auction=True)
+        self.client.force_login(self.alice)
 
         response = self.client.get(reverse('auction:auction_index'))
         self.assertEqual(response.status_code, 200)

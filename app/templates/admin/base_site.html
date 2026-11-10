@@ -1,7 +1,22 @@
 {% extends "admin/base.html" %}
-{% load static %}
+{% load static ga_admin %}
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
+
+{% block dark-mode-vars %}
+    {# Тёмная тема по умолчанию, как на сайте. Django при первом заходе сам записывает «как в системе» (auto), #}
+    {# поэтому один раз переводим auto в тёмную и запоминаем это — дальше выбор пользователя не трогаем. #}
+    <script>
+        try {
+            if (!localStorage.getItem('gaThemeDefault')) {
+                var savedTheme = localStorage.getItem('theme');
+                if (!savedTheme || savedTheme === 'auto') localStorage.setItem('theme', 'dark');
+                localStorage.setItem('gaThemeDefault', '1');
+            }
+        } catch (e) {}
+    </script>
+    {{ block.super }}
+{% endblock %}
 
 {% block extrastyle %}
     {{ block.super }}
@@ -15,19 +30,135 @@
     {% else %}
         <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     {% endif %}
+    {# Цвет оформления из профиля и свёрнутое меню — до отрисовки, чтобы страница не «прыгала» #}
+    <script>
+        document.documentElement.dataset.accent = '{{ ga_accent|default:"indigo"|escapejs }}';
+        if (localStorage.getItem('gaSidebar') === 'collapsed') document.documentElement.classList.add('ga-sidebar-collapsed');
+    </script>
 {% endblock %}
 
-{% block branding %}
-    <div id="site-name">
-        <a href="{% url 'admin:index' %}">
-            <span class="brand-mark" aria-hidden="true">🛡️</span>
-            <span class="brand-text">{{ site_header }}</span>
-            <span class="brand-sub">управление</span>
-        </a>
-    </div>
-    {% if user.is_anonymous %}
-        {% include "admin/color_theme_toggle.html" %}
+{# Шапка: боковое меню слева, сверху — кнопка меню, хлебные крошки и пользователь. #}
+{# Хлебные крошки перенесены из-под шапки в неё, поэтому nav-breadcrumbs пустой. #}
+{% block header %}
+    {% if has_permission %}
+        {% include "admin/includes/sidebar.html" %}
+    {% endif %}
+    <header id="header"{% if has_permission %} class="ga-topbar"{% endif %}>
+        {% if has_permission %}
+            <button type="button" class="ga-icon-btn ga-burger" data-ga-sidebar-toggle aria-controls="ga-sidebar" aria-label="Показать или скрыть меню">
+                {% ga_icon "menu" %}
+            </button>
+            <nav class="ga-topbar-crumbs" aria-label="Хлебные крошки">
+                {% block breadcrumbs %}
+                    <div class="breadcrumbs">
+                        <a href="{% url 'admin:index' %}">Дашборд</a>
+                        {% if title %} &rsaquo; {{ title }}{% endif %}
+                    </div>
+                {% endblock %}
+            </nav>
+        {% else %}
+            <div id="branding">{% block branding %}
+                <div id="site-name">
+                    <a href="{% url 'admin:index' %}">
+                        <span class="brand-mark" aria-hidden="true">{% ga_icon "shield" %}</span>
+                        <span class="brand-text">{{ site_header }}</span>
+                        <span class="brand-sub">управление</span>
+                    </a>
+                </div>
+            {% endblock %}</div>
+            {# На странице входа блок usertools пустой — переключатель темы показываем здесь #}
+            {% if user.is_anonymous %}
+                {% include "admin/color_theme_toggle.html" %}
+            {% endif %}
+        {% endif %}
+
+        {% block usertools %}
+            {% if has_permission %}
+                <div id="user-tools" class="ga-usertools">
+                    {% include "admin/color_theme_toggle.html" %}
+                    <details class="ga-user-menu">
+                        <summary>
+                            <span class="ga-avatar" aria-hidden="true">{% firstof user.get_short_name user.get_username as display_name %}{{ display_name|slice:":1"|upper }}</span>
+                            <span class="ga-user-name">{{ display_name }}</span>
+                            {% ga_icon "chevron-down" %}
+                        </summary>
+                        <div class="ga-user-dropdown">
+                            <form class="ga-accent-picker" method="post" action="{% url 'admin:set_accent' %}" data-ga-accent-form>
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                <span class="ga-accent-title">Цвет оформления</span>
+                                <span class="ga-accent-swatches">
+                                    {# Первая кнопка — цвет гильдии из настроек сайта; меняется вместе с ними #}
+                                    <button type="submit" name="accent" value="{{ ga_guild_accent_value }}" class="ga-swatch ga-swatch-guild"
+                                            data-accent-swatch="{{ ga_guild_accent }}" data-accent-value="{{ ga_guild_accent }}"
+                                            title="Цвет гильдии — {{ ga_guild_accent_name }}" aria-label="Цвет гильдии — {{ ga_guild_accent_name }}"
+                                            aria-pressed="{% if ga_accent_choice == ga_guild_accent_value %}true{% else %}false{% endif %}">{% ga_icon "shield" %}</button>
+                                    {% for value, label in ga_accent_choices %}
+                                        <button type="submit" name="accent" value="{{ value }}" class="ga-swatch"
+                                                data-accent-swatch="{{ value }}" data-accent-value="{{ value }}"
+                                                title="{{ label }}" aria-label="{{ label }}" aria-pressed="{% if value == ga_accent_choice %}true{% else %}false{% endif %}"></button>
+                                    {% endfor %}
+                                </span>
+                            </form>
+                            <a href="{% firstof site_url '/' %}">{% ga_icon "globe" %}Вернуться на сайт</a>
+                            {% if user.has_usable_password %}
+                                <a href="{% url 'admin:password_change' %}">{% ga_icon "key" %}Сменить пароль</a>
+                            {% endif %}
+                            <form id="logout-form" method="post" action="{% url 'admin:logout' %}">
+                                {% csrf_token %}
+                                <button type="submit">{% ga_icon "log-out" %}Выйти</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            {% endif %}
+        {% endblock %}
+    </header>
+    {% if has_permission %}
+        <script>
+            (function () {
+                // На широком экране кнопка сворачивает меню (и запоминает выбор), на узком — выдвигает его поверх страницы.
+                var root = document.documentElement;
+                var backdrop = document.querySelector('.ga-sidebar-backdrop');
+                var narrow = window.matchMedia('(max-width: 1023px)');
+                function setOpen(open) {
+                    root.classList.toggle('ga-sidebar-open', open);
+                    backdrop.hidden = !open;
+                }
+                document.querySelector('[data-ga-sidebar-toggle]').addEventListener('click', function () {
+                    if (narrow.matches) {
+                        setOpen(!root.classList.contains('ga-sidebar-open'));
+                    } else {
+                        var collapsed = root.classList.toggle('ga-sidebar-collapsed');
+                        localStorage.setItem('gaSidebar', collapsed ? 'collapsed' : 'expanded');
+                    }
+                });
+                backdrop.addEventListener('click', function () { setOpen(false); });
+                narrow.addEventListener('change', function () { setOpen(false); });
+                // Цвет оформления: перекрашиваем сразу, а в профиль сохраняем фоном.
+                var accentForm = document.querySelector('[data-ga-accent-form]');
+                accentForm.addEventListener('submit', function (event) {
+                    var swatch = event.submitter;
+                    if (!swatch || !window.fetch) return;
+                    event.preventDefault();
+                    root.dataset.accent = swatch.dataset.accentValue;
+                    accentForm.querySelectorAll('[data-accent-swatch]').forEach(function (button) {
+                        button.setAttribute('aria-pressed', button === swatch ? 'true' : 'false');
+                    });
+                    var data = new FormData(accentForm);
+                    data.set('accent', swatch.value);
+                    fetch(accentForm.action, {method: 'POST', body: data, headers: {'X-Requested-With': 'fetch'}});
+                });
+                // Меню пользователя закрывается кликом мимо него.
+                document.addEventListener('click', function (event) {
+                    var menu = document.querySelector('.ga-user-menu[open]');
+                    if (menu && !menu.contains(event.target)) menu.removeAttribute('open');
+                });
+            })();
+        </script>
     {% endif %}
 {% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
 
 {% block nav-global %}{% endblock %}

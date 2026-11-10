@@ -10,22 +10,9 @@
   <h1>КОС-ЛИСТ<br>{{ site_settings.site_name }}</h1>
   <p>(kill on sight - убить при встрече)</p>
   <div class = "class-icons">
-    <img src ="{% static 'class_icon/voin.png' %}">
-    <img src = "{% static 'class_icon/mag.png' %}">
-    <img src = "{% static 'class_icon/luk.png' %}">
-    <img src = "{% static 'class_icon/zhrec.png' %}">
-    <img src = "{% static 'class_icon/obor.png' %}">
-    <img src = "{% static 'class_icon/dru.png' %}">
-    <img src = "{% static 'class_icon/sin.png' %}">
-    <img src = "{% static 'class_icon/sham.png' %}">
-    <img src = "{% static 'class_icon/mist.png' %}">
-    <img src = "{% static 'class_icon/strazh.png' %}">
-    <img src = "{% static 'class_icon/pal.png' %}">
-    <img src = "{% static 'class_icon/strel.png' %}">
-    <img src = "{% static 'class_icon/priz.png' %}">
-    <img src = "{% static 'class_icon/zhnec.png' %}">
-    <img src = "{% static 'class_icon/makaka.png' %}">
-    <img src = "{% static 'class_icon/bard1.png' %}">
+    {% for label, icon in class_icons %}
+      <img src = "{{ icon }}" alt = "{{ label }}" title = "{{ label }}">
+    {% endfor %}
   </div>
   <hr>
   <h2>Гильдии:</h2>

@@ -14,6 +14,19 @@ from .models import SiteSettings
 from .secrets import SECRET_PREFIX
 
 
+class PluralTests(SimpleTestCase):
+    def test_russian_plural_forms(self):
+        from .dashboard import _plural
+
+        forms = ('сообщение', 'сообщения', 'сообщений')
+        expected = {0: 'сообщений', 1: 'сообщение', 2: 'сообщения', 4: 'сообщения', 5: 'сообщений',
+                    11: 'сообщений', 12: 'сообщений', 14: 'сообщений', 21: 'сообщение', 22: 'сообщения',
+                    111: 'сообщений', 101: 'сообщение'}
+        for number, word in expected.items():
+            with self.subTest(number=number):
+                self.assertEqual(_plural(number, *forms), word)
+
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class DashboardTests(TestCase):
     def setUp(self):
@@ -48,6 +61,11 @@ class DashboardTests(TestCase):
         self.assertIn('ждут завершения', alert_texts)
         self.assertIn('копии выключены', alert_texts)
         self.assertIsNotNone(dashboard['backup'])
+        # Штрих и пробел каждого сегмента кольца — ровно один круг, иначе сегмент уезжает за его пределы.
+        for segment in dashboard['applications_chart']['segments']:
+            self.assertAlmostEqual(segment['dash'] + segment['gap'], 100)
+        hints = {stat['label']: stat['hint'] for stat in dashboard['stats']}
+        self.assertEqual(hints['Активные лоты'], '1 ждёт завершения')
         self.assertContains(response, 'Требует внимания')
         self.assertContains(response, 'candidate')
 
@@ -57,7 +75,7 @@ class DashboardTests(TestCase):
 
         urls = [stat['url'] for stat in dashboard['stats'] if stat['url']]
         urls += [alert['url'] for alert in dashboard['alerts'] if alert['url']]
-        urls += [action['url'] for action in dashboard['actions'] if not action.get('post') and not action.get('external')]
+        urls += [action['url'] for action in dashboard['actions'] if not action.get('post')]
         for url in urls:
             with self.subTest(url=url):
                 response = self.client.get(url, follow=True)
@@ -85,6 +103,49 @@ class DashboardTests(TestCase):
 
         self.assertContains(response, '<span class="brand-text">Ermitage</span>', html=True)
 
+    def test_accent_color_saved_to_profile(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'teal', 'next': '/admin/'})
+
+        self.assertRedirects(response, '/admin/')
+        self.admin.profile.refresh_from_db()
+        self.assertEqual(self.admin.profile.accent_color, 'teal')
+        self.assertContains(self.client.get(reverse('admin:index')), "dataset.accent = 'teal'")
+
+    def test_guild_accent_from_site_settings(self):
+        site = SiteSettings.load()
+        site.accent_color = 'pink'
+        site.save()
+        self.client.force_login(self.admin)
+
+        # По умолчанию в профиле «как у гильдии» — админка в цвете из настроек сайта.
+        response = self.client.get(reverse('admin:index'))
+        self.assertEqual(self.admin.profile.accent_color, '')
+        self.assertContains(response, "dataset.accent = 'pink'")
+        self.assertContains(response, 'title="Цвет гильдии — розовый"')
+
+        # Свой цвет важнее цвета гильдии, а «Цвет гильдии» снова возвращает к настройке сайта.
+        self.client.post(reverse('admin:set_accent'), {'accent': 'teal'})
+        self.assertContains(self.client.get(reverse('admin:index')), "dataset.accent = 'teal'")
+        self.client.post(reverse('admin:set_accent'), {'accent': 'guild'})
+        self.admin.profile.refresh_from_db()
+        self.assertEqual(self.admin.profile.accent_color, '')
+        self.assertContains(self.client.get(reverse('admin:index')), "dataset.accent = 'pink'")
+
+    def test_accent_color_background_request_and_bad_values(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'pink'}, headers={'X-Requested-With': 'fetch'})
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(self.client.post(reverse('admin:set_accent'), {'accent': 'red'}).status_code, 400)
+        self.assertEqual(self.client.get(reverse('admin:set_accent')).status_code, 405)
+        # Чужой адрес возврата не принимаем — возвращаем на главную админки.
+        response = self.client.post(reverse('admin:set_accent'), {'accent': 'blue', 'next': 'https://evil.example/'})
+        self.assertRedirects(response, reverse('admin:index'))
+        self.admin.profile.refresh_from_db()
+        self.assertEqual(self.admin.profile.accent_color, 'blue')
+
     def test_cancel_auction_page_renders(self):
         from auction.models import AuctionLot
 
@@ -100,7 +161,7 @@ class DashboardTests(TestCase):
 @override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsAdminTests(TestCase):
     FORM = {
-        'site_name': 'Гильдия', 'email_port': '587', 'email_security': 'tls',
+        'site_name': 'Гильдия', 'accent_color': 'indigo', 'email_port': '587', 'email_security': 'tls',
         'email_host': '', 'email_host_user': '', 'email_host_password': '', 'email_from': '',
         'captcha_site_key': '', 'captcha_private_key': '',
     }
@@ -124,11 +185,12 @@ class SiteSettingsAdminTests(TestCase):
         self.assertNotContains(response, 'captcha-secret')
 
         # Повторное сохранение с пустыми полями не стирает секреты.
-        self.post(email_host='smtp.example.com', site_name='Ermitage')
+        self.post(email_host='smtp.example.com', site_name='Ermitage', accent_color='orange')
         site = SiteSettings.load()
         self.assertEqual(site.get_email_password(), 'mail-pass')
         self.assertEqual(site.get_captcha_private_key(), 'captcha-secret')
         self.assertEqual(site.site_name, 'Ermitage')
+        self.assertEqual(site.accent_color, 'orange')
 
     def test_verification_requires_mail(self):
         response = self.post(email_verification='on')
@@ -189,6 +251,9 @@ class HashedStaticTests(SimpleTestCase):
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsTests(TestCase):
+    def setUp(self):
+        self.client.force_login(User.objects.create_user('member', password='pass'))
+
     def test_default_name_shown(self):
         response = self.client.get('/')
 

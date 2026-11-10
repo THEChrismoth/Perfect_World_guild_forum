@@ -7,6 +7,8 @@ from django.templatetags.static import static
 # Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль.
 from django.utils import timezone as django_timezone
 
+from core.accents import ACCENT_CHOICES
+
 TIMEZONE_CHOICES = [
     ('UTC-12', 'UTC-12:00'), ('UTC-11', 'UTC-11:00'), ('UTC-10', 'UTC-10:00'),
     ('UTC-9', 'UTC-09:00'), ('UTC-8', 'UTC-08:00'), ('UTC-7', 'UTC-07:00'),
@@ -18,6 +20,36 @@ TIMEZONE_CHOICES = [
     ('UTC+9', 'UTC+09:00 (Якутск)'), ('UTC+10', 'UTC+10:00 (Владивосток)'), ('UTC+11', 'UTC+11:00 (Магадан)'),
     ('UTC+12', 'UTC+12:00 (Камчатка)'),
 ]
+
+# Иконки классов персонажей (static_src/class_icon/).
+CLASS_ICONS = {
+    'var': 'class_icon/var.png',
+    'mag': 'class_icon/mag.png',
+    'luk': 'class_icon/luk.png',
+    'zhrec': 'class_icon/priest.png',
+    'obor': 'class_icon/tank.png',
+    'dru': 'class_icon/dru.png',
+    'sin': 'class_icon/sin.png',
+    'sham': 'class_icon/sham.png',
+    'mist': 'class_icon/mist.png',
+    'strazh': 'class_icon/sik.png',
+    'pal': 'class_icon/pal.png',
+    'strel': 'class_icon/gun.png',
+    'priz': 'class_icon/gost.png',
+    'zhnec': 'class_icon/koas.png',
+    'makaka': 'class_icon/mk.png',
+    'bard': 'class_icon/bard.png',
+    'dk': 'class_icon/dk.png',
+}
+
+
+def class_icon_url(player_class):
+    path = CLASS_ICONS.get(player_class)
+    return static(path) if path else ''
+
+
+# Пустое значение — «как у гильдии» (цвет по умолчанию из настроек сайта).
+PROFILE_ACCENT_CHOICES = [('', 'Как у гильдии')] + ACCENT_CHOICES
 
 
 class Profile(models.Model):
@@ -77,6 +109,10 @@ class Profile(models.Model):
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
     last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
+
+    # Цвет оформления (пока — в админ-панели), список цветов — core/accents.py.
+    accent_color = models.CharField('Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES,
+                                    blank=True, default='')
 
     def save(self, *args, **kwargs):
         # Автоматически поддерживаем консистентность при сохранении.
@@ -152,29 +188,7 @@ class Profile(models.Model):
     
     def get_icon_url(self):
         """Возвращает URL иконки для класса персонажа."""
-        icons = {
-            'var': 'class_icon/var.png',
-            'mag': 'class_icon/mag.png',
-            'luk': 'class_icon/luk.png',
-            'zhrec': 'class_icon/priest.png',
-            'obor': 'class_icon/tank.png',
-            'dru': 'class_icon/dru.png',
-            'sin': 'class_icon/sin.png',
-            'sham': 'class_icon/sham.png',
-            'mist': 'class_icon/mist.png',
-            'strazh': 'class_icon/sik.png',
-            'pal': 'class_icon/pal.png',
-            'strel': 'class_icon/gun.png',
-            'priz': 'class_icon/gost.png',
-            'zhnec': 'class_icon/koas.png',
-            'makaka': 'class_icon/mk.png',
-            'bard': 'class_icon/bard.png',
-            'dk': 'class_icon/dk.png',
-        }
-        icon_path = icons.get(self.player_class, '')
-        if icon_path:
-            return static(icon_path)
-        return ''
+        return class_icon_url(self.player_class)
     
     def age(self):
         """Возвращает возраст пользователя."""

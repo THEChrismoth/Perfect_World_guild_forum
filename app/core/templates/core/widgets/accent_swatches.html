@@ -1,0 +1,10 @@
+{# Выбор цвета кружками, как в меню пользователя в шапке админки. Внутри — обычные радиокнопки. #}
+<div class="ga-swatch-field" role="radiogroup"{% if widget.attrs.id %} id="{{ widget.attrs.id }}"{% endif %}>
+    {% for group, options, index in widget.optgroups %}{% for option in options %}
+        <label class="ga-swatch-option">
+            <input type="radio" name="{{ option.name }}" value="{{ option.value }}"{% include "django/forms/widgets/attrs.html" with widget=option %}>
+            <span class="ga-swatch" data-accent-swatch="{{ option.value }}" aria-hidden="true"></span>
+            <span class="ga-swatch-name">{{ option.label }}</span>
+        </label>
+    {% endfor %}{% endfor %}
+</div>

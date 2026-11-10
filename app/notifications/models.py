@@ -17,7 +17,7 @@ class Notification(models.Model):
         ('system', '⚙️ Система'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name='Получатель')
     title = models.CharField('Заголовок', max_length=200)
     message = models.TextField('Сообщение')
     notification_type = models.CharField('Тип', max_length=20, choices=NOTIFICATION_TYPES, default='info')

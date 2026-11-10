@@ -63,6 +63,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # Сайт закрыт для гостей: без входа открываются только страницы с @login_not_required
+    # (вход, регистрация, подтверждение почты, вход в демо, API бота TeamSpeak).
+    'django.contrib.auth.middleware.LoginRequiredMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'forum.middleware.UserActivityMiddleware',

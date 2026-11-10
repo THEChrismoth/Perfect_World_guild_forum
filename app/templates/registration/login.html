@@ -1,29 +1,31 @@
-{% extends 'base.html' %}
+{% extends 'registration/auth_base.html' %}
+{% load ga_admin %}
 {% block title %}Вход | {{ site_settings.site_name }}{% endblock %}
 
-{% block content %}
-<div class="auth-container">
+{% block auth_title %}{% if demo_mode %}Демо-сайт{% else %}Вход в аккаунт{% endif %}{% endblock %}
+{% block auth_subtitle %}{% if demo_mode %}Выберите роль — для вас создастся личный аккаунт, пароль не нужен.{% else %}Рады снова видеть! Введите имя пользователя и пароль.{% endif %}{% endblock %}
+
+{% block auth_content %}
     {% if demo_mode %}
-        <h2>Демо-сайт</h2>
-        <p class="demo-login-hint">Выберите роль — для вас создастся личный аккаунт, пароль не нужен:</p>
         {% include 'demo/role_buttons.html' with detailed=True %}
     {% else %}
-    <h2>Вход в систему</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="id_username">Имя пользователя</label>
-            <input type="text" name="username" id="id_username" required>
-        </div>
-        <div class="form-group">
-            <label for="id_password">Пароль</label>
-            <input type="password" name="password" id="id_password" required>
-        </div>
-        {% if form.errors %}
-            <div class="form-error">Неверное имя пользователя или пароль</div>
-        {% endif %}
-        <button type="submit" class="btn-submit">Войти</button>
-    </form>
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <div class="form-group">
+                <label for="id_username">Имя пользователя</label>
+                <input type="text" name="username" id="id_username" value="{{ form.username.value|default:'' }}"
+                       autocomplete="username" autocapitalize="none" autofocus required>
+            </div>
+            <div class="form-group">
+                <label for="id_password">Пароль</label>
+                <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+            </div>
+            {% if form.errors %}
+                <div class="form-error">Неверное имя пользователя или пароль</div>
+            {% endif %}
+            <button type="submit" class="btn-submit">{% ga_icon "log-in" %}Войти</button>
+        </form>
+        <p class="auth-switch">Ещё нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a></p>
     {% endif %}
-</div>
 {% endblock %}
