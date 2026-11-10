@@ -9,4 +9,6 @@ urlpatterns = [
     path('list/', views.application_list, name='application_list'),
     path('my/', views.my_applications, name='my_applications'),
     path('detail/<int:id>/', views.application_detail, name='application_detail'),
+    path('detail/<int:id>/vote/', views.application_vote, name='application_vote'),
+    path('detail/<int:id>/comment/', views.application_comment, name='application_comment'),
 ]

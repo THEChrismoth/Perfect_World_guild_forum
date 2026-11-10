@@ -52,6 +52,49 @@ class ClosedSiteTests(TestCase):
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
+class SiteAccentTests(TestCase):
+    """Выбор цвета оформления в меню профиля на сайте — для любого игрока, не только для администраторов."""
+
+    def setUp(self):
+        self.user = User.objects.create_user('member', password='pass')
+        self.url = reverse('profile_accent')
+
+    def test_player_saves_color_and_it_applies_everywhere(self):
+        self.client.force_login(self.user)
+
+        response = self.client.post(self.url, {'accent': 'teal'}, headers={'X-Requested-With': 'fetch'})
+
+        self.assertEqual(response.status_code, 204)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.accent_color, 'teal')
+        self.assertContains(self.client.get('/'), 'data-accent="teal"')
+        # Кружок выбранного цвета отмечен в меню.
+        self.assertContains(self.client.get('/'), 'value="teal" class="site-swatch"')
+
+    def test_guild_color_resets_choice(self):
+        site = SiteSettings.load()
+        site.accent_color = 'pink'
+        site.save()
+        self.client.force_login(self.user)
+        self.client.post(self.url, {'accent': 'teal'})
+
+        response = self.client.post(self.url, {'accent': 'guild', 'next': '/koslist/'})
+
+        self.assertRedirects(response, '/koslist/', fetch_redirect_response=False)
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.accent_color, '')
+        self.assertContains(self.client.get('/'), 'data-accent="pink"')
+
+    def test_bad_values_and_guest(self):
+        self.assertEqual(self.client.post(self.url, {'accent': 'teal'}).status_code, 302)  # гостя — на вход
+        self.client.force_login(self.user)
+        self.assertEqual(self.client.post(self.url, {'accent': 'red'}).status_code, 400)
+        self.assertEqual(self.client.get(self.url).status_code, 405)
+        response = self.client.post(self.url, {'accent': 'blue', 'next': 'https://evil.example/'})
+        self.assertRedirects(response, '/', fetch_redirect_response=False)
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
 class ActivityMenuTests(TestCase):
     def test_menu_item_opens_activity_page(self):
         admin = User.objects.create_superuser('admin', password='pass')
@@ -216,3 +259,118 @@ class RegistrationCaptchaTests(TestCase):
             self.register(password2='different', **{'ddg-captcha-token': 'token'})
 
         urlopen.assert_not_called()
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class UserAdminFormTests(TestCase):
+    def test_no_important_dates_block(self):
+        admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.client.force_login(admin)
+
+        response = self.client.get(reverse('admin:auth_user_change', args=[admin.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'name="last_login_0"')
+        self.assertNotContains(response, 'name="date_joined_0"')
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class ProfilePageTests(TestCase):
+    def setUp(self):
+        self.owner = User.objects.create_user('owner', password='pass')
+        self.owner.profile.activity_points = 77
+        self.owner.profile.save()
+        self.owner.gear_sets.filter(kind='pa').update(hp=31000)
+        self.guest = User.objects.create_user('guest', password='pass')
+
+    def test_points_and_edit_only_for_owner(self):
+        url = reverse('profile_view', args=['owner'])
+        self.client.force_login(self.owner)
+        own = self.client.get(url)
+        self.client.force_login(self.guest)
+        other = self.client.get(url)
+
+        self.assertContains(own, '31000')
+        self.assertContains(own, 'Очки активности')
+        self.assertContains(own, 'class="pf-side"')
+        self.assertContains(other, '31000')
+        # «Редактировать профиль» в меню сверху есть всегда — проверяем кнопку в самом профиле.
+        self.assertNotContains(other, 'class="pf-side"')
+
+    def test_edit_saves_both_sets_and_main(self):
+        from .models import GearSet
+
+        self.client.force_login(self.owner)
+        page = self.client.get(reverse('profile_edit'))
+        self.assertContains(page, 'Физ. / маг. атака')
+        self.assertContains(page, 'name="pa-hp"')
+        self.assertContains(page, 'name="pz-hp"')
+
+        data = {f'{kind}-{name}': 0 for kind in ('pa', 'pz') for name in GearSet.STAT_FIELDS}
+        data.update({'username': 'owner', 'player_class': 'mag', 'main_set': 'pz',
+                     'pa-hp': 42000, 'pa-ma': 15000, 'pz-hp': 55000, 'pz-pz': 300})
+        response = self.client.post(reverse('profile_edit'), data)
+
+        self.assertRedirects(response, reverse('profile_view', args=['owner']))
+        sets = {gear.kind: gear for gear in self.owner.gear_sets.all()}
+        self.assertEqual((sets['pa'].hp, sets['pa'].ma, sets['pz'].hp, sets['pz'].pz), (42000, 15000, 55000, 300))
+        self.owner.profile.refresh_from_db()
+        self.assertEqual(self.owner.profile.main_set, 'pz')
+        # Основной сет — первым.
+        self.assertEqual([gear.kind for gear in self.owner.profile.gear_sets()], ['pz', 'pa'])
+
+    def test_every_new_user_gets_two_sets(self):
+        self.assertEqual(sorted(self.guest.gear_sets.values_list('kind', flat=True)), ['pa', 'pz'])
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class PointsHistoryTests(TestCase):
+    def setUp(self):
+        from auction.models import PointsTransaction
+
+        self.owner = User.objects.create_user('owner', password='pass')
+        self.owner.profile.activity_points = 6
+        self.owner.profile.save()
+        PointsTransaction.objects.create(user=self.owner, amount=3, transaction_type='credit',
+                                         description='Участие в ивенте: Садэман')
+        PointsTransaction.objects.create(user=self.owner, amount=2, transaction_type='debit',
+                                         description='Отсутствие на ивенте: ТВ')
+        self.url = reverse('profile_view', args=['owner'])
+
+    def test_owner_sees_balance_and_history(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'Движение моих очков')
+        self.assertContains(response, '+3')
+        self.assertContains(response, 'Участие в ивенте: Садэман')
+        self.assertEqual(response.context['points']['balance'], 6)
+
+    def test_filter_by_type(self):
+        self.client.force_login(self.owner)
+        response = self.client.get(self.url, {'points': 'debit'})
+
+        self.assertEqual([item.description for item in response.context['points_page']], ['Отсутствие на ивенте: ТВ'])
+
+    def test_other_players_see_points_too(self):
+        self.client.force_login(User.objects.create_user('guest', password='pass'))
+        response = self.client.get(self.url)
+
+        self.assertContains(response, 'Движение очков')
+        self.assertNotContains(response, 'Движение моих очков')
+        self.assertContains(response, 'Садэман')
+        self.assertEqual(response.context['points']['balance'], 6)
+
+    def test_admin_correction_goes_to_history(self):
+        import json
+        from auction.models import PointsTransaction
+
+        admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
+        self.client.force_login(admin)
+        self.client.post(reverse('admin:update_activity_points'),
+                         json.dumps({'profile_id': self.owner.profile.id, 'field': 'current', 'value': 10}),
+                         content_type='application/json')
+
+        correction = PointsTransaction.objects.filter(user=self.owner).latest('id')
+        self.assertEqual((correction.transaction_type, correction.amount), ('credit', 4))
+        self.assertIn('boss', correction.description)

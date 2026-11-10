@@ -1,190 +1,130 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Редактирование профиля — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'profiles/css/profile.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="profile-edit-container">
-    <h1>Редактирование профиля</h1>
-    
-    <form method="post" enctype="multipart/form-data" class="profile-edit-form">
-        {% csrf_token %}
-        
-        <div class="form-section">
-            <h3>Основная информация</h3>
-            
-            <!-- Поле аватара — отдельно, на всю ширину -->
-            <div class="form-group-fullwidth">
-                <label>Аватар</label>
-                <div class="avatar-upload">
-                    <div class="avatar-preview" id="avatarPreview">
-                        {% if profile_form.instance.avatar %}
-                            <img src="{{ profile_form.instance.avatar.url }}" alt="Аватар" style="width: 100%; height: 100%; object-fit: cover;">
-                        {% else %}
-                            <div class="avatar-placeholder">
-                                {{ request.user.username|make_list|first|upper }}
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="avatar-upload-controls">
-                        <label for="id_avatar_custom" class="btn-upload">
-                            📁 Выбрать файл
-                        </label>
-                        <input type="file" name="avatar" accept="image/*" id="id_avatar_custom" style="display: none;">
-                        {% if profile_form.instance.avatar %}
-                            <label class="btn-clear">
-                                <input type="checkbox" name="avatar-clear" id="avatar-clear_id">
-                                🗑️ Очистить
-                            </label>
-                        {% endif %}
-                    </div>
-                    <small class="avatar-hint">Рекомендуемый размер: 200x200px. Поддерживаются JPG, PNG, GIF</small>
-                </div>
-            </div>
-            
-            <!-- Остальные поля — в сетке из двух колонок -->
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="{{ user_form.username.id_for_label }}">Никнейм</label>
-                    {{ user_form.username }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.player_class.id_for_label }}">Класс персонажа</label>
-                    {{ profile_form.player_class }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.real_name.id_for_label }}">Имя</label>
-                    {{ profile_form.real_name }}
-                    <small class="help-text">{{ profile_form.real_name.help_text }}</small>
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.birth_date.id_for_label }}">Дата рождения</label>
-                    {{ profile_form.birth_date }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.city.id_for_label }}">Город</label>
-                    {{ profile_form.city }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.timezone.id_for_label }}">Часовой пояс</label>
-                    {{ profile_form.timezone }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.ts3_id.id_for_label }}">TS3 ID</label>
-                    {{ profile_form.ts3_id }}
-                    <small class="help-text">Клиент TeamSpeak → Инструменты → Идентификаторы → <strong>локальный</strong> идентификатор, с которым вы подключаетесь (не синхронизированный с myTeamSpeak) → «Уникальный ID»: 28 символов, в конце «=». Доступ к комнатам гильдии — кнопкой в блоке TeamSpeak в профиле</small>
-                    {% for error in profile_form.ts3_id.errors %}<span class="error-text">{{ error }}</span>{% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-section">
-            <h3>Характеристики</h3>
-            <div class="stats-form-grid">
-                <div class="form-group">
-                    <label for="{{ profile_form.hp.id_for_label }}">❤️ HP</label>
-                    {{ profile_form.hp }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.mp.id_for_label }}">💧 MP</label>
-                    {{ profile_form.mp }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.fa.id_for_label }}">ФА (Физическая атака)</label>
-                    {{ profile_form.fa }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.ma.id_for_label }}">МА (Магическая атака)</label>
-                    {{ profile_form.ma }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.pa.id_for_label }}">ПА (Показатель атаки)</label>
-                    {{ profile_form.pa }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.pz.id_for_label }}">ПЗ (Прямая защита)</label>
-                    {{ profile_form.pz }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.bd.id_for_label }}">БД (Боевой дух)</label>
-                    {{ profile_form.bd }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.bu.id_for_label }}">БУ (Бонус уровня)</label>
-                    {{ profile_form.bu }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.physical_defense.id_for_label }}">Физическая защита</label>
-                    {{ profile_form.physical_defense }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.magic_defense.id_for_label }}">Магическая защита</label>
-                    {{ profile_form.magic_defense }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.physical_pierce.id_for_label }}">Физический пробив</label>
-                    {{ profile_form.physical_pierce }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.magic_pierce.id_for_label }}">Магический пробив</label>
-                    {{ profile_form.magic_pierce }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.crit_damage.id_for_label }}">Крит. урон (%)</label>
-                    {{ profile_form.crit_damage }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.crit_chance.id_for_label }}">Крит. шанс (%)</label>
-                    {{ profile_form.crit_chance }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.accuracy.id_for_label }}">Меткость</label>
-                    {{ profile_form.accuracy }}
-                </div>
-                <div class="form-group">
-                    <label for="{{ profile_form.dodge.id_for_label }}">Уклонение</label>
-                    {{ profile_form.dodge }}
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-buttons">
-            <button type="submit" class="btn-save">💾 Сохранить изменения</button>
-            <a href="{% url 'profile_view' username=request.user.username %}" class="btn-cancel">❌ Отмена</a>
-        </div>
-    </form>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Редактирование профиля</h1>
+        <p class="ui-page-sub">Класс и характеристики попадут в заявку в гильдию автоматически</p>
+    </div>
 </div>
 
+<form method="post" enctype="multipart/form-data" class="ui-stack pf-edit">
+    {% csrf_token %}
+    {% if user_form.non_field_errors or profile_form.non_field_errors %}
+        <div class="ui-error">{{ user_form.non_field_errors }}{{ profile_form.non_field_errors }}</div>
+    {% endif %}
+
+    <section class="ui-card">
+        <div class="ui-card-head"><h2 class="ui-card-title">Основное</h2></div>
+
+        <div class="pf-avatar-edit">
+            <span class="pf-avatar" id="avatar-preview">
+                {% if profile_form.instance.avatar %}<img src="{{ profile_form.instance.avatar.url }}" alt="">{% else %}{{ request.user.username|slice:":1"|upper }}{% endif %}
+            </span>
+            <div class="pf-avatar-controls">
+                <div class="ui-form-actions">
+                    <label for="id_avatar_custom" class="ui-btn ui-btn-secondary ui-btn-sm">{% ga_icon "image" %}Выбрать картинку</label>
+                    <input type="file" name="avatar" accept="image/*" id="id_avatar_custom" class="pf-file-input">
+                    {% if profile_form.instance.avatar %}
+                        <label class="pf-clear"><input type="checkbox" name="avatar-clear">Удалить аватар</label>
+                    {% endif %}
+                </div>
+                <span class="ui-help">Квадратная картинка от 200×200 пикселей: JPG, PNG или GIF</span>
+                {% if profile_form.avatar.errors %}<span class="ui-error">{{ profile_form.avatar.errors|join:" " }}</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="pf-fields">
+            {% include 'profiles/includes/field.html' with field=user_form.username %}
+            {% include 'profiles/includes/field.html' with field=profile_form.player_class %}
+        </div>
+    </section>
+
+    <section class="ui-card">
+        <div class="ui-card-head"><h2 class="ui-card-title">TeamSpeak</h2></div>
+        <div class="pf-fields">
+            {% include 'profiles/includes/field.html' with field=profile_form.ts3_id %}
+        </div>
+        <p class="ui-help pf-ts-help">Клиент TeamSpeak → Инструменты → Идентификаторы → <strong>локальный</strong> идентификатор, с которым вы подключаетесь (не синхронизированный с myTeamSpeak) → «Уникальный ID»: 28 символов, в конце «=». Доступ к комнатам гильдии — кнопкой в блоке TeamSpeak в профиле.</p>
+    </section>
+
+    <section class="ui-card" id="stats">
+        <div class="ui-card-head"><h2 class="ui-card-title">Характеристики персонажа</h2></div>
+        <p class="ui-help pf-sets-help">В игре два комплекта брони — на атаку и на защиту, они меняются одной кнопкой в бою. Заполните оба и выберите основной: он показывается первым в профиле и в заявке в гильдию.</p>
+        {% with main=profile_form.main_set.value %}
+            <div class="pf-tabs" role="tablist" data-tabs>
+                {% for set in sets %}
+                    <button type="button" role="tab" class="pf-tab{% if forloop.first %} is-active{% endif %}" data-tab="edit-set-{{ set.kind }}"
+                            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+                        {{ set.label }}<span class="pf-tab-mark" data-main-mark="{{ set.kind }}" {% if set.kind != main %}hidden{% endif %}>основной</span>
+                    </button>
+                {% endfor %}
+            </div>
+            {% for set in sets %}
+                <div class="pf-tab-panel" id="edit-set-{{ set.kind }}" role="tabpanel" {% if not forloop.first %}hidden{% endif %}>
+                    <label class="pf-main-choice">
+                        <input type="radio" name="main_set" value="{{ set.kind }}" {% if set.kind == main %}checked{% endif %}>
+                        Основной сет — показывается первым в профиле и в заявке
+                    </label>
+                    <div class="pf-stat-groups">
+                        <div>
+                            <h3 class="pf-group-title">Основные</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.main %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="pf-group-title">Атака</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.attack %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="pf-group-title">Защита</h3>
+                            <div class="pf-fields pf-fields-tight">
+                                {% for stat in set.groups.defense %}{% include 'profiles/includes/stat_field.html' %}{% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endwith %}
+    </section>
+
+    <div class="ui-form-actions pf-actions">
+        <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "check" %}Сохранить</button>
+        <a href="{% url 'profile_view' username=request.user.username %}" class="ui-btn ui-btn-secondary">Отмена</a>
+    </div>
+</form>
+
 <script>
-    // Предпросмотр аватара.
-    document.addEventListener('DOMContentLoaded', function() {
-        var avatarInput = document.getElementById('id_avatar_custom');
-        var avatarPreview = document.getElementById('avatarPreview');
-        
-        if (avatarInput && avatarPreview) {
-            avatarInput.addEventListener('change', function(event) {
-                var file = event.target.files[0];
-                
-                if (file && file.type.startsWith('image/')) {
-                    var reader = new FileReader();
-                    
-                    reader.onload = function(e) {
-                        avatarPreview.innerHTML = '';
-                        var img = document.createElement('img');
-                        img.src = e.target.result;
-                        img.alt = 'Аватар';
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.objectFit = 'cover';
-                        avatarPreview.appendChild(img);
-                    };
-                    
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+// Новый аватар сразу виден в кружке.
+document.getElementById('id_avatar_custom').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    var preview = document.getElementById('avatar-preview');
+    preview.innerHTML = '';
+    var img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    img.alt = '';
+    preview.appendChild(img);
+});
+
+// Метка «основной» на вкладке переезжает вслед за выбором основного сета.
+document.querySelectorAll('input[name="main_set"]').forEach(function (radio) {
+    radio.addEventListener('change', function () {
+        document.querySelectorAll('[data-main-mark]').forEach(function (mark) {
+            mark.hidden = mark.dataset.mainMark !== radio.value;
+        });
     });
+});
 </script>
+{% include 'profiles/includes/tabs_script.html' %}
 {% endblock %}

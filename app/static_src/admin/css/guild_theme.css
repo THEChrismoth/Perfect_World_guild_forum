@@ -4,90 +4,17 @@
    и встроенный переключатель темы (светлая / тёмная / как в системе).
    Подключается в templates/admin/base_site.html.
 
-   Цвет оформления каждый выбирает себе сам (профиль → accent_color, по умолчанию индиго).
-   Палитра задаёт оттенки акцента отдельно для светлой (--ga-l-*) и тёмной (--ga-d-*) темы,
-   а темы ниже берут акцент только из этих переменных.
+   Цвет оформления — цвет гильдии из настроек сайта или свой из профиля (core/accents.py).
+   Палитры — в css/accents.css, общие с сайтом и страницами входа: оттенки акцента для светлой
+   (--pal-l-*) и тёмной (--pal-d-*) темы; темы ниже берут акцент только из этих переменных.
    ===================================================================== */
-
-/* ---------- Палитры цвета оформления ---------- */
-:root,
-html[data-accent="indigo"] {
-    --ga-l-accent: #4f46e5;
-    --ga-l-rgb: 79, 70, 229;
-    --ga-l-strong: #4338ca;
-    --ga-l-deep: #3730a3;
-    --ga-d-accent: #6366f1;
-    --ga-d-rgb: 99, 102, 241;
-    --ga-d-strong: #818cf8;
-    --ga-d-light: #a5b4fc;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #4f46e5;
-    --ga-d-button-hover: #6366f1;
-}
-
-html[data-accent="blue"] {
-    --ga-l-accent: #2563eb;
-    --ga-l-rgb: 37, 99, 235;
-    --ga-l-strong: #1d4ed8;
-    --ga-l-deep: #1e40af;
-    --ga-d-accent: #3b82f6;
-    --ga-d-rgb: 59, 130, 246;
-    --ga-d-strong: #60a5fa;
-    --ga-d-light: #93c5fd;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #2563eb;
-    --ga-d-button-hover: #3b82f6;
-}
-
-/* Светлые бирюзовый и оранжевый в тёмной теме — с тёмным текстом поверх: белый на них не читается */
-html[data-accent="teal"] {
-    --ga-l-accent: #0f766e;
-    --ga-l-rgb: 15, 118, 110;
-    --ga-l-strong: #115e59;
-    --ga-l-deep: #134e4a;
-    --ga-d-accent: #14b8a6;
-    --ga-d-rgb: 20, 184, 166;
-    --ga-d-strong: #2dd4bf;
-    --ga-d-light: #5eead4;
-    --ga-d-fg: #042f2e;
-    --ga-d-button: #0f766e;
-    --ga-d-button-hover: #0d9488;
-}
-
-html[data-accent="pink"] {
-    --ga-l-accent: #db2777;
-    --ga-l-rgb: 219, 39, 119;
-    --ga-l-strong: #be185d;
-    --ga-l-deep: #9d174d;
-    --ga-d-accent: #ec4899;
-    --ga-d-rgb: 236, 72, 153;
-    --ga-d-strong: #f472b6;
-    --ga-d-light: #f9a8d4;
-    --ga-d-fg: #ffffff;
-    --ga-d-button: #db2777;
-    --ga-d-button-hover: #ec4899;
-}
-
-html[data-accent="orange"] {
-    --ga-l-accent: #c2410c;
-    --ga-l-rgb: 194, 65, 12;
-    --ga-l-strong: #9a3412;
-    --ga-l-deep: #7c2d12;
-    --ga-d-accent: #f97316;
-    --ga-d-rgb: 249, 115, 22;
-    --ga-d-strong: #fb923c;
-    --ga-d-light: #fdba74;
-    --ga-d-fg: #431407;
-    --ga-d-button: #c2410c;
-    --ga-d-button-hover: #ea580c;
-}
 
 /* ---------- Светлая тема ---------- */
 html[data-theme="light"],
 :root {
-    --ga-accent: var(--ga-l-accent);
-    --ga-accent-rgb: var(--ga-l-rgb);
-    --ga-accent-strong: var(--ga-l-strong);
+    --ga-accent: var(--pal-l-accent);
+    --ga-accent-rgb: var(--pal-l-rgb);
+    --ga-accent-strong: var(--pal-l-strong);
     --ga-accent-fg: #ffffff;
     --ga-page-bg: #f4f5fb;
     --ga-card-bg: #ffffff;
@@ -125,8 +52,8 @@ html[data-theme="light"],
     --breadcrumbs-bg: transparent;
 
     --link-fg: var(--ga-accent);
-    --link-hover-color: var(--ga-l-deep);
-    --link-selected-fg: var(--ga-l-deep);
+    --link-hover-color: var(--pal-l-deep);
+    --link-selected-fg: var(--pal-l-deep);
 
     --hairline-color: #e8eaf2;
     --border-color: #d7dae6;
@@ -146,7 +73,7 @@ html[data-theme="light"],
     --button-bg: var(--ga-accent);
     --button-hover-bg: var(--ga-accent-strong);
     --default-button-bg: var(--ga-accent-strong);
-    --default-button-hover-bg: var(--ga-l-deep);
+    --default-button-hover-bg: var(--pal-l-deep);
     --close-button-bg: #94a3b8;
     --close-button-hover-bg: #64748b;
     --delete-button-bg: #dc2626;
@@ -164,10 +91,10 @@ html[data-theme="light"],
 /* ---------- Тёмная тема: те же значения для «как в системе» и для явного выбора ---------- */
 @media (prefers-color-scheme: dark) {
     :root {
-        --ga-accent: var(--ga-d-accent);
-        --ga-accent-rgb: var(--ga-d-rgb);
-        --ga-accent-strong: var(--ga-d-strong);
-        --ga-accent-fg: var(--ga-d-fg);
+        --ga-accent: var(--pal-d-accent);
+        --ga-accent-rgb: var(--pal-d-rgb);
+        --ga-accent-strong: var(--pal-d-strong);
+        --ga-accent-fg: var(--pal-d-fg);
         --ga-page-bg: #0b1120;
         --ga-card-bg: #111a2e;
         --ga-sidebar-bg: #0e1627;
@@ -184,7 +111,7 @@ html[data-theme="light"],
         --ga-danger-rgb: 248, 113, 113;
 
         --primary: var(--ga-accent);
-        --secondary: var(--ga-d-button);
+        --secondary: var(--pal-d-button);
         --accent: var(--ga-accent);
         --primary-fg: #ffffff;
         --body-fg: #d4d9e6;
@@ -199,9 +126,9 @@ html[data-theme="light"],
         --breadcrumbs-fg: #f5f7ff;
         --breadcrumbs-link-fg: #8590a8;
         --breadcrumbs-bg: transparent;
-        --link-fg: var(--ga-d-strong);
-        --link-hover-color: var(--ga-d-light);
-        --link-selected-fg: var(--ga-d-light);
+        --link-fg: var(--pal-d-strong);
+        --link-hover-color: var(--pal-d-light);
+        --link-selected-fg: var(--pal-d-light);
         --hairline-color: #1c2740;
         --border-color: #293655;
         --error-fg: #f87171;
@@ -214,25 +141,25 @@ html[data-theme="light"],
         --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
         --selected-row: rgba(var(--ga-accent-rgb), 0.14);
         --button-fg: #ffffff;
-        --button-bg: var(--ga-d-button);
-        --button-hover-bg: var(--ga-d-button-hover);
-        --default-button-bg: var(--ga-d-button);
-        --default-button-hover-bg: var(--ga-d-button-hover);
+        --button-bg: var(--pal-d-button);
+        --button-hover-bg: var(--pal-d-button-hover);
+        --default-button-bg: var(--pal-d-button);
+        --default-button-hover-bg: var(--pal-d-button-hover);
         --close-button-bg: #334160;
         --close-button-hover-bg: #43527a;
         --delete-button-bg: #dc2626;
         --delete-button-hover-bg: #ef4444;
         --object-tools-fg: #ffffff;
-        --object-tools-bg: var(--ga-d-button);
-        --object-tools-hover-bg: var(--ga-d-button-hover);
+        --object-tools-bg: var(--pal-d-button);
+        --object-tools-hover-bg: var(--pal-d-button-hover);
     }
 }
 
 html[data-theme="dark"] {
-    --ga-accent: var(--ga-d-accent);
-    --ga-accent-rgb: var(--ga-d-rgb);
-    --ga-accent-strong: var(--ga-d-strong);
-    --ga-accent-fg: var(--ga-d-fg);
+    --ga-accent: var(--pal-d-accent);
+    --ga-accent-rgb: var(--pal-d-rgb);
+    --ga-accent-strong: var(--pal-d-strong);
+    --ga-accent-fg: var(--pal-d-fg);
     --ga-page-bg: #0b1120;
     --ga-card-bg: #111a2e;
     --ga-sidebar-bg: #0e1627;
@@ -249,7 +176,7 @@ html[data-theme="dark"] {
     --ga-danger-rgb: 248, 113, 113;
 
     --primary: var(--ga-accent);
-    --secondary: var(--ga-d-button);
+    --secondary: var(--pal-d-button);
     --accent: var(--ga-accent);
     --primary-fg: #ffffff;
     --body-fg: #d4d9e6;
@@ -264,9 +191,9 @@ html[data-theme="dark"] {
     --breadcrumbs-fg: #f5f7ff;
     --breadcrumbs-link-fg: #8590a8;
     --breadcrumbs-bg: transparent;
-    --link-fg: var(--ga-d-strong);
-    --link-hover-color: var(--ga-d-light);
-    --link-selected-fg: var(--ga-d-light);
+    --link-fg: var(--pal-d-strong);
+    --link-hover-color: var(--pal-d-light);
+    --link-selected-fg: var(--pal-d-light);
     --hairline-color: #1c2740;
     --border-color: #293655;
     --error-fg: #f87171;
@@ -279,17 +206,17 @@ html[data-theme="dark"] {
     --selected-bg: rgba(var(--ga-accent-rgb), 0.2);
     --selected-row: rgba(var(--ga-accent-rgb), 0.14);
     --button-fg: #ffffff;
-    --button-bg: var(--ga-d-button);
-    --button-hover-bg: var(--ga-d-button-hover);
-    --default-button-bg: var(--ga-d-button);
-    --default-button-hover-bg: var(--ga-d-button-hover);
+    --button-bg: var(--pal-d-button);
+    --button-hover-bg: var(--pal-d-button-hover);
+    --default-button-bg: var(--pal-d-button);
+    --default-button-hover-bg: var(--pal-d-button-hover);
     --close-button-bg: #334160;
     --close-button-hover-bg: #43527a;
     --delete-button-bg: #dc2626;
     --delete-button-hover-bg: #ef4444;
     --object-tools-fg: #ffffff;
-    --object-tools-bg: var(--ga-d-button);
-    --object-tools-hover-bg: var(--ga-d-button-hover);
+    --object-tools-bg: var(--pal-d-button);
+    --object-tools-hover-bg: var(--pal-d-button-hover);
 }
 
 /* =====================================================================
@@ -880,11 +807,10 @@ html.ga-sidebar-collapsed .ga-sidebar {
     font-weight: 600;
 }
 
-.ga-swatch[data-accent-swatch="indigo"] { --ga-swatch: #6366f1; }
-.ga-swatch[data-accent-swatch="blue"] { --ga-swatch: #3b82f6; }
-.ga-swatch[data-accent-swatch="teal"] { --ga-swatch: #14b8a6; }
-.ga-swatch[data-accent-swatch="pink"] { --ga-swatch: #ec4899; }
-.ga-swatch[data-accent-swatch="orange"] { --ga-swatch: #f97316; }
+/* Цвет кружка — из css/accents.css (общий с меню профиля на сайте) */
+.ga-swatch {
+    --ga-swatch: var(--swatch-color);
+}
 
 /* Шапка страниц без меню (вход в админку) */
 #site-name a {
@@ -1390,14 +1316,26 @@ table.ga-votes td {
     border: 1px solid var(--hairline-color);
 }
 
-.ga-lot-preview {
+.ga-lot-thumb {
     display: block;
-    max-width: 96px;
-    max-height: 96px;
-    padding: 8px;
-    border-radius: 12px;
-    background: var(--darkened-bg);
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 8px;
     border: 1px solid var(--hairline-color);
+}
+
+.ga-lot-thumb-empty {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+}
+
+.ga-lot-thumb-empty .ga-icon {
+    width: 18px;
+    height: 18px;
 }
 
 /* Кнопки собственных страниц и действий (используются в шаблонах проекта) */
@@ -2461,4 +2399,541 @@ input[type="submit"].ga-submit-success:hover {
 .ga-attendance-footer {
     padding: 12px 16px 16px;
     border-top: 1px solid var(--hairline-color);
+}
+
+/* ---------- Дата и время одним полем (core/widgets.py DateTimeLocalInput) ---------- */
+.ga-datetime {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ga-datetime input[type="datetime-local"] {
+    min-width: 220px;
+    font: inherit;
+    color-scheme: light;
+}
+
+html[data-theme="dark"] .ga-datetime input[type="datetime-local"] {
+    color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]) .ga-datetime input[type="datetime-local"] {
+        color-scheme: dark;
+    }
+}
+
+.ga-datetime-quick {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.ga-datetime-quick .ga-chip {
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.ga-datetime-quick .ga-chip:hover {
+    border-color: var(--ga-accent);
+    color: var(--ga-accent);
+}
+
+/* ---------- Предпросмотр лота ---------- */
+.ga-preview-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 12px;
+}
+
+.ga-preview-row .help {
+    margin: 0;
+    padding: 0;
+}
+
+.ga-btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    font: 600 13px var(--font-family-primary);
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+a.ga-btn-secondary {
+    text-decoration: none !important;
+}
+
+.ga-btn-secondary:hover {
+    border-color: var(--ga-accent);
+}
+
+.ga-btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.ga-btn-secondary .ga-icon {
+    width: 16px;
+    height: 16px;
+}
+
+/* ---------- Окно по центру экрана (<dialog>) ---------- */
+.ga-modal {
+    width: min(520px, calc(100vw - 32px));
+    padding: 0;
+    border: 1px solid var(--hairline-color);
+    border-radius: 16px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+/* Фокус ставится на поле внутри окна — рамка браузера вокруг самого окна не нужна */
+.ga-modal:focus,
+.ga-modal:focus-visible {
+    outline: none;
+}
+
+.ga-modal::backdrop {
+    background: rgba(3, 7, 18, 0.6);
+}
+
+.ga-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--hairline-color);
+}
+
+.ga-modal-head h2:focus {
+    outline: none;
+}
+
+.ga-modal-head h2 {
+    margin: 0;
+    font-size: 16px;
+    color: var(--body-fg);
+}
+
+.ga-modal-frame {
+    display: block;
+    width: 100%;
+    height: min(640px, calc(100vh - 140px));
+    border: none;
+}
+
+/* Кнопка выбора файла — как остальные второстепенные кнопки */
+input[type="file"]::file-selector-button {
+    margin-right: 10px;
+    padding: 7px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--ga-card-bg);
+    color: var(--body-fg);
+    font: 600 13px var(--font-family-primary);
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+}
+
+input[type="file"]::file-selector-button:hover {
+    border-color: var(--ga-accent);
+}
+
+/* Ставки лота: строка-подпись Django над каждой ставкой повторяет то же, что в колонках */
+#bids-group td.original p {
+    display: none;
+}
+
+#bids-group tr.has_original td {
+    padding-top: 10px;
+}
+
+/* ---------- Заявка в гильдию: просмотр и решение (admin/reception/application/detail.html) ---------- */
+.ga-app-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+}
+
+.ga-app-person {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ga-app-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.ga-app-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#content .ga-app-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 4px;
+    font-size: 22px;
+}
+
+.ga-app-sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+.ga-app-sub img {
+    width: 16px;
+    height: 16px;
+}
+
+.ga-app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ga-app-actions form {
+    margin: 0;
+}
+
+.ga-app-actions .btn,
+.ga-modal-foot .btn {
+    padding: 9px 16px;
+    font-size: 13px;
+}
+
+.ga-app-actions .ga-icon,
+.ga-modal-foot .ga-icon {
+    width: 15px;
+    height: 15px;
+}
+
+.ga-app-hint {
+    margin: 0 0 16px;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+.ga-app-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: 16px;
+    align-items: start;
+}
+
+.ga-app-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.ga-app-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px 20px;
+    margin: 0;
+}
+
+.ga-app-facts dt {
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.ga-app-facts dd {
+    margin: 2px 0 0;
+    color: var(--body-loud-color);
+    font-size: 14px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-text {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--darkened-bg);
+    color: var(--body-fg);
+    font-size: 14px;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-text span {
+    display: block;
+    margin-bottom: 2px;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ga-app-text-reason {
+    background: color-mix(in srgb, var(--ga-danger) 10%, transparent);
+}
+
+/* Голоса: ширина блока по проценту, как на сайте */
+.ga-app-votes {
+    display: flex;
+    gap: 8px;
+}
+
+.ga-app-vote {
+    display: flex;
+    flex-basis: 0;
+    flex-direction: column;
+    min-width: 96px;
+    padding: 10px 14px;
+    border-radius: 10px;
+}
+
+.ga-app-vote strong {
+    font-size: 22px;
+}
+
+.ga-app-vote span {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.ga-app-vote-for {
+    background: color-mix(in srgb, var(--ga-success) 14%, transparent);
+    color: var(--ga-success);
+}
+
+.ga-app-vote-against {
+    align-items: flex-end;
+    background: color-mix(in srgb, var(--ga-danger) 14%, transparent);
+    color: var(--ga-danger);
+}
+
+.ga-app-votes.is-empty .ga-app-vote {
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+}
+
+.ga-app-feed {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.ga-app-feed li {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--darkened-bg);
+    list-style: none;
+}
+
+.ga-app-feed-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    color: var(--body-loud-color);
+}
+
+.ga-app-feed-date {
+    margin-left: auto;
+    color: var(--body-quiet-color);
+    font-size: 12px;
+}
+
+.ga-app-feed-text {
+    margin-top: 6px;
+    color: var(--body-fg);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.ga-app-delete {
+    margin: 0;
+    text-align: right;
+    font-size: 13px;
+}
+
+.ga-app-delete a {
+    color: var(--ga-danger);
+}
+
+/* Бейджи статусов и голосов */
+.ga-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--darkened-bg);
+    color: var(--body-quiet-color);
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+.ga-pill-voting {
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+}
+
+.ga-pill-pending {
+    background: color-mix(in srgb, var(--ga-warning) 16%, transparent);
+    color: var(--ga-warning);
+}
+
+.ga-pill-approved,
+.ga-pill-for {
+    background: color-mix(in srgb, var(--ga-success) 14%, transparent);
+    color: var(--ga-success);
+}
+
+.ga-pill-rejected,
+.ga-pill-against {
+    background: color-mix(in srgb, var(--ga-danger) 14%, transparent);
+    color: var(--ga-danger);
+}
+
+/* Окно решения */
+.ga-modal-body {
+    padding: 16px 18px;
+    font-size: 14px;
+}
+
+.ga-modal-body p {
+    margin: 0 0 12px;
+    padding: 0;
+}
+
+.ga-modal-body label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.ga-modal-body textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.ga-modal-body .ga-modal-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-weight: 400;
+    cursor: pointer;
+}
+
+.ga-modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--hairline-color);
+}
+
+@media (max-width: 1100px) {
+    .ga-app-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Сеты брони кандидата в заявке (profiles/includes/gear_sets.html): основной первым */
+.gear-set + .gear-set {
+    margin-top: 18px;
+}
+
+.gear-set-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    color: var(--body-loud-color);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.gear-set-main {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: rgba(var(--ga-accent-rgb), 0.15);
+    color: var(--ga-accent);
+    font-size: 11px;
+}
+
+.gear-set-empty {
+    margin: 0;
+    color: var(--body-quiet-color);
+    font-size: 13px;
+}
+
+/* Скриншот окна характеристик из игры — справа от статов сета, админ сверяет по нему */
+.gear-set-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+}
+
+.gear-set-shot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid var(--hairline-color);
+    border-radius: 10px;
+    background: var(--darkened-bg);
+}
+
+.gear-set-shot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.gear-set-shot-missing {
+    border-style: dashed;
+    color: var(--body-quiet-color);
+    font-size: 12px;
 }

@@ -23,21 +23,13 @@ class Application(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications', verbose_name='Кандидат')
     player_class = models.CharField('Класс персонажа', max_length=20)
 
-    previous_nicknames = models.TextField('Прошлые никнеймы', blank=True)
-    timezone = models.CharField('Часовой пояс', max_length=50, default='UTC+3')
-    real_name = models.CharField('Имя', max_length=100, blank=True)
-    age = models.PositiveIntegerField('Возраст', null=True, blank=True)
-    on_blacklist = models.BooleanField('Нахождение в ЧС других гильдий', default=False)
-    blacklist_details = models.TextField('Пояснение по ЧС', blank=True)
-    other_guilds = models.TextField('Гильдии в которых состоит', blank=True)
     development_plans = models.TextField('Планы на развитие персонажа на 2 месяца')
-    guarantors = models.TextField('Поручители', blank=True)
 
-    screenshot1 = models.ImageField('Скриншот 1', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot2 = models.ImageField('Скриншот 2', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot3 = models.ImageField('Скриншот 3', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot4 = models.ImageField('Скриншот 4', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
-    screenshot5 = models.ImageField('Скриншот 5', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True)
+    # Скриншоты окна характеристик из игры — по ним администратор сверяет статы сетов из анкеты.
+    screenshot_pa = models.ImageField('Скриншот сета ПА', upload_to='applications/screenshots/%Y/%m/%d/',
+                                      blank=True, null=True)
+    screenshot_pz = models.ImageField('Скриншот сета ПЗ', upload_to='applications/screenshots/%Y/%m/%d/',
+                                      blank=True, null=True)
 
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
     admin_comment = models.TextField('Комментарий администратора', blank=True)
@@ -66,26 +58,6 @@ class Application(models.Model):
     def get_absolute_url(self):
         return reverse('reception:application_detail', args=[self.id])
 
-    def approve_by_admin(self, admin_user):
-        self.status = 'voting'
-        self.approved_at = timezone.now()
-        self.reviewed_by = admin_user
-        self.save()
-
-    def reject_by_admin(self, admin_user, comment=''):
-        self.status = 'rejected'
-        self.admin_comment = comment
-        self.reviewed_by = admin_user
-        self.save()
-
-    def final_approve(self):
-        self.status = 'approved'
-        self.save()
-
-    def final_reject(self):
-        self.status = 'rejected'
-        self.save()
-
     def can_vote(self, user):
         if self.status != 'voting':
             return False
@@ -98,14 +70,21 @@ class Application(models.Model):
         votes_for = self.votes.filter(vote='for').count()
         votes_against = self.votes.filter(vote='against').count()
         votes_abstain = self.votes.filter(vote='abstain').count()
-        total = self.votes.count()
+        return vote_stats(votes_for, votes_against, votes_abstain)
 
-        return {
-            'for': votes_for,
-            'against': votes_against,
-            'abstain': votes_abstain,
-            'total': total,
-        }
+
+def vote_stats(votes_for, votes_against, votes_abstain):
+    """Голоса и проценты «за» и «против» (воздержавшиеся в процент не входят)."""
+    decided = votes_for + votes_against
+    percent_for = round(votes_for * 100 / decided) if decided else 0
+    return {
+        'for': votes_for,
+        'against': votes_against,
+        'abstain': votes_abstain,
+        'total': decided + votes_abstain,
+        'percent_for': percent_for,
+        'percent_against': 100 - percent_for if decided else 0,
+    }
 
 
 class ApplicationVote(models.Model):
@@ -128,3 +107,20 @@ class ApplicationVote(models.Model):
 
     def __str__(self):
         return f'{self.voter.username} - {self.get_vote_display()}'
+
+
+class ApplicationComment(models.Model):
+    """Комментарий в обсуждении заявки — отдельно от голоса, писать можно сколько угодно."""
+
+    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='comments', verbose_name='Заявка')
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_comments', verbose_name='Автор')
+    text = models.TextField('Комментарий')
+    created_at = models.DateTimeField('Дата', auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Комментарий к заявке'
+        verbose_name_plural = 'Комментарии к заявкам'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f'{self.author.username}: {self.text[:40]}'

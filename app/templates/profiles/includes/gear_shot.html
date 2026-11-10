@@ -1,0 +1,8 @@
+{# Скриншот окна характеристик сета из заявки. Параметры: shot, gear. #}
+{% if shot %}
+    <a class="gear-set-shot" href="{{ shot.url }}" target="_blank" rel="noopener" title="Скриншот из игры — открыть целиком">
+        <img src="{{ shot.url }}" alt="Скриншот: {{ gear.get_kind_display }}" loading="lazy">
+    </a>
+{% elif not gear.is_empty %}
+    <span class="gear-set-shot gear-set-shot-missing">Скриншота нет</span>
+{% endif %}

@@ -1,4 +1,10 @@
 {% extends "admin/change_form.html" %}
+{% load static ga_admin %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script src="{% static 'admin/js/datetime_quick.js' %}" defer></script>
+{% endblock %}
 
 {% block object-tools-items %}
     {{ block.super }}
@@ -10,4 +16,55 @@
             <a href="{% url 'admin:auction_cancel_auction' original.id %}" class="btn btn-danger">❌ Отменить аукцион</a>
         </li>
     {% endif %}
+{% endblock %}
+
+{% block submit_buttons_bottom %}
+    <div class="ga-preview-row">
+        <button type="button" class="ga-btn-secondary" data-lot-preview="{% url 'admin:auction_lot_preview' %}">{% ga_icon "eye" %}Предпросмотр</button>
+        <span class="help">Покажет, как лот будет выглядеть на сайте с тем, что сейчас введено. Ничего не сохраняет.</span>
+    </div>
+    {{ block.super }}
+
+    <dialog class="ga-modal" id="lot-preview-dialog" aria-labelledby="lot-preview-title">
+        <div class="ga-modal-head">
+            <h2 id="lot-preview-title" tabindex="-1" autofocus>Предпросмотр лота</h2>
+            <button type="button" class="ga-icon-btn" data-modal-close aria-label="Закрыть">{% ga_icon "x" %}</button>
+        </div>
+        <iframe class="ga-modal-frame" title="Предпросмотр лота"></iframe>
+    </dialog>
+
+    <script>
+    (function () {
+        // Отправляем введённое в форме (вместе с выбранной картинкой) и показываем карточку сайта в окне.
+        var button = document.querySelector('[data-lot-preview]');
+        var dialog = document.getElementById('lot-preview-dialog');
+        var frame = dialog.querySelector('iframe');
+        var form = button.closest('form');
+
+        function resolvedTheme() {
+            var theme = document.documentElement.dataset.theme;
+            if (theme === 'light' || theme === 'dark') return theme;
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+
+        button.addEventListener('click', function () {
+            var data = new FormData(form);
+            data.set('theme', resolvedTheme());
+            data.set('accent', document.documentElement.dataset.accent || 'indigo');
+            {% if original %}data.set('object_id', '{{ original.pk }}');{% endif %}
+            button.disabled = true;
+            fetch(button.dataset.lotPreview, {method: 'POST', body: data})
+                .then(function (response) { return response.text(); })
+                .then(function (html) {
+                    frame.srcdoc = html;
+                    dialog.showModal();
+                })
+                .finally(function () { button.disabled = false; });
+        });
+
+        dialog.addEventListener('click', function (event) {
+            if (event.target === dialog || event.target.closest('[data-modal-close]')) dialog.close();
+        });
+    })();
+    </script>
 {% endblock %}

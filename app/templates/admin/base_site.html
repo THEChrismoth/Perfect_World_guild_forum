@@ -3,23 +3,9 @@
 
 {% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title }}{% endblock %}
 
-{% block dark-mode-vars %}
-    {# Тёмная тема по умолчанию, как на сайте. Django при первом заходе сам записывает «как в системе» (auto), #}
-    {# поэтому один раз переводим auto в тёмную и запоминаем это — дальше выбор пользователя не трогаем. #}
-    <script>
-        try {
-            if (!localStorage.getItem('gaThemeDefault')) {
-                var savedTheme = localStorage.getItem('theme');
-                if (!savedTheme || savedTheme === 'auto') localStorage.setItem('theme', 'dark');
-                localStorage.setItem('gaThemeDefault', '1');
-            }
-        } catch (e) {}
-    </script>
-    {{ block.super }}
-{% endblock %}
-
 {% block extrastyle %}
     {{ block.super }}
+    <link rel="stylesheet" href="{% static 'css/accents.css' %}">
     <link rel="stylesheet" href="{% static 'admin/css/guild_theme.css' %}">
 {% endblock %}
 

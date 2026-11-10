@@ -1,229 +1,73 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Заявка в гильдию — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'reception/css/application_form.css' %}">
+    <link rel="stylesheet" href="{% static 'reception/css/reception.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="reception-container">
-    <div class="reception-header">
-        <h1>📝 Подача заявки в гильдию</h1>
-        <p>Заполните форму ниже. Все поля обязательны для заполнения, если не указано иное.</p>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Заявка в гильдию</h1>
+        <p class="ui-page-sub">Поля без пометки «необязательно» нужно заполнить</p>
     </div>
-    
-    <div class="profile-info-card">
-        <div class="profile-info-head">
-            <h3>📊 Информация из вашего профиля</h3>
-            <a href="{% url 'profile_edit' %}" class="profile-edit-link">✏️ Изменить в профиле</a>
+</div>
+
+<div class="ui-stack rc-form-page">
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2 class="ui-card-title">Данные из вашего профиля</h2>
+            <a href="{% url 'profile_edit' %}" class="ui-btn ui-btn-secondary ui-btn-sm">{% ga_icon "pencil" %}Изменить в профиле</a>
         </div>
-        <p class="profile-info-hint">Эти данные попадут в заявку автоматически — если что-то не так, исправьте профиль перед отправкой.</p>
-        <div class="profile-info-grid">
-            <div class="info-item">
-                <span class="info-label">👤 Имя:</span>
-                <span class="info-value">{{ profile.real_name|default:"не указано" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">🎂 Возраст:</span>
-                <span class="info-value">{% if profile.age %}{{ profile.age }}{% else %}не указан{% endif %}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">📍 Город:</span>
-                <span class="info-value">{{ profile.city|default:"не указан" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">🕒 Часовой пояс:</span>
-                <span class="info-value">{{ profile.get_timezone_display }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Класс персонажа:</span>
-                <span class="info-value">{{ profile.get_player_class_display }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">Уровень (БУ):</span>
-                <span class="info-value">{{ profile.bu|default:"0" }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">❤️ HP / 💧 MP:</span>
-                <span class="info-value">{{ profile.hp }} / {{ profile.mp }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">⚔️ ПА / 🗡️ ФА / 🔮 МА:</span>
-                <span class="info-value">{{ profile.pa }} / {{ profile.fa }} / {{ profile.ma }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">🛡️ ПЗ / 💪 БД:</span>
-                <span class="info-value">{{ profile.pz }} / {{ profile.bd }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">🛡️ Физ. защита / ✨ Маг. защита:</span>
-                <span class="info-value">{{ profile.physical_defense }} / {{ profile.magic_defense }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">💥 Физ. пробив / 🔮 Маг. пробив:</span>
-                <span class="info-value">{{ profile.physical_pierce }} / {{ profile.magic_pierce }}</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">💢 Крит. урон / 🎯 Крит. шанс:</span>
-                <span class="info-value">{{ profile.crit_damage }}% / {{ profile.crit_chance }}%</span>
-            </div>
-            <div class="info-item">
-                <span class="info-label">🎯 Меткость / 💨 Уклонение:</span>
-                <span class="info-value">{{ profile.accuracy }} / {{ profile.dodge }}</span>
-            </div>
-        </div>
-    </div>
-    
-    <form method="post" enctype="multipart/form-data" class="application-form">
+        <p class="rc-muted rc-hint">Эти данные попадут в заявку автоматически — если что-то не так, исправьте профиль перед отправкой.</p>
+        <dl class="rc-facts">
+            <div><dt>Класс</dt><dd>{% if profile.player_class %}<img class="rc-class-icon" src="{{ profile.get_icon_url }}" alt="">{% endif %}{{ profile.get_player_class_display }}</dd></div>
+        </dl>
+        {% include 'profiles/includes/gear_sets.html' with dl_class='rc-stats' %}
+    </section>
+
+    <form method="post" enctype="multipart/form-data" class="ui-card ui-form">
         {% csrf_token %}
-        
-        {% if form.non_field_errors %}
-            <div class="alert alert-error">
-                {{ form.non_field_errors }}
-            </div>
-        {% endif %}
-        
-        <div class="form-section">
-            <h2>🎮 Игровая информация</h2>
-            
-            <div class="form-group">
-                <label for="{{ form.previous_nicknames.id_for_label }}">{{ form.previous_nicknames.label }}</label>
-                {{ form.previous_nicknames }}
-                <small class="form-hint">{{ form.previous_nicknames.help_text }}</small>
-                {% for error in form.previous_nicknames.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.other_guilds.id_for_label }}">{{ form.other_guilds.label }}</label>
-                {{ form.other_guilds }}
-                <small class="form-hint">{{ form.other_guilds.help_text }}</small>
-                {% for error in form.other_guilds.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-            
-            <div class="form-group checkbox-group">
-                <label class="checkbox-label">
-                    {{ form.on_blacklist }}
-                    {{ form.on_blacklist.label }}
-                </label>
-                {% for error in form.on_blacklist.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-            
-            <div class="form-group" id="blacklist-details-group" style="display: none;">
-                <label for="{{ form.blacklist_details.id_for_label }}">{{ form.blacklist_details.label }}</label>
-                {{ form.blacklist_details }}
-                <small class="form-hint">{{ form.blacklist_details.help_text }}</small>
-                {% for error in form.blacklist_details.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
+        {% if form.non_field_errors %}<div class="ui-error">{{ form.non_field_errors }}</div>{% endif %}
+
+        <h2 class="ui-card-title">Планы</h2>
+        {% include 'reception/includes/field.html' with field=form.development_plans %}
+
+        <h2 class="ui-card-title">Подтверждение характеристик</h2>
+        <p class="rc-muted rc-hint">Откройте в игре окно характеристик персонажа в каждом сете и приложите скриншоты — по ним администратор сверит статы из профиля. Скриншоты видит только администратор.</p>
+        <div class="rc-shot-fields">
+            {% for field in form %}
+                {% if field.name|slice:":10" == 'screenshot' %}
+                    <label class="rc-shot-field">
+                        <span class="rc-shot-preview" id="preview-{{ field.name }}">{% ga_icon "image" %}<span>{{ field.label }}{% if not field.field.required %} — необязательно{% endif %}</span></span>
+                        {{ field }}
+                        {% if field.errors %}<span class="ui-error">{{ field.errors|join:" " }}</span>{% endif %}
+                    </label>
+                {% endif %}
+            {% endfor %}
         </div>
-        
-        <div class="form-section">
-            <h2>📈 Планы развития</h2>
-            
-            <div class="form-group">
-                <label for="{{ form.development_plans.id_for_label }}">{{ form.development_plans.label }}</label>
-                {{ form.development_plans }}
-                {% for error in form.development_plans.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-            
-            <div class="form-group">
-                <label for="{{ form.guarantors.id_for_label }}">{{ form.guarantors.label }}</label>
-                {{ form.guarantors }}
-                <small class="form-hint">{{ form.guarantors.help_text }}</small>
-                {% for error in form.guarantors.errors %}
-                    <span class="error-text">{{ error }}</span>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <div class="form-section">
-            <h2>📸 Скриншоты из игры</h2>
-            <p class="section-hint">Загрузите до 5 скриншотов вашего персонажа</p>
-            
-            <div class="screenshots-grid">
-                <div class="screenshot-field">
-                    <label>{{ form.screenshot1.label }}</label>
-                    {{ form.screenshot1 }}
-                    <div class="image-preview" id="preview1"></div>
-                </div>
-                <div class="screenshot-field">
-                    <label>{{ form.screenshot2.label }}</label>
-                    {{ form.screenshot2 }}
-                    <div class="image-preview" id="preview2"></div>
-                </div>
-                <div class="screenshot-field">
-                    <label>{{ form.screenshot3.label }}</label>
-                    {{ form.screenshot3 }}
-                    <div class="image-preview" id="preview3"></div>
-                </div>
-                <div class="screenshot-field">
-                    <label>{{ form.screenshot4.label }}</label>
-                    {{ form.screenshot4 }}
-                    <div class="image-preview" id="preview4"></div>
-                </div>
-                <div class="screenshot-field">
-                    <label>{{ form.screenshot5.label }}</label>
-                    {{ form.screenshot5 }}
-                    <div class="image-preview" id="preview5"></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-actions">
-            <button type="submit" class="btn-submit">✉️ Отправить заявку</button>
-            <a href="/" class="btn-cancel">Отмена</a>
+
+        <div class="ui-form-actions">
+            <button type="submit" class="ui-btn ui-btn-primary">{% ga_icon "send" %}Отправить заявку</button>
+            <a href="/" class="ui-btn ui-btn-secondary">Отмена</a>
         </div>
     </form>
 </div>
 
 <script>
-// Превью изображений.
-for (let i = 1; i <= 5; i++) {
-    const input = document.querySelector(`input[name="screenshot${i}"]`);
-    const preview = document.getElementById(`preview${i}`);
-    
-    if (input) {
-        input.addEventListener('change', function() {
+// Скриншот: выбранная картинка сразу видна в своей ячейке.
+document.querySelectorAll('.rc-shot-field input[type="file"]').forEach(function (input) {
+    input.addEventListener('change', function () {
+        var preview = document.getElementById('preview-' + input.name);
+        if (input.files && input.files[0]) {
             preview.innerHTML = '';
-            if (this.files && this.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    preview.appendChild(img);
-                }
-                reader.readAsDataURL(this.files[0]);
-            }
-        });
-    }
-}
-
-// Поле «Подробности» показывается, только если отмечено, что игрок в черном списке.
-document.addEventListener('DOMContentLoaded', function() {
-    const blacklistCheckbox = document.querySelector('input[name="on_blacklist"]');
-    const blacklistDetails = document.getElementById('blacklist-details-group');
-    
-    function toggleBlacklistDetails() {
-        if (blacklistCheckbox && blacklistCheckbox.checked) {
-            blacklistDetails.style.display = 'block';
-        } else if (blacklistDetails) {
-            blacklistDetails.style.display = 'none';
+            var img = document.createElement('img');
+            img.src = URL.createObjectURL(input.files[0]);
+            preview.appendChild(img);
         }
-    }
-    
-    if (blacklistCheckbox) {
-        blacklistCheckbox.addEventListener('change', toggleBlacklistDetails);
-        toggleBlacklistDetails();
-    }
+    });
 });
 </script>
 {% endblock %}

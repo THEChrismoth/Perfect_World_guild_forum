@@ -1,0 +1,8 @@
+<div class="ga-datetime">
+    {% include "django/forms/widgets/input.html" %}
+    {% if widget.quick %}
+        <span class="ga-datetime-quick">
+            {% for value, label in widget.quick %}<button type="button" class="ga-chip" data-datetime-quick="{{ value }}" data-datetime-target="{{ widget.attrs.id }}"{% if widget.from_field %} data-datetime-from="id_{{ widget.from_field }}"{% endif %}>{{ label }}</button>{% endfor %}
+        </span>
+    {% endif %}
+</div>

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from core.captcha import TOKEN_FIELD, verify_captcha
 from core.models import SiteSettings
-from .models import Profile, class_icon_url
+from .models import GearSet, Profile, class_icon_url
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -79,36 +79,36 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = [
-            'avatar', 'ts3_id', 'real_name', 'birth_date', 'city', 'timezone', 'player_class',
-            'hp', 'mp', 'bd',
-            'pa', 'fa', 'ma','crit_damage', 'crit_chance', 'bu', 'accuracy',
-            'pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce',  'dodge'
-        ]
+        fields = ['avatar', 'ts3_id', 'player_class', 'main_set']
         widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'}),
             'avatar': forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
-        labels = {
-            'hp': '❤️ HP',
-            'mp': '💧 MP',
-            'fa': 'ФА - Физическая атака',
-            'ma': 'МА - Магическая атака',
-            'pa': 'ПА - Показатель Атаки',
-            'pz': 'ПЗ - Прямая защита',
-            'bd': 'БД - Боевой дух',
-            'bu': 'БУ - Бонус уровня',
-            'physical_defense': 'Физическая защита',
-            'magic_defense': 'Магическая защита',
-            'physical_pierce': 'Физический пробив',
-            'magic_pierce': 'Магический пробив',
-            'crit_damage': 'Критический урон',
-            'crit_chance': 'Критический шанс',
-            'accuracy': 'Меткость',
-            'dodge': 'Уклонение',
-        }
+
+
+class GearSetForm(forms.ModelForm):
+    """Характеристики одного сета брони. На странице две такие формы — с приставками pa- и pz-."""
+
+    class Meta:
+        model = GearSet
+        fields = GearSet.STAT_FIELDS
+
+    # Характеристики по группам — как на странице профиля. Пара полей — одна строка «физ. / маг.».
+    STAT_GROUPS = {
+        'main': [('HP', 'hp'), ('Боевой дух (БД)', 'bd'), ('Бонус уровня (БУ)', 'bu')],
+        'attack': [('Показатель атаки (ПА)', 'pa'), ('Физ. / маг. атака', 'fa', 'ma'),
+                   ('Физ. / маг. пробив', 'physical_pierce', 'magic_pierce')],
+        'defense': [('Показатель защиты (ПЗ)', 'pz'), ('Физ. защита', 'physical_defense'),
+                    ('Маг. защита', 'magic_defense')],
+    }
+
+    def stat_groups(self):
+        return {group: [{'label': label, 'fields': [self[name] for name in names]} for label, *names in items]
+                for group, items in self.STAT_GROUPS.items()}
+
 
 class UserForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username']
+        labels = {'username': 'Никнейм'}
+        help_texts = {'username': 'Буквы, цифры и символы @ . + - _'}

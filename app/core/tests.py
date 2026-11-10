@@ -241,12 +241,80 @@ class HashedStaticTests(SimpleTestCase):
 
     def test_name_changes_with_content(self):
         # Имя зависит от содержимого: так браузер узнаёт о новой версии файла.
-        url = static('forum/css/style.css')
+        url = static('forum/css/forum.css')
         other = static('css/style.css')
         self.assertNotEqual(re.search(r'\.([0-9a-f]{12})\.', url).group(1), re.search(r'\.([0-9a-f]{12})\.', other).group(1))
 
     def test_missing_file_does_not_break_page(self):
         self.assertEqual(static('auction_icons/not-uploaded.png'), '/static/auction_icons/not-uploaded.png')
+
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class SiteNavTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user('member', password='pass')
+        self.client.force_login(self.user)
+
+    def current_items(self, url):
+        html = self.client.get(url).content.decode()
+        sidebar = html[html.find('id="site-sidebar"'):html.find('</aside>')]
+        return re.findall(r'class="site-nav-link is-current".*?<span>([^<]+)</span>', sidebar, re.S)
+
+    def test_current_section_highlighted(self):
+        from django.contrib.auth.models import Group
+
+        self.user.groups.add(Group.objects.create(name='Член гильдии'))
+
+        self.assertEqual(self.current_items('/'), ['Форум'])
+        self.assertEqual(self.current_items(reverse('events:event_index')), ['Ивенты'])
+        self.assertEqual(self.current_items(reverse('auction:auction_index')), ['Аукцион'])
+        self.assertEqual(self.current_items('/koslist/'), ['Кос-лист'])
+
+    def test_events_and_auction_only_for_guild_members(self):
+        # Не член гильдии — пунктов «Ивенты» и «Аукцион» в меню нет.
+        response = self.client.get('/')
+        self.assertNotContains(response, f'href="{reverse("auction:auction_index")}"')
+        self.assertNotContains(response, f'href="{reverse("events:event_index")}"')
+
+    def test_reception_link_depends_on_membership(self):
+        from django.contrib.auth.models import Group
+
+        self.assertContains(self.client.get('/'), f'href="{reverse("reception:my_applications")}"')
+        self.user.groups.add(Group.objects.create(name='Член гильдии'))
+        self.assertContains(self.client.get('/'), f'href="{reverse("reception:application_list")}"')
+
+    def test_unread_notifications_badge(self):
+        from notifications.utils import send_notification
+
+        # Без непрочитанных — перечёркнутый колокольчик.
+        self.assertContains(self.client.get('/'), 'Новых уведомлений нет')
+        send_notification(user=self.user, title='Привет', message='Тест')
+        response = self.client.get('/')
+        self.assertContains(response, '<span class="site-nav-badge">1</span>', html=True)
+        self.assertContains(response, 'Уведомления: 1 новых')
+
+    def test_theme_menu_on_site_and_login(self):
+        # Выбор темы — в браузере; здесь проверяем, что меню с тремя режимами есть на сайте и на входе.
+        for url, client in (('/', self.client), (reverse('login'), self.client_class())):
+            html = client.get(url).content.decode()
+            with self.subTest(url=url):
+                for choice in ('light', 'dark', 'auto'):
+                    self.assertIn(f'data-theme-choice-option="{choice}"', html)
+
+    def test_online_block_and_profile_menu(self):
+        from datetime import timedelta
+        from django.utils import timezone
+
+        offline = User.objects.create_user('offline', password='pass')
+        offline.profile.last_activity = timezone.now() - timedelta(hours=1)
+        offline.profile.save()
+        response = self.client.get('/')
+
+        # Онлайн только сам пользователь (его активность отмечается при каждом запросе), всего — двое.
+        self.assertContains(response, '<span class="site-online-value"><i class="site-online-dot" aria-hidden="true"></i>'
+                                      '<b>1</b> / 2</span>', html=True)
+        self.assertContains(response, f'<a href="{reverse("profile_view", args=["member"])}">member</a>', html=True)
+        self.assertContains(response, 'Редактировать профиль')
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -267,7 +335,7 @@ class SiteSettingsTests(TestCase):
         response = self.client.get('/')
 
         self.assertContains(response, '<title>Ermitage</title>', html=True)
-        self.assertContains(response, '<a href="/">Ermitage</a>', html=True)
+        self.assertContains(response, '<span class="site-brand-text">Ermitage</span>', html=True)
 
     def test_only_one_record(self):
         SiteSettings(site_name='Первая').save()
@@ -353,9 +421,9 @@ class ModeratorRoleTests(TestCase):
 
     def test_menu_link_and_admin_sections(self):
         self.client.login(username='mod', password='pass')
-        self.assertNotContains(self.client.get('/'), 'class="admin-link"')
+        self.assertNotContains(self.client.get('/'), 'Панель управления')
         self.user.groups.add(self.group)
-        self.assertContains(self.client.get('/'), 'class="admin-link"')
+        self.assertContains(self.client.get('/'), 'Панель управления')
         self.assertEqual(self.client.get(reverse('admin:auction_auctionlot_changelist')).status_code, 200)
         # Поиск игроков при записи в отряд ивента.
         autocomplete = self.client.get(reverse('admin:autocomplete'), {

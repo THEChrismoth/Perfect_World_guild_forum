@@ -55,6 +55,18 @@ def activity_management(request):
     }
     return render(request, 'admin/activity_management.html', context)
 
+def _log_admin_change(profile, old_balance, admin_user):
+    """Правка баланса из таблицы активности попадает в «Движение моих очков» игрока."""
+    from auction.models import PointsTransaction
+
+    delta = profile.activity_points - old_balance
+    if delta:
+        PointsTransaction.objects.create(
+            user=profile.user, amount=abs(delta), transaction_type='credit' if delta > 0 else 'debit',
+            description=f'Корректировка администратором {admin_user.username}'[:255],
+        )
+
+
 @staff_member_required
 @require_POST
 def update_activity_points(request):
@@ -72,7 +84,8 @@ def update_activity_points(request):
                 return JsonResponse({'success': False, 'error': 'Invalid field or value'})
 
             profile = get_object_or_404(Profile, id=profile_id)
-            
+            old_balance = profile.activity_points
+
             if field == 'current':
                 # Установка текущего баланса.
                 if value is not None and value >= 0:
@@ -80,6 +93,7 @@ def update_activity_points(request):
                     # Пересчитываем earned_points чтобы сохранить логику.
                     profile.earned_points = profile.activity_points + profile.spent_points
                     profile.save()
+                    _log_admin_change(profile, old_balance, request.user)
                     return JsonResponse({
                         'success': True,
                         'current': profile.activity_points,
@@ -99,6 +113,7 @@ def update_activity_points(request):
                     # Пересчитываем earned_points.
                     profile.earned_points = profile.activity_points + profile.spent_points
                     profile.save()
+                    _log_admin_change(profile, old_balance, request.user)
                     return JsonResponse({
                         'success': True,
                         'current': profile.activity_points,
@@ -117,6 +132,7 @@ def update_activity_points(request):
                     if profile.activity_points < 0:
                         profile.activity_points = 0
                     profile.save()
+                    _log_admin_change(profile, old_balance, request.user)
                     return JsonResponse({
                         'success': True,
                         'current': profile.activity_points,

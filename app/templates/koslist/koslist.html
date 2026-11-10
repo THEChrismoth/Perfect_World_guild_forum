@@ -1,38 +1,73 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
+
+{% block title %}Кос-лист — {{ site_settings.site_name }}{% endblock %}
 
 {% block extra_css %}
-    <link rel = "stylesheet" href = "{% static 'koslist/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'koslist/css/style.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class = "koslist-container">
-  <h1>КОС-ЛИСТ<br>{{ site_settings.site_name }}</h1>
-  <p>(kill on sight - убить при встрече)</p>
-  <div class = "class-icons">
-    {% for label, icon in class_icons %}
-      <img src = "{{ icon }}" alt = "{{ label }}" title = "{{ label }}">
-    {% endfor %}
-  </div>
-  <hr>
-  <h2>Гильдии:</h2>
-  <ul class = "guilds-grid">
-    {% for guild in guilds %}
-        <li><a href = "{{ guild.url_obs }}">{{ guild.name }}</a></li>
-    {% endfor %}
-  </ul>
-  <hr>
-  <h2>Персонажи:</h2>
-  <ul class = "player-grid">
-  {% for class, players in players_by_class.items %}
-    <h3>{{ players.0.get_player_class_display }}</h3>
-    {% for player in players %}
-      <div class = "player-item">
-        <img src = "{{ player.get_icon_url }}" >
-        <a href = "{{ player.url_obs }}">{{ player.name }}</a>
-      </div>
-    {% endfor %}
-  {% endfor %}
-  </ul>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Кос-лист</h1>
+        <p class="ui-page-sub">Kill on sight — убить при встрече</p>
+    </div>
+</div>
+
+<div class="ui-stack">
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2 class="ui-card-title">Гильдии</h2>
+            <span class="ui-badge ui-badge-muted">{{ guilds|length }}</span>
+        </div>
+        {% if guilds %}
+            <ul class="kos-chips">
+                {% for guild in guilds %}
+                    <li>
+                        {% if guild.url_obs %}
+                            <a class="kos-chip" href="{{ guild.url_obs }}" target="_blank" rel="noopener">{% ga_icon "shield" %}{{ guild.name }}{% ga_icon "arrow-up-right" "kos-chip-out" %}</a>
+                        {% else %}
+                            <span class="kos-chip">{% ga_icon "shield" %}{{ guild.name }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="kos-empty">Гильдий в списке нет</p>
+        {% endif %}
+    </section>
+
+    <section class="ui-card">
+        <div class="ui-card-head">
+            <h2 class="ui-card-title">Персонажи</h2>
+            <span class="ui-badge ui-badge-muted">{{ players_count }}</span>
+        </div>
+        {% if class_groups %}
+            <div class="kos-classes">
+                {% for group in class_groups %}
+                    <div class="kos-class">
+                        <h3 class="kos-class-title">
+                            <img src="{{ group.icon }}" alt="">{{ group.label }}
+                            <span class="kos-class-count">{{ group.players|length }}</span>
+                        </h3>
+                        <ul class="kos-chips">
+                            {% for player in group.players %}
+                                <li>
+                                    {% if player.url_obs %}
+                                        <a class="kos-chip" href="{{ player.url_obs }}" target="_blank" rel="noopener">{{ player.name }}{% ga_icon "arrow-up-right" "kos-chip-out" %}</a>
+                                    {% else %}
+                                        <span class="kos-chip">{{ player.name }}</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="kos-empty">Персонажей в списке нет</p>
+        {% endif %}
+    </section>
 </div>
 {% endblock %}

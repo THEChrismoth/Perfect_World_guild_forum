@@ -1,0 +1,92 @@
+/* =====================================================================
+   Палитры цвета оформления — одни для сайта, админ-панели и страниц входа.
+   Цвет выбирается атрибутом data-accent на <html> (core/accents.py: цвет гильдии
+   из настроек сайта или свой цвет из профиля), по умолчанию — индиго.
+
+   --pal-l-* — оттенки для светлой темы, --pal-d-* — для тёмной:
+     accent  основной цвет (кнопки, выделение)   rgb     он же для rgba()
+     strong  темнее/ярче — наведение, ссылки     deep    ещё темнее (светлая тема)
+     light   самый светлый (наведение на ссылку, тёмная тема)
+     fg      текст поверх основного цвета (тёмная тема)
+     button  фон кнопок с белым текстом (тёмная тема), button-hover — при наведении
+   Подключается раньше стилей, которые этими переменными пользуются.
+   ===================================================================== */
+
+:root,
+html[data-accent="indigo"] {
+    --pal-l-accent: #4f46e5;
+    --pal-l-rgb: 79, 70, 229;
+    --pal-l-strong: #4338ca;
+    --pal-l-deep: #3730a3;
+    --pal-d-accent: #6366f1;
+    --pal-d-rgb: 99, 102, 241;
+    --pal-d-strong: #818cf8;
+    --pal-d-light: #a5b4fc;
+    --pal-d-fg: #ffffff;
+    --pal-d-button: #4f46e5;
+    --pal-d-button-hover: #6366f1;
+}
+
+html[data-accent="blue"] {
+    --pal-l-accent: #2563eb;
+    --pal-l-rgb: 37, 99, 235;
+    --pal-l-strong: #1d4ed8;
+    --pal-l-deep: #1e40af;
+    --pal-d-accent: #3b82f6;
+    --pal-d-rgb: 59, 130, 246;
+    --pal-d-strong: #60a5fa;
+    --pal-d-light: #93c5fd;
+    --pal-d-fg: #ffffff;
+    --pal-d-button: #2563eb;
+    --pal-d-button-hover: #3b82f6;
+}
+
+/* Светлые бирюзовый и оранжевый в тёмной теме — с тёмным текстом поверх: белый на них не читается */
+html[data-accent="teal"] {
+    --pal-l-accent: #0f766e;
+    --pal-l-rgb: 15, 118, 110;
+    --pal-l-strong: #115e59;
+    --pal-l-deep: #134e4a;
+    --pal-d-accent: #14b8a6;
+    --pal-d-rgb: 20, 184, 166;
+    --pal-d-strong: #2dd4bf;
+    --pal-d-light: #5eead4;
+    --pal-d-fg: #042f2e;
+    --pal-d-button: #0f766e;
+    --pal-d-button-hover: #0d9488;
+}
+
+html[data-accent="pink"] {
+    --pal-l-accent: #db2777;
+    --pal-l-rgb: 219, 39, 119;
+    --pal-l-strong: #be185d;
+    --pal-l-deep: #9d174d;
+    --pal-d-accent: #ec4899;
+    --pal-d-rgb: 236, 72, 153;
+    --pal-d-strong: #f472b6;
+    --pal-d-light: #f9a8d4;
+    --pal-d-fg: #ffffff;
+    --pal-d-button: #db2777;
+    --pal-d-button-hover: #ec4899;
+}
+
+html[data-accent="orange"] {
+    --pal-l-accent: #c2410c;
+    --pal-l-rgb: 194, 65, 12;
+    --pal-l-strong: #9a3412;
+    --pal-l-deep: #7c2d12;
+    --pal-d-accent: #f97316;
+    --pal-d-rgb: 249, 115, 22;
+    --pal-d-strong: #fb923c;
+    --pal-d-light: #fdba74;
+    --pal-d-fg: #431407;
+    --pal-d-button: #c2410c;
+    --pal-d-button-hover: #ea580c;
+}
+
+/* Цвет кружка в меню выбора цвета (сайт и админ-панель): кнопка с data-accent-swatch="…" */
+[data-accent-swatch="indigo"] { --swatch-color: #6366f1; }
+[data-accent-swatch="blue"] { --swatch-color: #3b82f6; }
+[data-accent-swatch="teal"] { --swatch-color: #14b8a6; }
+[data-accent-swatch="pink"] { --swatch-color: #ec4899; }
+[data-accent-swatch="orange"] { --swatch-color: #f97316; }

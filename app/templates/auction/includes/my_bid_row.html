@@ -1,0 +1,24 @@
+{% load ga_admin %}
+{# Строка «Моих ставок»: лот, моя лучшая ставка и состояние. Параметр: bid (с bid.state). #}
+{% with lot=bid.lot %}
+<li class="ac-row">
+    <span class="ac-thumb">{% if lot.get_image_url %}<img src="{{ lot.get_image_url }}" alt="">{% else %}{% ga_icon "gavel" %}{% endif %}</span>
+    <div class="ac-row-main">
+        <a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="ac-row-link">{{ lot.name }}</a>
+        <div class="ac-muted">
+            Моя ставка {{ bid.bid_amount }} ⭐
+            {% if bid.state == 'outbid' %}· сейчас {{ lot.current_price }} ⭐{% endif %}
+            {% if lot.status == 'active' and lot.end_date %}
+                · <span data-countdown="{{ lot.end_date|date:'U' }}000"><span data-countdown-text>{{ lot.end_date|timeuntil }}</span></span>
+            {% elif lot.ended_at %}· {{ lot.ended_at|date:"d.m.Y" }}{% endif %}
+        </div>
+    </div>
+    <div class="ac-row-side">
+        {% if bid.state == 'leading' %}<span class="ui-badge ui-badge-success">Лидирую</span>
+        {% elif bid.state == 'outbid' %}<a href="{% url 'auction:lot_detail' slug=lot.slug %}" class="ui-btn ui-btn-primary ui-btn-sm">Перебить</a>
+        {% elif bid.state == 'won' %}<span class="ui-badge ui-badge-success">{% ga_icon "star" %}Лот выигран</span>
+        {% elif bid.state == 'cancelled' %}<span class="ui-badge ui-badge-danger">Лот отменён</span>
+        {% else %}<span class="ui-badge ui-badge-muted">Не выигран</span>{% endif %}
+    </div>
+</li>
+{% endwith %}

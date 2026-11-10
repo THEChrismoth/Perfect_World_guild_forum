@@ -1,11 +1,17 @@
+from datetime import timedelta
+
 from django.db import models, transaction
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.urls import reverse
 from django.core.validators import MinValueValidator
-from django.templatetags.static import static
 from uuslug import uuslug
 from notifications.utils import send_notification
+
+# Ставка, сделанная меньше чем за это время до конца, продлевает торги на столько же...
+ANTI_SNIPE = timedelta(minutes=5)
+# ...но не дальше этого предела сверх назначенного времени окончания: потом торги заканчиваются в любом случае.
+ANTI_SNIPE_LIMIT = timedelta(minutes=30)
 
 
 class AuctionLot(models.Model):
@@ -15,43 +21,18 @@ class AuctionLot(models.Model):
         ('cancelled', 'Отменен'),
     ]
     
-    # Типы иконок.
-    ICON_CHOICES = [
-        ('wheel_of_fate', 'Колесо Судьбы'),
-        ('stone_of_universe', 'Камень мироздания'),
-        ('opal', 'Опал Лунной Кошки'),
-        ('divinity_stone', 'Камень божества'),
-        ('great_meteorite', 'Великий метеорит'),
-        ('rune_set_7', 'Набор рун (7ур)'),
-        ('time_yarn', 'Пряжа времени'),
-        ('rune_set_9', 'Набор рун 9 ур'),
-        ('absolute_stones', 'Камни абсолюта'),
-        ('custom', 'Своя картинка'),
-    ]
-    
     # Основная информация.
     name = models.CharField('Название лота', max_length=200)
     slug = models.SlugField(unique=True, max_length=200, blank=True)
     description = models.TextField('Описание', blank=True)
-    
-    # Выбор иконки или своей картинки.
-    icon_choice = models.CharField(
-        'Выбор иконки', 
-        max_length=30, 
-        choices=ICON_CHOICES, 
-        default='custom',
-        help_text='Выберите иконку или "Своя картинка" для загрузки своего изображения'
-    )
-    
-    # Своя картинка.
-    custom_image = models.ImageField(
-        'Своя картинка', 
-        upload_to='auction/lots/', 
-        blank=True, 
+    image = models.ImageField(
+        'Картинка',
+        upload_to='auction/lots/',
+        blank=True,
         null=True,
-        help_text='Загрузите свою картинку (только если выбрано "Своя картинка")'
+        help_text='Картинка предмета из игры. Без картинки на сайте будет значок аукциона'
     )
-    
+
     # Аукционные параметры.
     initial_price = models.IntegerField('Начальная цена', validators=[MinValueValidator(1)])
     current_price = models.IntegerField('Текущая цена', default=0)
@@ -59,8 +40,14 @@ class AuctionLot(models.Model):
     
     # Временные параметры.
     start_date = models.DateTimeField('Дата начала', default=timezone.now)
-    end_date = models.DateTimeField('Дата окончания (план)', null=True, blank=True, 
-                                     help_text='Плановая дата окончания. После этой даты ставки будут запрещены до завершения админом')
+    end_date = models.DateTimeField(
+        'Окончание торгов', null=True, blank=True,
+        help_text='Когда время выйдет, лот завершится сам: лидер платит, остальным очки возвращаются. '
+                  'Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут'
+    )
+    # Назначенное время окончания до продлений — от него считается предел продления.
+    # Пусто, пока торги не продлевали; сбрасывается, когда администратор меняет окончание.
+    original_end_date = models.DateTimeField('Окончание до продлений', null=True, blank=True, editable=False)
     
     # Статус.
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='active')
@@ -101,26 +88,9 @@ class AuctionLot(models.Model):
         return reverse('auction:lot_detail', args=[self.slug])
     
     def get_image_url(self):
-        """Возвращает URL изображения."""
-        if self.icon_choice == 'custom' and self.custom_image:
-            return self.custom_image.url
-        
-        icons = {
-            'wheel_of_fate': 'auction_icons/wheel_of_fate.png',
-            'stone_of_universe': 'auction_icons/stone_of_universe.png',
-            'opal': 'auction_icons/opal.png',
-            'divinity_stone': 'auction_icons/divinity_stone.png',
-            'great_meteorite': 'auction_icons/great_meteorite.png',
-            'rune_set_7': 'auction_icons/rune_set_7.png',
-            'time_yarn': 'auction_icons/time_yarn.png',
-            'rune_set_9': 'auction_icons/rune_set_9.png',
-            'absolute_stones': 'auction_icons/absolute_stones.png',
-        }
-        icon_path = icons.get(self.icon_choice, '')
-        if icon_path:
-            return static(icon_path)
-        return ''
-    
+        """URL картинки лота или пустая строка, если её не загрузили."""
+        return self.image.url if self.image else ''
+
     @property
     def is_active(self):
         """Проверяет, активен ли аукцион (только по статусу)."""
@@ -299,8 +269,8 @@ class AuctionBid(models.Model):
         ('cancelled', 'Отменена'),
     ]
     
-    lot = models.ForeignKey(AuctionLot, on_delete=models.CASCADE, related_name='bids')
-    bidder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='auction_bids')
+    lot = models.ForeignKey(AuctionLot, on_delete=models.CASCADE, related_name='bids', verbose_name='Лот')
+    bidder = models.ForeignKey(User, on_delete=models.CASCADE, related_name='auction_bids', verbose_name='Участник')
     bid_amount = models.IntegerField('Сумма ставки', validators=[MinValueValidator(1)])
     created_at = models.DateTimeField('Время ставки', auto_now_add=True)
     is_winner = models.BooleanField('Победитель', default=False)

@@ -5,22 +5,27 @@ from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
 
 
-def build_message_html(message, link=None):
+DEFAULT_BUTTON = 'Подробнее →'
+# Кнопка приглашения на ивент — ведёт к ответу «Приду / Не приду».
+VOTE_BUTTON = '🗳️ Проголосовать'
+
+
+def build_message_html(message, link=None, button=DEFAULT_BUTTON):
     """Готовит HTML уведомления.
 
     Текст экранируется (в нем бывают имена, причины отказа, названия лотов), переносы строк
-    превращаются в <br>, при наличии ссылки добавляется кнопка.
+    превращаются в <br>, при наличии ссылки добавляется кнопка с текстом button.
     """
     message_html = escape(message).replace('\n', '<br>')
 
     # Добавляем кнопку, если есть ссылка (без текстовой ссылки).
     if link:
-        message_html += format_html('<br><br><a href="{}" class="btn-vote-notify">🗳️ Проголосовать</a>', link)
+        message_html += format_html('<br><br><a href="{}" class="btn-vote-notify">{}</a>', link, button)
 
     return mark_safe(message_html)
 
 
-def send_notification(user, title, message, notification_type='info', link=None):
+def send_notification(user, title, message, notification_type='info', link=None, button=DEFAULT_BUTTON):
     """Отправляет уведомление одному пользователю.
 
     Аргументы:
@@ -29,6 +34,7 @@ def send_notification(user, title, message, notification_type='info', link=None)
         message: текст сообщения.
         notification_type: тип уведомления.
         link: ссылка (необязательно).
+        button: текст кнопки со ссылкой; «Проголосовать» — только для приглашений на ивент (VOTE_BUTTON).
     """
     # Получаем пользователя если передан username или id.
     if isinstance(user, str):
@@ -45,7 +51,7 @@ def send_notification(user, title, message, notification_type='info', link=None)
     notification = Notification.objects.create(
         user=user,
         title=title,
-        message=build_message_html(message, link),
+        message=build_message_html(message, link, button),
         notification_type=notification_type,
         link=link
     )

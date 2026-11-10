@@ -1,0 +1,543 @@
+/* =====================================================================
+   Форум: список разделов, список тем, сообщения темы и формы.
+   Карточки, кнопки и поля — общие из css/ui.css, здесь только раскладка форума.
+   ===================================================================== */
+
+/* ---------- Хлебные крошки над заголовком ---------- */
+.forum-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.forum-crumbs a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.forum-crumbs a:hover {
+    color: var(--accent-light);
+}
+
+.forum-crumbs .ga-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* ---------- Аватар ---------- */
+.forum-avatar {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    overflow: hidden;
+    border-radius: 50%;
+    background: rgba(var(--accent-rgb), 0.14);
+    color: var(--accent-light);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.forum-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.forum-avatar-lg {
+    width: 64px;
+    height: 64px;
+    font-size: 24px;
+}
+
+/* ---------- Строки списков (разделы и темы) ---------- */
+.forum-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.forum-row {
+    position: relative;
+    display: grid;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--hairline);
+    transition: background 0.15s ease;
+}
+
+.forum-row:last-child {
+    border-bottom: none;
+}
+
+.forum-row:hover {
+    background: var(--hover);
+}
+
+/* Ссылка растягивается на всю строку, кнопки и ссылка на автора остаются кликабельными поверх неё */
+.forum-row-link {
+    color: var(--text-strong);
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.forum-row-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.forum-row-link:focus-visible {
+    outline: none;
+}
+
+.forum-row:has(.forum-row-link:focus-visible) {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.forum-row a:not(.forum-row-link),
+.forum-row button,
+.forum-row form {
+    position: relative;
+    z-index: 1;
+}
+
+.forum-row-main {
+    min-width: 0;
+}
+
+.forum-row-sub {
+    margin-top: 3px;
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--text-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.forum-row-sub a {
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.forum-row-sub a:hover {
+    color: var(--accent-light);
+}
+
+.forum-row-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    background: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent-light);
+}
+
+.forum-row-icon .ga-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* Раздел: иконка | название | счётчики | последнее сообщение */
+.forum-section {
+    grid-template-columns: 40px minmax(0, 1fr) 150px minmax(0, 240px);
+}
+
+/* Счётчики строкой под названием — только когда колонка счётчиков скрыта */
+.forum-section .forum-row-sub {
+    display: none;
+}
+
+.forum-counts {
+    display: flex;
+    gap: 18px;
+}
+
+.forum-count {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 52px;
+}
+
+.forum-count-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-strong);
+}
+
+.forum-count-label {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.forum-last {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+
+.forum-last-info {
+    min-width: 0;
+    font-size: 13px;
+}
+
+.forum-last-topic {
+    overflow: hidden;
+    color: var(--text);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.forum-last-meta {
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.forum-last-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Тема: аватар автора | название | сообщений | действия */
+.forum-topic {
+    grid-template-columns: 36px minmax(0, 1fr) auto auto;
+}
+
+.forum-row-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.forum-row-actions .ui-btn {
+    width: 32px;
+    padding: 0;
+}
+
+/* ---------- Сообщения темы ---------- */
+.forum-posts {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.forum-post {
+    display: grid;
+    grid-template-columns: 170px minmax(0, 1fr);
+    padding: 0;
+    scroll-margin-top: 80px;
+}
+
+.forum-post-author {
+    padding: 20px 16px;
+    border-right: 1px solid var(--hairline);
+    background: var(--bg);
+    border-radius: var(--radius) 0 0 var(--radius);
+}
+
+/* Автор едет вместе с длинным сообщением и не уходит под верхнюю панель */
+.forum-post-author-inner {
+    position: sticky;
+    top: 84px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.forum-post-who {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.forum-post-name {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--text-strong);
+    font-weight: 700;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.forum-post-name:hover {
+    color: var(--accent-light);
+}
+
+.forum-post-class {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.forum-post-class img {
+    width: 18px;
+    height: 18px;
+}
+
+.forum-post-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 20px;
+}
+
+.forum-post-text {
+    flex: 1;
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.forum-post-text p {
+    margin: 0 0 10px;
+}
+
+.forum-post-text p:last-child {
+    margin-bottom: 0;
+}
+
+.forum-post-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--hairline);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.forum-post-foot .forum-row-actions .ui-btn {
+    width: auto;
+    padding: 0 10px;
+}
+
+.forum-post-badge {
+    margin-left: 6px;
+}
+
+/* ---------- Картинки ---------- */
+.forum-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.forum-gallery a {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+}
+
+.forum-gallery img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.forum-gallery a:hover img {
+    transform: scale(1.04);
+}
+
+/* Предпросмотр выбранных файлов и текущие картинки при редактировании */
+.forum-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.forum-previews:empty {
+    display: none;
+}
+
+.forum-preview {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    overflow: hidden;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--hairline);
+    background: var(--bg);
+}
+
+.forum-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.forum-preview-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    cursor: pointer;
+}
+
+.forum-preview-remove .ga-icon {
+    width: 14px;
+    height: 14px;
+}
+
+/* Отметка «удалить» на текущей картинке */
+.forum-preview-check {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.forum-preview:has(input:checked) img {
+    opacity: 0.35;
+}
+
+.forum-file-input {
+    display: none;
+}
+
+/* ---------- Формы ---------- */
+.forum-edit {
+    margin-top: 4px;
+}
+
+/* .ui-form задаёт display: grid, поэтому скрытую форму прячем явно */
+.forum-edit[hidden] {
+    display: none;
+}
+
+.forum-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.forum-narrow {
+    max-width: 760px;
+}
+
+.forum-confirm-text {
+    margin: 0 0 18px;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* ---------- Узкие экраны ---------- */
+@media (max-width: 900px) {
+    .forum-section {
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+    }
+
+    .forum-section .forum-last {
+        display: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .forum-row {
+        gap: 12px;
+        padding: 12px 16px;
+    }
+
+    .forum-section {
+        grid-template-columns: 40px minmax(0, 1fr);
+    }
+
+    .forum-section .forum-counts {
+        display: none;
+    }
+
+    .forum-section .forum-row-sub {
+        display: block;
+    }
+
+    .forum-topic {
+        grid-template-columns: 36px minmax(0, 1fr) auto;
+    }
+
+    .forum-topic .forum-topic-count {
+        display: none;
+    }
+
+    /* Автор — строкой над текстом */
+    .forum-post {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .forum-post-author {
+        padding: 12px 16px;
+        border-right: none;
+        border-bottom: 1px solid var(--hairline);
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .forum-post-author-inner {
+        position: static;
+        flex-direction: row;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .forum-post-who {
+        align-items: flex-start;
+    }
+
+    .forum-post-author .forum-avatar-lg {
+        width: 36px;
+        height: 36px;
+        font-size: 14px;
+    }
+
+    .forum-post-body {
+        padding: 16px;
+    }
+}

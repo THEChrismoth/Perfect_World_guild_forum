@@ -4,7 +4,7 @@ from .models import Topic, Post
 class TopicForm(forms.ModelForm):
     content = forms.CharField(
         label='Сообщение',
-        widget=forms.Textarea(attrs={'rows': 10, 'class': 'form-control'}),
+        widget=forms.Textarea(attrs={'rows': 10}),
         required=True
     )
     
@@ -12,7 +12,7 @@ class TopicForm(forms.ModelForm):
         model = Topic
         fields = ['title']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название темы'}),
+            'title': forms.TextInput(attrs={'placeholder': 'Название темы'}),
         }
 
 class TopicEditForm(forms.ModelForm):
@@ -22,7 +22,7 @@ class TopicEditForm(forms.ModelForm):
         model = Topic
         fields = ['title']
         widgets = {
-            'title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Название темы'}),
+            'title': forms.TextInput(attrs={'placeholder': 'Название темы'}),
         }
 
 
@@ -54,7 +54,7 @@ def validate_post_images(files):
 class PostForm(forms.ModelForm):
     content = forms.CharField(
         label='Ваш ответ',
-        widget=forms.Textarea(attrs={'rows': 8, 'class': 'form-control', 'placeholder': 'Напишите ваш ответ здесь...'}),
+        widget=forms.Textarea(attrs={'rows': 8, 'placeholder': 'Напишите ваш ответ здесь...'}),
         required=True
     )
     

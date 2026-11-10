@@ -1,0 +1,29 @@
+{% load ga_admin %}
+{# Предпросмотр картинок: <input type="file" data-image-input="id-контейнера">, крестик убирает файл из выбора. #}
+<template id="forum-preview-template">
+    <div class="forum-preview">
+        <img src="" alt="">
+        <button type="button" class="forum-preview-remove" aria-label="Убрать изображение">{% ga_icon "x" %}</button>
+    </div>
+</template>
+<script>
+document.querySelectorAll('[data-image-input]').forEach(function (input) {
+    var container = document.getElementById(input.dataset.imageInput);
+    var template = document.getElementById('forum-preview-template');
+    input.addEventListener('change', function () {
+        container.innerHTML = '';
+        var files = Array.from(input.files);
+        files.forEach(function (file, index) {
+            var preview = template.content.firstElementChild.cloneNode(true);
+            preview.querySelector('img').src = URL.createObjectURL(file);
+            preview.querySelector('button').addEventListener('click', function () {
+                var dt = new DataTransfer();
+                files.forEach(function (other, i) { if (i !== index) dt.items.add(other); });
+                input.files = dt.files;
+                input.dispatchEvent(new Event('change'));
+            });
+            container.appendChild(preview);
+        });
+    });
+});
+</script>

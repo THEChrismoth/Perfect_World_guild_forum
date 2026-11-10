@@ -2,24 +2,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from datetime import date
 from django.templatetags.static import static
-# Под другим именем: у профиля есть поле timezone, которое иначе перекрыло бы модуль.
-from django.utils import timezone as django_timezone
+from django.utils import timezone
 
 from core.accents import ACCENT_CHOICES
-
-TIMEZONE_CHOICES = [
-    ('UTC-12', 'UTC-12:00'), ('UTC-11', 'UTC-11:00'), ('UTC-10', 'UTC-10:00'),
-    ('UTC-9', 'UTC-09:00'), ('UTC-8', 'UTC-08:00'), ('UTC-7', 'UTC-07:00'),
-    ('UTC-6', 'UTC-06:00'), ('UTC-5', 'UTC-05:00'), ('UTC-4', 'UTC-04:00'),
-    ('UTC-3', 'UTC-03:00'), ('UTC-2', 'UTC-02:00'), ('UTC-1', 'UTC-01:00'),
-    ('UTC+0', 'UTC±00:00'), ('UTC+1', 'UTC+01:00'), ('UTC+2', 'UTC+02:00 (Калининград)'),
-    ('UTC+3', 'UTC+03:00 (Москва)'), ('UTC+4', 'UTC+04:00 (Самара)'), ('UTC+5', 'UTC+05:00 (Екатеринбург)'),
-    ('UTC+6', 'UTC+06:00 (Омск)'), ('UTC+7', 'UTC+07:00 (Новосибирск)'), ('UTC+8', 'UTC+08:00 (Иркутск)'),
-    ('UTC+9', 'UTC+09:00 (Якутск)'), ('UTC+10', 'UTC+10:00 (Владивосток)'), ('UTC+11', 'UTC+11:00 (Магадан)'),
-    ('UTC+12', 'UTC+12:00 (Камчатка)'),
-]
 
 # Иконки классов персонажей (static_src/class_icon/).
 CLASS_ICONS = {
@@ -76,39 +62,17 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField('Аватар', upload_to='avatars/', blank=True, null=True)
     ts3_id = models.CharField('TS3 ID', max_length=100, blank=True, null=True)
-    real_name = models.CharField(
-        'Имя', max_length=100, blank=True,
-        help_text='Видно только в вашей заявке в гильдию, на странице профиля не показывается'
-    )
-    timezone = models.CharField('Часовой пояс', max_length=10, choices=TIMEZONE_CHOICES, default='UTC+3')
-    birth_date = models.DateField('Дата рождения', blank=True, null=True)
-    city = models.CharField('Город', max_length=100, blank=True, null=True)
     player_class = models.CharField('Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
-    
-    # Характеристики (заполняются пользователем).
-    hp = models.IntegerField(default=0, verbose_name='❤️ HP')
-    mp = models.IntegerField(default=0, verbose_name='💧 MP')
-    pa = models.IntegerField(default=0, verbose_name='ПА - Показатель Атаки')
-    fa = models.IntegerField(default=0, verbose_name='ФА - Физическая атака')
-    ma = models.IntegerField(default=0, verbose_name='МА - Магическая атака')
-    pz = models.IntegerField(default=0, verbose_name='ПЗ - Показатель защиты')
-    bd = models.IntegerField(default=0, verbose_name='БД - Боевой дух')
-    bu = models.IntegerField(default=0, verbose_name='БУ - Бонус уровня')
-    physical_defense = models.IntegerField(default=0, verbose_name='Физическая защита')
-    magic_defense = models.IntegerField(default=0, verbose_name='Магическая защита')
-    physical_pierce = models.IntegerField(default=0, verbose_name='Физический пробив')
-    magic_pierce = models.IntegerField(default=0, verbose_name='Магический пробив')
-    crit_damage = models.IntegerField(default=0, verbose_name='Крит. урон')
-    crit_chance = models.IntegerField(default=0, verbose_name='Крит. шанс')
-    accuracy = models.IntegerField(default=0, verbose_name='Меткость')
-    dodge = models.IntegerField(default=0, verbose_name='Уклонение')
-    
+    # Какой из двух комплектов брони показывать первым (характеристики — в GearSet).
+    main_set = models.CharField('Основной сет', max_length=2, default='pa',
+                                choices=[('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')])
+
     # Очки активности (только для админа).
     activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
     spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
     earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
 
-    last_activity = models.DateTimeField('Последняя активность', default=django_timezone.now, null=True, blank=True)
+    last_activity = models.DateTimeField('Последняя активность', default=timezone.now, null=True, blank=True)
 
     # Цвет оформления (пока — в админ-панели), список цветов — core/accents.py.
     accent_color = models.CharField('Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES,
@@ -189,16 +153,61 @@ class Profile(models.Model):
     def get_icon_url(self):
         """Возвращает URL иконки для класса персонажа."""
         return class_icon_url(self.player_class)
-    
-    def age(self):
-        """Возвращает возраст пользователя."""
-        if self.birth_date:
-            today = date.today()
-            return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
-        return None
+
+    def gear_sets(self):
+        """Оба комплекта: основной первым. Создаются вместе с пользователем, но старые аккаунты — на всякий случай."""
+        sets = {gear.kind: gear for gear in self.user.gear_sets.all()}
+        for kind in GearSet.KINDS:
+            if kind not in sets:
+                sets[kind] = GearSet.objects.create(user=self.user, kind=kind)
+        return sorted(sets.values(), key=lambda gear: gear.kind != self.main_set)
+
+    def main_gear(self):
+        return self.gear_sets()[0]
+
+
+class GearSet(models.Model):
+    """Комплект брони. В игре их два — на атаку (ПА) и на защиту (ПЗ), меняются одной кнопкой в бою,
+    поэтому у игрока два набора характеристик. Какой основной — Profile.main_set."""
+
+    KIND_CHOICES = [('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')]
+    KINDS = [kind for kind, _ in KIND_CHOICES]
+    # Характеристики сета — порядок для форм и копирования.
+    STAT_FIELDS = ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
+                   'pz', 'physical_defense', 'magic_defense')
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gear_sets', verbose_name='Игрок')
+    kind = models.CharField('Сет', max_length=2, choices=KIND_CHOICES)
+
+    # Физ. и маг. атака и пробив — пары для физ. и маг. ДД.
+    hp = models.IntegerField(default=0, verbose_name='HP')
+    bd = models.IntegerField(default=0, verbose_name='Боевой дух (БД)')
+    bu = models.IntegerField(default=0, verbose_name='Бонус уровня (БУ)')
+    pa = models.IntegerField(default=0, verbose_name='Показатель атаки (ПА)')
+    fa = models.IntegerField(default=0, verbose_name='Физ. атака')
+    ma = models.IntegerField(default=0, verbose_name='Маг. атака')
+    physical_pierce = models.IntegerField(default=0, verbose_name='Физ. пробив')
+    magic_pierce = models.IntegerField(default=0, verbose_name='Маг. пробив')
+    pz = models.IntegerField(default=0, verbose_name='Показатель защиты (ПЗ)')
+    physical_defense = models.IntegerField(default=0, verbose_name='Физ. защита')
+    magic_defense = models.IntegerField(default=0, verbose_name='Маг. защита')
+
+    class Meta:
+        verbose_name = 'Сет брони'
+        verbose_name_plural = 'Сеты брони'
+        ordering = ['kind']
+        constraints = [models.UniqueConstraint(fields=['user', 'kind'], name='unique_gear_set_per_user')]
+
+    def __str__(self):
+        return f'{self.get_kind_display()} — {self.user.username}'
+
+    def is_empty(self):
+        return not any(getattr(self, field) for field in self.STAT_FIELDS)
+
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создает профиль только когда пользователь создается."""
+    """Создает профиль и оба сета брони только когда пользователь создается."""
     if created:
         Profile.objects.create(user=instance)
+        GearSet.objects.bulk_create([GearSet(user=instance, kind=kind) for kind in GearSet.KINDS])

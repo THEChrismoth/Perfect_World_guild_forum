@@ -3,7 +3,6 @@
 По кнопке роли создается новый игрок (Гость_4821 и т.п.). Какие аккаунты уже выданы этому
 браузеру, хранится в подписанной cookie: повторный вход в ту же роль возвращает в тот же аккаунт.
 """
-import datetime
 import json
 import random
 
@@ -13,7 +12,8 @@ from django.utils import timezone
 
 from auction.models import PointsTransaction
 from events.models import EventAttendance, EventNotification
-from notifications.utils import send_notification
+from notifications.utils import VOTE_BUTTON, send_notification
+from profiles.models import GearSet
 from teamspeak.models import GUILD_GROUP
 
 from .accounts import ADMIN_APPS, ADMIN_GROUP, DEMO_ROLES, GUEST_GROUP
@@ -26,33 +26,40 @@ GUEST_PAST_EVENTS = 2
 
 MAGIC_CLASSES = {'mag', 'zhrec', 'dru', 'sham', 'mist', 'bard'}
 GUEST_CLASSES = ['var', 'mag', 'luk', 'zhrec', 'obor', 'dru', 'sin', 'sham', 'strazh', 'strel']
-CITIES = ['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Казань', 'Минск', 'Самара', 'Краснодар']
 
 
 def fill_profile(user, player_class, rng):
-    """Класс и правдоподобные характеристики персонажа."""
+    """Класс и правдоподобные характеристики обоих сетов: в сете ПЗ атака ниже, а защита и HP выше."""
     magic = player_class in MAGIC_CLASSES
     profile = user.profile
     profile.player_class = player_class
-    profile.city = rng.choice(CITIES)
-    profile.birth_date = datetime.date(rng.randint(1985, 2005), rng.randint(1, 12), rng.randint(1, 28))
-    profile.hp = rng.randint(18, 45) * 1000
-    profile.mp = rng.randint(8, 25) * 1000
-    profile.pa = rng.randint(150, 260)
-    profile.pz = rng.randint(150, 260)
-    profile.fa = 0 if magic else rng.randint(9, 24) * 1000
-    profile.ma = rng.randint(9, 24) * 1000 if magic else 0
-    profile.bd = rng.randint(60, 150)
-    profile.bu = rng.randint(5, 30)
-    profile.physical_defense = rng.randint(20, 60) * 1000
-    profile.magic_defense = rng.randint(20, 60) * 1000
-    profile.physical_pierce = 0 if magic else rng.randint(10, 60)
-    profile.magic_pierce = rng.randint(10, 60) if magic else 0
-    profile.crit_damage = rng.randint(200, 350)
-    profile.crit_chance = rng.randint(5, 40)
-    profile.accuracy = rng.randint(3, 15) * 1000
-    profile.dodge = rng.randint(2, 10) * 1000
     profile.save()
+
+    attack = {
+        'hp': rng.randint(18, 45) * 1000,
+        'pa': rng.randint(150, 260),
+        'pz': rng.randint(100, 180),
+        'fa': 0 if magic else rng.randint(9, 24) * 1000,
+        'ma': rng.randint(9, 24) * 1000 if magic else 0,
+        'bd': rng.randint(60, 150),
+        'bu': rng.randint(5, 30),
+        'physical_defense': rng.randint(20, 60) * 1000,
+        'magic_defense': rng.randint(20, 60) * 1000,
+        'physical_pierce': 0 if magic else rng.randint(10, 60),
+        'magic_pierce': rng.randint(10, 60) if magic else 0,
+    }
+    defense = {
+        **attack,
+        'hp': int(attack['hp'] * 1.3),
+        'pa': attack['pa'] - rng.randint(40, 80),
+        'pz': attack['pz'] + rng.randint(60, 120),
+        'fa': int(attack['fa'] * 0.7),
+        'ma': int(attack['ma'] * 0.7),
+        'physical_defense': int(attack['physical_defense'] * 1.4),
+        'magic_defense': int(attack['magic_defense'] * 1.4),
+    }
+    GearSet.objects.filter(user=user, kind='pa').update(**attack)
+    GearSet.objects.filter(user=user, kind='pz').update(**defense)
 
 
 def admin_group():
@@ -151,4 +158,4 @@ def _join_guild(user):
     for notification in upcoming:
         notification.sent_to_users.add(user)
         send_notification(user, notification.subject, notification.message, notification_type='warning',
-                          link=reverse('events:vote_view', args=[notification.id]))
+                          link=reverse('events:vote_view', args=[notification.id]), button=VOTE_BUTTON)

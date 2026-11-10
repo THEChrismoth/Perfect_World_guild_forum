@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
-from django.utils.text import slugify
+from uuslug import uuslug
 
 
 class EventType(models.Model):
@@ -76,7 +76,9 @@ class EventType(models.Model):
     
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name)
+            # uuslug переводит кириллицу в латиницу и делает адрес уникальным; slugify от Django
+            # кириллицу выбрасывает — из «МТВ» получалась пустая строка и страница ивентов падала.
+            self.slug = uuslug(self.name, instance=self, max_length=50)
         super().save(*args, **kwargs)
     
     def get_absolute_url(self):

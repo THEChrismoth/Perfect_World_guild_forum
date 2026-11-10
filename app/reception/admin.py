@@ -1,220 +1,100 @@
-from django import forms
-from django.contrib import admin
-from django.utils import timezone
-from django.utils.html import format_html, format_html_join
-from django.urls import reverse
+from django.contrib import admin, messages
+from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.template.response import TemplateResponse
+from django.urls import path, reverse
+from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 
 from core.admin_mixins import NoRelatedPopupsMixin
-from .models import Application, ApplicationVote
-from notifications.utils import send_notification
-
-VOTE_CLASSES = {'for': 'ga-text-ok', 'against': 'ga-text-bad', 'abstain': 'ga-text-warn'}
-
-
-class ApplicationVoteInline(NoRelatedPopupsMixin, admin.TabularInline):
-    model = ApplicationVote
-    extra = 0
-    fields = ('voter', 'vote', 'comment', 'created_at')
-    readonly_fields = ('voter', 'vote', 'comment', 'created_at')
-    can_delete = False
-
-
-class ApplicationForm(forms.ModelForm):
-    class Meta:
-        model = Application
-        fields = '__all__'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        # Причина отказа уходит кандидату в уведомлении — без неё он не поймёт, что исправить.
-        if cleaned_data.get('status') == 'rejected' and self.instance.status != 'rejected' \
-                and not (cleaned_data.get('admin_comment') or '').strip():
-            self.add_error('admin_comment', 'Напишите причину отказа — кандидат увидит её в уведомлении')
-        return cleaned_data
+from core.roles import GUILD_GROUP
+from . import services
+from .models import Application
 
 
 @admin.register(Application)
 class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    form = ApplicationForm
-    list_display = ('id', 'user', 'player_class', 'status', 'created_at', 'votes_summary')
-    list_filter = ('status', 'player_class', 'created_at')
-    search_fields = ('user__username', 'real_name', 'previous_nicknames')
-    readonly_fields = ('reviewed_by', 'created_at', 'updated_at', 'approved_at', 'display_screenshots', 'votes_detail')
-    inlines = [ApplicationVoteInline]
+    """Заявки создают кандидаты на сайте. Здесь их только смотрят и принимают решение:
+    вынести на голосование, одобрить или отклонить — кнопками на странице заявки."""
 
-    fieldsets = (
-        ('Решение', {
-            'fields': ('status', 'admin_comment', 'reviewed_by'),
-            'description': '«Голосование» — заявка прошла проверку, члены гильдии голосуют на сайте. '
-                           '«Одобрена» — финальное решение, группу «Член гильдии» выдайте в разделе «Пользователи». '
-                           '«Отклонена» — укажите причину в комментарии. Кандидат получает уведомление о каждом решении.',
-        }),
-        ('Кандидат', {'fields': ('user', 'player_class', 'real_name', 'age', 'timezone')}),
-        ('Игровой опыт', {'fields': ('previous_nicknames', 'other_guilds', 'on_blacklist', 'blacklist_details')}),
-        ('Планы и поручители', {'fields': ('development_plans', 'guarantors')}),
-        ('Скриншоты', {'fields': ('display_screenshots', 'screenshot1', 'screenshot2', 'screenshot3', 'screenshot4',
-                                  'screenshot5')}),
-        ('Голосование', {'fields': ('votes_detail',), 'classes': ('wide',)}),
-        ('Даты', {'fields': ('created_at', 'updated_at', 'approved_at'), 'classes': ('collapse',)}),
-    )
+    list_display = ('user', 'player_class', 'status', 'created_at', 'votes_summary')
+    list_filter = ('status', 'created_at')
+    search_fields = ('user__username', 'development_plans')
+    actions = ['send_to_voting_action']
 
-    def display_screenshots(self, obj):
-        urls = []
-        for i in range(1, 6):
-            screenshot = getattr(obj, f'screenshot{i}')
-            if screenshot and screenshot.name:
-                try:
-                    urls.append((screenshot.url, screenshot.url))
-                except ValueError:
-                    continue
-        if not urls:
-            return format_html('<span class="ga-text-muted">{}</span>', 'Нет скриншотов')
-        return format_html('<div class="ga-shots">{}</div>', format_html_join(
-            '', '<a href="{}" target="_blank" rel="noopener"><img src="{}" alt=""></a>', urls))
+    def has_add_permission(self, request):
+        return False
 
-    display_screenshots.short_description = 'Скриншоты'
-
-    def votes_detail(self, obj):
-        votes = obj.votes.select_related('voter').all()
-        if not votes:
-            return format_html('<span class="ga-text-muted">{}</span>', 'Нет голосов')
-
-        stats = obj.get_vote_stats()
-        header = format_html(
-            '<div class="ga-votes-summary"><span class="ga-text-ok">За: {}</span>'
-            '<span class="ga-text-bad">Против: {}</span><span class="ga-text-warn">Воздержались: {}</span></div>',
-            stats['for'], stats['against'], stats['abstain']
-        )
-        # format_html_join экранирует имя и комментарий — их пишут пользователи.
-        rows = format_html_join(
-            '',
-            '<tr><td>{}</td><td class="{}"><strong>{}</strong></td><td>{}</td><td>{}</td></tr>',
-            (
-                (
-                    vote.voter.username,
-                    VOTE_CLASSES.get(vote.vote, ''),
-                    vote.get_vote_display(),
-                    vote.comment or '—',
-                    timezone.localtime(vote.created_at).strftime('%d.%m.%Y %H:%M'),
-                )
-                for vote in votes
-            )
-        )
-        return format_html(
-            '{}<table class="ga-votes"><thead><tr><th>Пользователь</th><th>Голос</th><th>Комментарий</th>'
-            '<th>Дата</th></tr></thead><tbody>{}</tbody></table>',
-            header, rows
-        )
-
-    votes_detail.short_description = 'Голоса (с именами)'
-
+    @admin.display(description='Голоса')
     def votes_summary(self, obj):
         stats = obj.get_vote_stats()
         return format_html('<span class="ga-text-ok">За {}</span> · <span class="ga-text-bad">против {}</span>',
                            stats['for'], stats['against'])
 
-    votes_summary.short_description = 'Голоса'
+    @admin.action(description='Вынести на голосование')
+    def send_to_voting_action(self, request, queryset):
+        applications = [app for app in queryset if services.can_decide(app, 'voting')]
+        for app in applications:
+            services.send_to_voting(app, request.user)
+        self.message_user(request, f'Вынесено на голосование: {len(applications)}')
 
-    def save_model(self, request, obj, form, change):
-        old_status = None
-        if change:
-            try:
-                old_status = Application.objects.get(id=obj.id).status
-            except Application.DoesNotExist:
-                pass
+    def changelist_view(self, request, extra_context=None):
+        return super().changelist_view(request, {'title': 'Заявки в гильдию', **(extra_context or {})})
 
-        if 'status' in form.changed_data:
-            # Допуск до голосования.
-            if obj.status == 'voting' and old_status != 'voting':
-                obj.approve_by_admin(request.user)
-                send_notification(
-                    user=obj.user,
-                    title='📝 Заявка допущена до голосования',
-                    message=f'Ваша заявка прошла предварительную проверку и допущена до голосования членов гильдии.',
-                    notification_type='application',
-                    link=reverse('reception:application_detail', args=[obj.id])
-                )
-            # Отклонение заявки.
-            elif obj.status == 'rejected' and old_status != 'rejected':
-                obj.reject_by_admin(request.user, obj.admin_comment)
-                reason = obj.admin_comment if obj.admin_comment else 'Не указана'
-                send_notification(
-                    user=obj.user,
-                    title='❌ Заявка отклонена',
-                    message=f'Ваша заявка была отклонена. Причина: {reason}',
-                    notification_type='error',
-                    link=reverse('reception:my_applications')
-                )
-            # Одобрение заявки (финальное) — группа выдается вручную, только уведомление.
-            elif obj.status == 'approved' and old_status != 'approved':
-                obj.status = 'approved'
-                obj.save()
-                send_notification(
-                    user=obj.user,
-                    title='🎉 Заявка одобрена!',
-                    message=f'Поздравляем! Ваша заявка одобрена! Теперь вы можете вступить в гильдию.',
-                    notification_type='success',
-                    link=reverse('reception:my_applications')
-                )
-                return  # Выходим, чтобы не вызывать super().save_model дважды
+    def get_urls(self):
+        return [
+            path('<int:object_id>/decision/', self.admin_site.admin_view(require_POST(self.decision_view)),
+                 name='reception_application_decision'),
+        ] + super().get_urls()
 
-        super().save_model(request, obj, form, change)
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        """Вместо формы — заявка целиком, голоса с комментариями и кнопки решения."""
+        application = get_object_or_404(Application.objects.select_related('user__profile', 'reviewed_by'),
+                                        pk=object_id)
+        if not self.has_view_or_change_permission(request, application):
+            raise PermissionDenied
+        context = {
+            **self.admin_site.each_context(request),
+            'title': f'Заявка · {application.user.username}',
+            'opts': self.model._meta,
+            'original': application,
+            'application': application,
+            'profile': application.user.profile,
+            'stats': application.get_vote_stats(),
+            'items': services.discussion_items(application),
+            'can_change': self.has_change_permission(request, application),
+            'can_delete': self.has_delete_permission(request, application),
+            'can_vote_out': services.can_decide(application, 'voting'),
+            'can_approve': services.can_decide(application, 'approve'),
+            'can_reject': services.can_decide(application, 'reject'),
+            'guild_group': GUILD_GROUP,
+        }
+        return TemplateResponse(request, 'admin/reception/application/detail.html', context)
 
-    actions = ['approve_applications', 'reject_applications', 'final_approve_applications']
+    def decision_view(self, request, object_id):
+        application = get_object_or_404(Application, pk=object_id)
+        if not self.has_change_permission(request, application):
+            raise PermissionDenied
+        decision = request.POST.get('decision')
+        back = HttpResponseRedirect(reverse('admin:reception_application_change', args=[application.pk]))
 
-    def approve_applications(self, request, queryset):
-        """Допускает до голосования."""
-        count = 0
-        for app in queryset.filter(status='pending'):
-            app.approve_by_admin(request.user)
-            send_notification(
-                user=app.user,
-                title='📝 Заявка допущена до голосования',
-                message=f'Ваша заявка прошла предварительную проверку и допущена до голосования.',
-                notification_type='application',
-                link=reverse('reception:application_detail', args=[app.id])
-            )
-            count += 1
-        self.message_user(request, f'Допущено до голосования {count} заявок')
-    approve_applications.short_description = 'Допустить до голосования'
+        if not services.can_decide(application, decision):
+            self.message_user(request, 'Это решение для заявки в таком статусе недоступно', level=messages.ERROR)
+            return back
 
-    def reject_applications(self, request, queryset):
-        """Отклоняет заявки."""
-        count = 0
-        for app in queryset.filter(status='pending'):
-            app.reject_by_admin(request.user, 'Отклонено администратором')
-            send_notification(
-                user=app.user,
-                title='❌ Заявка отклонена',
-                message=f'Ваша заявка была отклонена администратором.',
-                notification_type='error',
-                link=reverse('reception:my_applications')
-            )
-            count += 1
-        self.message_user(request, f'Отклонено {count} заявок')
-    reject_applications.short_description = 'Отклонить'
-
-    def final_approve_applications(self, request, queryset):
-        """Финальное одобрение заявок."""
-        count = 0
-        for app in queryset.filter(status='voting'):
-            app.status = 'approved'
-            app.save()
-            send_notification(
-                user=app.user,
-                title='🎉 Заявка одобрена!',
-                message=f'Поздравляем! Ваша заявка одобрена. Свяжитесь с администратором для вступления в гильдию.',
-                notification_type='success',
-                link=reverse('reception:my_applications')
-            )
-            count += 1
-        self.message_user(request, f'Одобрено {count} заявок, уведомления отправлены')
-    final_approve_applications.short_description = 'Одобрить заявки (отправить уведомление)'
-
-
-@admin.register(ApplicationVote)
-class ApplicationVoteAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    list_display = ('application', 'voter', 'vote', 'created_at')
-    list_filter = ('vote', 'created_at')
-    search_fields = ('voter__username', 'application__user__username')
-    readonly_fields = ('created_at',)
+        if decision == 'voting':
+            services.send_to_voting(application, request.user)
+            self.message_user(request, 'Заявка вынесена на голосование, кандидат получил уведомление')
+        elif decision == 'approve':
+            services.approve(application, request.user, add_to_guild=bool(request.POST.get('add_to_guild')))
+            self.message_user(request, 'Заявка одобрена, кандидат получил уведомление')
+        else:
+            reason = request.POST.get('reason', '').strip()
+            if not reason:
+                self.message_user(request, 'Напишите причину отказа — кандидат увидит её в уведомлении',
+                                  level=messages.ERROR)
+                return back
+            services.reject(application, request.user, reason)
+            self.message_user(request, 'Заявка отклонена, кандидат получил уведомление с причиной')
+        return back

@@ -1,0 +1,40 @@
+<script>
+(function () {
+    // Порядок: лента приходит «сначала новые», для «сначала старые» просто разворачиваем.
+    document.addEventListener('change', function (event) {
+        if (!event.target.matches('[data-feed-sort]')) return;
+        var feed = event.target.closest('[data-discussion]').querySelector('[data-feed]');
+        var order = feed.dataset.order || 'new';
+        if (order !== event.target.value) {
+            Array.from(feed.children).reverse().forEach(function (item) { feed.appendChild(item); });
+            feed.dataset.order = event.target.value;
+        }
+    });
+
+    // «Проголосовать» становится активной, когда выбран вариант.
+    document.addEventListener('change', function (event) {
+        var form = event.target.closest('[data-vote-form]');
+        if (form && event.target.name === 'vote') form.querySelector('[data-vote-submit]').disabled = false;
+    });
+
+    // Голос и комментарий отправляются фоном, содержимое обсуждения обновляется на месте.
+    document.addEventListener('submit', function (event) {
+        var form = event.target.closest('[data-discussion-form]');
+        if (!form || !window.fetch) return;
+        event.preventDefault();
+        var data = new FormData(form);
+        if (event.submitter && event.submitter.name) data.set(event.submitter.name, event.submitter.value);
+        form.querySelectorAll('button').forEach(function (button) { button.disabled = true; });
+        fetch(form.action, {method: 'POST', body: data, headers: {'X-Requested-With': 'fetch'}})
+            .then(function (response) {
+                if (!response.ok) throw new Error(response.status);
+                return response.text();
+            })
+            .then(function (html) {
+                form.closest('[data-discussion]').outerHTML = html;
+                document.dispatchEvent(new CustomEvent('discussion:changed'));
+            })
+            .catch(function () { window.location.reload(); });
+    });
+})();
+</script>

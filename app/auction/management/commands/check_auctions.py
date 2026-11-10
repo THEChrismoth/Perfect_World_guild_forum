@@ -1,29 +1,14 @@
 from django.core.management.base import BaseCommand
-from django.utils import timezone
-from auction.models import AuctionLot
+
+from auction.services import finish_expired_lots
+
 
 class Command(BaseCommand):
-    help = 'Проверяет завершенные аукционы и обрабатывает их'
+    help = ('Завершает лоты, у которых закончилось время торгов. Обычно это делает планировщик '
+            '(контейнер scheduler) сам — команда нужна для ручного запуска')
 
     def handle(self, *args, **options):
-        ended_lots = AuctionLot.objects.filter(
-            status='active',
-            end_date__lte=timezone.now()
-        )
-
-        count = 0
-        for lot in ended_lots:
-            success, message = lot.process_auction_end()
-            if success:
-                self.stdout.write(
-                    self.style.SUCCESS(f'Обработан аукцион: {lot.name}')
-                )
-                count += 1
-            else:
-                self.stdout.write(
-                    self.style.WARNING(f'Аукцион {lot.name} не завершен: {message}')
-                )
-
-        self.stdout.write(
-            self.style.SUCCESS(f'Обработано {count} аукционов')
-        )
+        finished, problems = finish_expired_lots()
+        self.stdout.write(self.style.SUCCESS(f'Завершено лотов: {finished}'))
+        if problems:
+            self.stdout.write(self.style.WARNING(f'Не удалось завершить: {problems} — администраторы получили уведомление'))

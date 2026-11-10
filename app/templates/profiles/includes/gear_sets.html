@@ -1,0 +1,19 @@
+{# Оба сета брони игрока, основной первым: анкета, окно обсуждения заявки, заявка в админ-панели. #}
+{# Параметры: profile, dl_class — класс сетки характеристик того места, где показываем; #}
+{# show_shots — рядом с сетом его скриншот из заявки (application) для проверки статов: только в админ-панели. #}
+{% for gear in profile.gear_sets %}
+    <div class="gear-set">
+        <div class="gear-set-title">{{ gear.get_kind_display }}{% if gear.kind == profile.main_set %}<span class="gear-set-main">основной</span>{% endif %}</div>
+        <div class="gear-set-body">
+            {% if gear.is_empty %}
+                <p class="gear-set-empty">Не заполнен</p>
+            {% else %}
+                <dl class="{{ dl_class }}">{% include 'profiles/includes/stats_rows.html' %}</dl>
+            {% endif %}
+            {% if show_shots and application %}
+                {% if gear.kind == 'pa' %}{% with shot=application.screenshot_pa %}{% include 'profiles/includes/gear_shot.html' %}{% endwith %}
+                {% else %}{% with shot=application.screenshot_pz %}{% include 'profiles/includes/gear_shot.html' %}{% endwith %}{% endif %}
+            {% endif %}
+        </div>
+    </div>
+{% endfor %}

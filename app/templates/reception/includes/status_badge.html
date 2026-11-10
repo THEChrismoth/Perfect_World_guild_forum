@@ -1,0 +1,5 @@
+{# Статус заявки бейджем. Параметр: application. #}
+{% if application.status == 'approved' %}<span class="ui-badge ui-badge-success">Принята</span>
+{% elif application.status == 'rejected' %}<span class="ui-badge ui-badge-danger">Отклонена</span>
+{% elif application.status == 'voting' %}<span class="ui-badge">Голосование</span>
+{% else %}<span class="ui-badge ui-badge-warning">На проверке</span>{% endif %}

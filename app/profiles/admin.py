@@ -5,7 +5,7 @@ from django.urls import path
 from django.db import models
 
 from core.admin_mixins import NoRelatedPopupsMixin
-from .models import Profile
+from .models import GearSet, Profile
 from . import admin_views
 
 
@@ -14,29 +14,39 @@ class ProfileInline(admin.StackedInline):
     can_delete = False
     fieldsets = (
         ('Основная информация', {
-            'fields': ('avatar', 'ts3_id', 'birth_date', 'city', 'player_class')
-        }),
-        ('Характеристики', {
-            'fields': ('hp', 'mp', 'bd')
-        }),
-        ('атака', {
-            'fields': ('pa', 'fa', 'ma', 'crit_damage', 'crit_chance', 'bu', 'accuracy')
-        }),
-        ('Защита', {
-            'fields': ('pz', 'physical_defense', 'magic_defense', 'physical_pierce', 'magic_pierce', 'dodge')
+            'fields': ('avatar', 'ts3_id', 'player_class', 'main_set')
         }),
         ('Очки активности', {
             'fields': ('activity_points', 'spent_points', 'earned_points'),
-            'description': 'Управляйте очками активности здесь или на специальной странице'
+            'description': 'Меняются в «Таблице активности» — так правка попадёт в историю очков игрока',
         }),
     )
+    # Правка здесь не попала бы в «Движение моих очков» у игрока — только просмотр.
+    readonly_fields = ('activity_points', 'spent_points', 'earned_points')
     extra = 0
     max_num = 1
     min_num = 1
 
 
+class GearSetInline(admin.StackedInline):
+    """Два сета брони игрока — ПА и ПЗ; их ровно два, добавлять и удалять нельзя."""
+    model = GearSet
+    can_delete = False
+    extra = 0
+    max_num = 2
+    fields = ('kind', ('hp', 'bd', 'bu'), ('pa', 'fa', 'ma'), ('physical_pierce', 'magic_pierce'),
+              ('pz', 'physical_defense', 'magic_defense'))
+    readonly_fields = ('kind',)
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 class UserAdmin(NoRelatedPopupsMixin, BaseUserAdmin):
-    inlines = [ProfileInline]
+    inlines = [ProfileInline, GearSetInline]
+    # Дата последнего входа и регистрации заполняются сами — править их вручную незачем.
+    fieldsets = tuple(fieldset for fieldset in BaseUserAdmin.fieldsets
+                      if 'last_login' not in fieldset[1]['fields'])
 
     def get_urls(self):
         urls = super().get_urls()

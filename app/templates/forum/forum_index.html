@@ -1,259 +1,71 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'forum/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'auction/css/auction.css' %}">
-    <link rel="stylesheet" href="{% static 'reception/css/reception.css' %}">
-    <link rel="stylesheet" href="{% static 'events/css/events.css' %}">
+    <link rel="stylesheet" href="{% static 'forum/css/forum.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="forum-layout">
-    <div class="forum-main">
-        <!-- Категории форума -->
-        <ul class="categorys">
-            {% for category_data in categories %}
-                <li class="category-item">
-                    <h2 class="category-title">{{ category_data.category.title }}</h2>
-                    <div class="subcategories-block">
-                        <div class="subcategories-container">
-                            <div class="subcategories-grid">
-                                {% for subcategory in category_data.subcategories %}
-                                    <a href="
-                                        {% if subcategory.is_events %}
-                                            {% url 'events:event_index' %}
-                                        {% elif subcategory.is_auction %}
-                                            {% url 'auction:auction_index' %}
-                                        {% elif subcategory.is_reception %}
-                                            {% url 'reception:application_form' %}
-                                        {% elif subcategory.is_reception_view %}
-                                            {% url 'reception:application_list' %}
-                                        {% else %}
-                                            {% url 'subcategory_detail' slug=subcategory.slug %}
-                                        {% endif %}
-                                    " class="subcategory-card 
-                                        {% if subcategory.is_events %}events-card{% endif %}
-                                        {% if subcategory.is_auction %}auction-card{% endif %}
-                                        {% if subcategory.is_reception %}reception-card{% endif %}
-                                        {% if subcategory.is_reception_view %}reception-view-card{% endif %}">
-                                        
-                                        <div class="subcategory-main">
-                                            <span class="subcategory-title">
-                                                {% if subcategory.is_events %}⚔️ {% endif %}
-                                                {% if subcategory.is_auction %}🎯 {% endif %}
-                                                {% if subcategory.is_reception %}📝 {% endif %}
-                                                {% if subcategory.is_reception_view %}🗳️ {% endif %}
-                                                {{ subcategory.title }}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="subcategory-stats">
-                                            {% if subcategory.is_events %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">типов ивентов</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего ивентов</span>
-                                                </div>
-                                            {% elif subcategory.is_auction %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">активных лотов</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего лотов</span>
-                                                </div>
-                                            {% elif subcategory.is_reception %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">📋</span>
-                                                    <span class="stat-label">Подать заявку</span>
-                                                </div>
-                                            {% elif subcategory.is_reception_view %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">активных заявок</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">всего заявок</span>
-                                                </div>
-                                            {% else %}
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.topics_count }}</span>
-                                                    <span class="stat-label">тем</span>
-                                                </div>
-                                                <div class="stat-item">
-                                                    <span class="stat-value">{{ subcategory.posts_count }}</span>
-                                                    <span class="stat-label">ответов</span>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        
-                                        <div class="subcategory-last-post">
-                                            {% if subcategory.is_events %}
-                                                <div class="events-badge">
-                                                    ⚔️ Активные ивенты
-                                                </div>
-                                            {% elif subcategory.is_auction %}
-                                                <div class="auction-badge">
-                                                    🎯 Активные торги
-                                                </div>
-                                            {% elif subcategory.is_reception %}
-                                                <div class="reception-badge">
-                                                    📝 Подать заявку
-                                                </div>
-                                            {% elif subcategory.is_reception_view %}
-                                                <div class="reception-view-badge">
-                                                    🗳️ Активные заявки
-                                                </div>
-                                            {% else %}
-                                                {% with last_post=subcategory.last_post %}
-                                                    {% if last_post %}
-                                                        {% with profile=last_post.author.profile %}
-                                                            {% if profile.avatar %}
-                                                                <img src="{{ profile.avatar.url }}" alt="{{ last_post.author.username }}" class="last-post-avatar">
-                                                            {% else %}
-                                                                <div class="last-post-avatar">
-                                                                    {{ last_post.author.username|make_list|first|upper }}
-                                                                </div>
-                                                            {% endif %}
-                                                        {% endwith %}
-                                                        <div class="last-post-info">
-                                                            <div class="last-post-topic">{{ last_post.topic.title|truncatechars:30 }}</div>
-                                                            <div class="last-post-meta">
-                                                                {{ last_post.created_at|date:"d.m.Y H:i" }}
-                                                                <span>от {{ last_post.author.username }}</span>
-                                                            </div>
-                                                        </div>
-                                                    {% else %}
-                                                        <div class="no-posts">Нет сообщений</div>
-                                                    {% endif %}
-                                                {% endwith %}
-                                            {% endif %}
-                                        </div>
-                                    </a>
-                                {% endfor %}
-                            </div>
-                        </div>
-                    </div>
-                </li>
-            {% empty %}
-                <li class="category-item">
-                    <div class="no-subcategories">
-                        У вас нет доступа ни к одной категории
-                    </div>
-                </li>
-            {% endfor %}
-        </ul>
-    </div>
-
-    <!-- Правый сайдбар -->
-    <div class="forum-sidebar">
-        <!-- Блок 1: Новые сообщения -->
-        <div class="sidebar-widget">
-            <div class="widget-header">
-                <h3>📝 Новые сообщения</h3>
-            </div>
-            <div class="widget-content">
-                {% if latest_posts %}
-                    <ul class="latest-posts-list">
-                        {% for post in latest_posts %}
-                            <li class="latest-post-item">
-                                <div class="post-author-avatar">
-                                    {% if post.author.profile.avatar %}
-                                        <img src="{{ post.author.profile.avatar.url }}" alt="{{ post.author.username }}" class="post-avatar-small">
-                                    {% else %}
-                                        <div class="post-avatar-placeholder">
-                                            {{ post.author.username|make_list|first|upper }}
-                                        </div>
-                                    {% endif %}
-                                </div>
-                                <div class="post-info">
-                                    <a href="{% url 'topic_detail' slug=post.topic.slug %}#post-{{ post.id }}" class="post-topic-title">
-                                        {{ post.topic.title|truncatechars:35 }}
-                                    </a>
-                                    <div class="post-meta">
-                                        <span class="post-author">
-                                            <a href="{% url 'profile_view' username=post.author.username %}" class="post-author-link">
-                                                {{ post.author.username }}
-                                            </a>
-                                        </span>
-                                        <span class="post-date">{{ post.created_at|date:"d.m.Y H:i" }}</span>
-                                    </div>
-                                </div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="no-data">Нет сообщений</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Блок 2: Пользователи онлайн -->
-        <div class="sidebar-widget">
-            <div class="widget-header">
-                <h3>🟢 Пользователи онлайн</h3>
-                <span class="online-count">{{ online_users|length }}</span>
-            </div>
-            <div class="widget-content">
-                {% if online_users %}
-                    <ul class="online-users-list">
-                        {% for user in online_users %}
-                            <li class="online-user-item">
-                                <a href="{% url 'profile_view' username=user.username %}" class="user-link">
-                                    <span class="online-indicator"></span>
-                                    {{ user.username }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <div class="no-data">Нет пользователей онлайн</div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Блок 3: Статистика форума -->
-        <div class="sidebar-widget">
-            <div class="widget-header">
-                <h3>📊 Статистика форума</h3>
-            </div>
-            <div class="widget-content">
-                <div class="stats-list">
-                    <div class="stat-row">
-                        <span class="stat-icon">📌</span>
-                        <span class="stat-label">Всего тем:</span>
-                        <span class="stat-number">{{ forum_stats.topics_count }}</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-icon">💬</span>
-                        <span class="stat-label">Всего сообщений:</span>
-                        <span class="stat-number">{{ forum_stats.posts_count }}</span>
-                    </div>
-                    <div class="stat-row">
-                        <span class="stat-icon">👥</span>
-                        <span class="stat-label">Пользователей:</span>
-                        <span class="stat-number">{{ forum_stats.users_count }}</span>
-                    </div>
-                    {% if forum_stats.latest_user %}
-                        <div class="stat-row latest-user">
-                            <span class="stat-icon">🆕</span>
-                            <span class="stat-label">Последний:</span>
-                            <span class="stat-value">
-                                <a href="{% url 'profile_view' username=forum_stats.latest_user.username %}">
-                                    {{ forum_stats.latest_user.username }}
-                                </a>
-                            </span>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+<div class="ui-page-head">
+    <div>
+        <h1 class="ui-page-title">Форум</h1>
+        <p class="ui-page-sub">Обсуждения гильдии по разделам</p>
     </div>
 </div>
+
+{% if categories %}
+    <div class="ui-stack">
+        {% for category_data in categories %}
+            <section class="ui-card ui-card-flush">
+                <div class="ui-card-head">
+                    <h2 class="ui-card-title">{{ category_data.category.title }}</h2>
+                </div>
+                <ul class="forum-list">
+                    {% for subcategory in category_data.subcategories %}
+                        <li class="forum-row forum-section">
+                            <span class="forum-row-icon">{% ga_icon "message" %}</span>
+                            <div class="forum-row-main">
+                                <a href="{% url 'subcategory_detail' slug=subcategory.slug %}" class="forum-row-link">{{ subcategory.title }}</a>
+                                <div class="forum-row-sub">
+                                    {{ subcategory.topics_count }} тем · {{ subcategory.posts_count }} сообщений
+                                </div>
+                            </div>
+                            <div class="forum-counts">
+                                <div class="forum-count">
+                                    <span class="forum-count-value">{{ subcategory.topics_count }}</span>
+                                    <span class="forum-count-label">тем</span>
+                                </div>
+                                <div class="forum-count">
+                                    <span class="forum-count-value">{{ subcategory.posts_count }}</span>
+                                    <span class="forum-count-label">сообщений</span>
+                                </div>
+                            </div>
+                            {% with last_post=subcategory.last_post %}
+                                {% if last_post %}
+                                    <div class="forum-last">
+                                        {% include 'forum/includes/avatar.html' with author=last_post.author %}
+                                        <div class="forum-last-info">
+                                            <div class="forum-last-topic">{{ last_post.topic.title }}</div>
+                                            <div class="forum-last-meta">{{ last_post.author.username }} · {{ last_post.created_at|date:"d.m.Y H:i" }}</div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="forum-last forum-last-empty">Нет сообщений</div>
+                                {% endif %}
+                            {% endwith %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="ui-card">
+        <div class="ui-empty">
+            <span class="ui-empty-icon">{% ga_icon "message" %}</span>
+            <p class="ui-empty-title">Разделов пока нет</p>
+            <p class="ui-empty-text">На форуме пока нет доступных вам разделов</p>
+        </div>
+    </div>
+{% endif %}
 {% endblock %}

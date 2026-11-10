@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
-from notifications.utils import send_notification
+from notifications.utils import VOTE_BUTTON, send_notification
 from .models import EventNotification
 
 
@@ -64,7 +64,8 @@ def send_event_notification(notification_id):
             title=notification.subject,
             message=full_message,
             notification_type='warning',
-            link=vote_url  # Кнопка создается здесь
+            link=vote_url,
+            button=VOTE_BUTTON,
         )
         notification.sent_to_users.add(user)
         sent_count += 1
