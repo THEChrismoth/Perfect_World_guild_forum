@@ -1,0 +1,27 @@
+<article class="notice-card {% if not notification.is_read %}is-unread{% endif %}">
+    <a class="notice-card-main" href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/'|urlencode }}">
+        <span class="notice-dot" aria-label="{% if not notification.is_read %}Не прочитано{% else %}Прочитано{% endif %}"></span>
+        <div class="notice-copy">
+            <div class="notice-title">{{ notification.title }}</div>
+            {% if notification.card_event %}<div class="notice-meta">{{ notification.card_schedule }}</div>
+            {% else %}<div class="notice-message">{{ notification.card_message|truncatechars:160 }}</div><time class="notice-meta" datetime="{{ notification.created_at|date:'c' }}">{{ notification.created_at|date:"d.m.Y H:i" }}</time>{% endif %}
+        </div>
+        {% if notification.card_event %}<span class="notice-tag">{{ notification.card_event.event_type.name }}</span>{% else %}<span class="notice-type" aria-hidden="true">{{ notification.get_icon }}</span>{% endif %}
+    </a>
+    {% if notification.card_event or notification.link or full_page %}
+    <div class="notice-actions">
+    {% if notification.card_event %}
+    <form class="notice-vote-form" method="post" action="{% url 'events:vote_view' notification.card_event.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="comment" value="{{ notification.card_comment }}">
+        <button name="status" value="yes" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'yes' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'yes' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Буду</button>
+        <button name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'maybe' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'maybe' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 0-1 1-1 2m0 2v1"/></svg>Под вопросом</button>
+        <button name="status" value="no" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'no' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'no' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path transform="rotate(180 12 12)" d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Не буду</button>
+    </form>
+    {% elif notification.link %}
+        <a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|urlencode }}">Подробнее →</a>
+    {% endif %}
+    {% if full_page %}<form class="notice-delete-form" method="post" action="{% url 'notifications:delete_notification' notification.id %}" onsubmit="return confirm('Удалить уведомление?')">{% csrf_token %}<button class="ui-btn ui-btn-danger ui-btn-sm notice-delete" type="submit" aria-label="Удалить уведомление"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg><span>Удалить</span></button></form>{% endif %}
+    </div>
+    {% endif %}
+</article>

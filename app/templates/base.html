@@ -75,15 +75,7 @@
                         <div class="notifications-list">
                             {% if notifications %}
                                 {% for notification in notifications %}
-                                    <a href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|default:'/notifications/'|urlencode }}"
-                                        class="notification-item {% if not notification.is_read %}unread{% endif %} type-{{ notification.notification_type }}">
-                                        <div class="notification-icon">{{ notification.get_icon }}</div>
-                                        <div class="notification-content">
-                                            <div class="notification-title">{{ notification.title }}</div>
-                                            <div class="notification-message">{{ notification.message|safe|striptags|truncatechars:80 }}</div>
-                                            <div class="notification-time">{{ notification.created_at|date:"d.m.Y H:i" }}</div>
-                                        </div>
-                                    </a>
+                                    {% include 'notifications/card.html' %}
                                 {% endfor %}
                                 <div class="notifications-footer">
                                     <a href="{% url 'notifications:notification_list' %}">Все уведомления →</a>

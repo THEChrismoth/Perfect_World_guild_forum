@@ -1788,3 +1788,41 @@ html.theme-transition *::after {
     text-align: center;
     margin-bottom: 15px;
 }
+/* Compact notification cards, shared by the bell menu and full list. */
+.notifications-menu { width: 580px; background: var(--bg-deep); }
+.notifications-list { padding: 12px; display: grid; gap: 8px; }
+.notice-card { min-width: 0; padding: 16px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--hairline); }
+.notice-card-main { display: flex; align-items: center; gap: 12px; color: var(--text); text-decoration: none; }
+.notice-card-main:hover .notice-title { color: var(--accent-light); }
+.notice-dot { width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: transparent; }
+.is-unread .notice-dot { background: var(--accent); }
+.notice-copy { flex: 1; min-width: 0; }
+.notice-title { color: var(--text-strong); font-size: 14px; font-weight: 600; line-height: 1.4; overflow-wrap: anywhere; }
+.notice-meta { display: block; color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.notice-message { margin: 3px 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; overflow-wrap: anywhere; }
+.notice-tag { max-width: 40%; padding: 3px 11px; border-radius: 20px; background: rgba(var(--accent-rgb), .14); color: var(--accent-light); font-size: 12px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+.notice-type { font-size: 16px; }
+.notice-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 11px 0 0; padding-top: 8px; border-top: 1px solid var(--hairline); }
+.notice-vote-form { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0; }
+.notice-answer { gap: 5px; }
+.notice-answer svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.notice-answer:hover { border-color: var(--text-muted); background: var(--hover); }
+.notice-answer.is-selected { border-color: var(--accent); background: rgba(var(--accent-rgb), .16); }
+.notice-card a:focus-visible, .notice-card button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.notice-delete-form { margin: 0 0 0 auto; }
+@media (max-width: 480px) {
+    .notice-card { padding: 12px; }
+    .notice-card-main { gap: 8px; }
+    .notice-answer { padding: 6px 8px; }
+}
+.notice-delete svg { display: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+@media (max-width: 480px) {
+    .notice-actions { flex-wrap: nowrap; gap: 8px; }
+    .notice-vote-form { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1.7fr 1fr; }
+    .notice-vote-form .notice-answer { min-width: 0; height: 44px; padding: 4px; font-size: 12px; white-space: normal; line-height: 1.2; }
+    .notice-answer svg { display: none; }
+    .notice-delete-form { flex-shrink: 0; }
+    .notice-delete-form .notice-delete { width: 36px; height: 44px; padding: 0; }
+    .notice-delete svg { display: block; }
+    .notice-delete span { display: none; }
+}

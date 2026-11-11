@@ -7,7 +7,7 @@
 
 {% block content %}
 <div class="notifications-page">
-    <div class="notifications-header">
+    <div class="notifications-page-header">
         <h1>🔔 Все уведомления</h1>
         {% if notifications %}
             <form method="post" action="{% url 'notifications:mark_all_as_read' %}" style="display: inline;">
@@ -20,19 +20,7 @@
     <div class="notifications-list-page">
         {% if notifications %}
             {% for notification in notifications %}
-                <div class="notification-item-page {% if not notification.is_read %}unread{% endif %}">
-                    <div class="notification-icon-page">{{ notification.get_icon }}</div>
-                    <div class="notification-content-page">
-                        <div class="notification-title-page">{{ notification.title }}</div>
-                        <div class="notification-message-page">{{ notification.message|safe }}</div>
-                        <div class="notification-time-page">{{ notification.created_at|date:"d.m.Y H:i:s" }}</div>
-                    </div>
-                    <form method="post" action="{% url 'notifications:delete_notification' notification.id %}"
-                          onsubmit="return confirm('Удалить уведомление?')" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="notification-delete" style="background: none; border: none; cursor: pointer;">🗑️</button>
-                    </form>
-                </div>
+                {% include 'notifications/card.html' with full_page=True %}
             {% endfor %}
         {% else %}
             <div class="empty-notifications">

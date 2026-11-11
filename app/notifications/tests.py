@@ -86,3 +86,39 @@ class NotificationViewTests(TestCase):
 
         self.client.post(url)
         self.assertFalse(Notification.objects.filter(pk=self.notification.pk).exists())
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class NotificationCardTests(TestCase):
+    def test_details_link_is_a_button_outside_message(self):
+        from .presentation import prepare_notifications
+
+        user = User.objects.create_user('details-user')
+        notification = send_notification(user, 'Title', 'First line\nSecond line', link='/auction/')
+        prepared = prepare_notifications([notification], user)
+        self.assertEqual(prepared[0].card_message, 'First line\nSecond line')
+        self.client.force_login(user)
+        response = self.client.get(reverse('notifications:notification_list'))
+        self.assertContains(response, 'class="ui-btn ui-btn-secondary ui-btn-sm"')
+        self.assertContains(response, 'aria-label="Удалить уведомление"')
+        self.assertNotContains(response, 'Second lineПодробнее')
+
+    def test_event_card_shows_schedule_and_saved_response(self):
+        from datetime import time
+        from django.utils import timezone
+        from events.models import EventType, EventNotification, EventAttendance
+
+        user = User.objects.create_user('card-user')
+        event_type = EventType.objects.create(name='MTB')
+        event = EventNotification.objects.create(
+            event_type=event_type, event_date=timezone.localdate(),
+            start_time=time(20), subject='Event', message='Details')
+        EventAttendance.objects.create(notification=event, user=user, status='maybe', comment='Saved comment')
+        send_notification(user, 'Event', 'Details', link=reverse('events:vote_view', args=[event.pk]))
+        self.client.force_login(user)
+        response = self.client.get(reverse('notifications:notification_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '20:00')
+        self.assertContains(response, 'notice-tag')
+        self.assertContains(response, 'name="comment" value="Saved comment"')
+        self.assertContains(response, 'name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer is-selected"')
+        self.assertContains(response, 'name="status"', count=6)

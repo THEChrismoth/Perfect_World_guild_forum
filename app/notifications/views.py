@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from .models import Notification
+from .presentation import prepare_notifications
 from .utils import mark_all_as_read
 
 
@@ -17,7 +18,7 @@ def safe_redirect(request, url, fallback='notifications:notification_list'):
 @login_required
 def notification_list(request):
     """Страница всех уведомлений."""
-    notifications = Notification.objects.filter(user=request.user)
+    notifications = prepare_notifications(Notification.objects.filter(user=request.user), request.user)
     return render(request, 'notifications/notification_list.html', {
         'notifications': notifications,
     })
