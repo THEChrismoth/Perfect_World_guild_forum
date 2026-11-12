@@ -10,126 +10,67 @@ from .models import EventType, Event, Party, PartyMember, EventNotification, Eve
 from .utils import get_attendance_stats, get_presence_report
 
 
+def _visible_invitations(user):
+    """Возвращает даты, доступные игроку или управляющему ивентами."""
+    dates = EventNotification.objects.select_related('event_type')
+    if any(user.has_perm(f'events.{action}_eventnotification') for action in ('view', 'change', 'add')):
+        return dates
+    return dates.filter(sent_at__isnull=False, sent_to_users=user)
+
+
+def _party_cards(event):
+    """Готовит постоянные отряды из предварительно загруженных данных."""
+    if not event:
+        return []
+    result = []
+    for party in event.parties.all():
+        members = []
+        if party.leader:
+            members.append({'user': party.leader, 'profile': party.leader.profile, 'role_name': 'Лидер', 'role': 'leader'})
+        members.extend({'user': member.user, 'profile': member.user.profile, 'role_name': 'Участник', 'role': 'member'}
+                       for member in party.members.all())
+        result.append({'id': party.pk, 'number': party.number, 'members': members,
+                       'total_slots': event.event_type.party_size, 'filled_slots': len(members)})
+    return result
+
+
+def _roster_queryset():
+    """Загружает состав и профили без запроса на каждого игрока."""
+    from django.db.models import Prefetch
+    return Event.objects.select_related('event_type').prefetch_related(Prefetch(
+        'parties', queryset=Party.objects.select_related('leader__profile').prefetch_related('members__user__profile')))
+
+
 @login_required
 @guild_member_required
 def event_index(request):
-    """Страница со списком типов ивентов и отрядов."""
-    
-    # Получаем все активные типы ивентов.
-    event_types = EventType.objects.filter(is_active=True)
-    
-    # Для каждого типа получаем отряды.
-    event_types_data = []
-    for event_type in event_types:
-        try:
-            event = Event.objects.get(event_type=event_type)
-            parties = event.parties.all().prefetch_related('leader__profile', 'members__user__profile')
-            
-            # Формируем данные по отрядам.
-            parties_data = []
-            for party in parties:
-                members_list = []
-                
-                # Лидер.
-                if party.leader:
-                    members_list.append({
-                        'user': party.leader,
-                        'role': 'leader',
-                        'role_name': 'Лидер',
-                        'profile': party.leader.profile
-                    })
-                
-                # Участники.
-                for member in party.members.all():
-                    members_list.append({
-                        'user': member.user,
-                        'role': 'member',
-                        'role_name': 'Участник',
-                        'profile': member.user.profile
-                    })
-                
-                parties_data.append({
-                    'id': party.pk,
-                'number': party.number,
-                    'members': members_list,
-                    'total_slots': event_type.party_size,
-                    'filled_slots': len(members_list)
-                })
-            
-            event_types_data.append({
-                'event_type': event_type,
-                'event': event,
-                'parties': parties_data,
-                'total_slots': event_type.total_slots
-            })
-            
-        except Event.DoesNotExist:
-            event_types_data.append({
-                'event_type': event_type,
-                'event': None,
-                'parties': [],
-                'total_slots': event_type.total_slots
-            })
-    
-    context = {
-        'event_types_data': event_types_data,
-    }
-    
-    return render(request, 'events/event_index.html', context)
+    """Показывает типы ивентов, постоянные составы и ближайшие даты."""
+    from django.db.models import Prefetch
+    types = EventType.objects.filter(is_active=True).prefetch_related(Prefetch('roster', queryset=_roster_queryset()))
+    cards = []
+    for kind in types:
+        event = getattr(kind, 'roster', None)
+        parties = _party_cards(event)
+        cards.append({'event_type': kind, 'event': event, 'parties': parties,
+                      'filled_slots': sum(party['filled_slots'] for party in parties), 'total_slots': kind.total_slots})
+    upcoming = _visible_invitations(request.user).filter(event_date__gte=timezone.localdate(), event_type__is_active=True).order_by('event_date', 'start_time')[:6]
+    return render(request, 'events/event_index.html', {'event_types_data': cards, 'upcoming': upcoming})
 
 
 @login_required
 @guild_member_required
 def event_detail(request, event_type_slug):
-    """Детальная страница конкретного типа ивента."""
-    
+    """Показывает постоянные отряды и историю дат одного типа ивента."""
     event_type = get_object_or_404(EventType, slug=event_type_slug, is_active=True)
-    
-    try:
-        event = Event.objects.get(event_type=event_type)
-        parties = event.parties.all().prefetch_related('leader__profile', 'members__user__profile')
-        
-        parties_data = []
-        for party in parties:
-            members_list = []
-            
-            if party.leader:
-                members_list.append({
-                    'user': party.leader,
-                    'role': 'leader',
-                    'role_name': 'Лидер',
-                    'profile': party.leader.profile
-                })
-            
-            for member in party.members.all():
-                members_list.append({
-                    'user': member.user,
-                    'role': 'member',
-                    'role_name': 'Участник',
-                    'profile': member.user.profile
-                })
-            
-            parties_data.append({
-                'id': party.pk,
-                'number': party.number,
-                'members': members_list,
-                'total_slots': event_type.party_size,
-                'filled_slots': len(members_list)
-            })
-        
-        event_data = event
-        
-    except Event.DoesNotExist:
-        event_data = None
-        parties_data = []
-    
-    context = {
-        'event_type': event_type,
-        'event': event_data,
-        'parties': parties_data,
-    }
-    
-    return render(request, 'events/event_detail.html', context)
+    event = _roster_queryset().filter(event_type=event_type).first()
+    parties = _party_cards(event)
+    from django.core.paginator import Paginator
+    dates = _visible_invitations(request.user).filter(event_type=event_type).order_by('-event_date', '-pk')
+    page = Paginator(dates, 10).get_page(request.GET.get('page'))
+    return render(request, 'events/event_detail.html', {
+        'event_type': event_type, 'event': event, 'parties': parties, 'dates_page': page,
+        'filled_slots': sum(party['filled_slots'] for party in parties),
+    })
 
 
 @login_required
@@ -199,11 +140,14 @@ def vote_results(request, notification_id):
         messages.error(request, 'Уведомление не найдено')
         return redirect('events:event_index')
     
+    from django.core.paginator import Paginator
+    rows = get_presence_report(notification)
+    page = Paginator(rows, 40).get_page(request.GET.get('page'))
     context = {
-        'notification': notification,
-        'event_type': notification.event_type,
-        'stats': stats,
-        'presence_rows': get_presence_report(notification),
+        'notification': notification, 'event_type': notification.event_type, 'stats': stats,
+        'presence_rows': page, 'presence_page': page, 'invited_count': notification.sent_to_users.count(),
+        'present_count': sum(row['present'] for row in rows),
+        'unanswered_count': sum(row['answer'] is None for row in rows),
     }
     
     return render(request, 'events/vote_results.html', context)
@@ -214,9 +158,9 @@ def vote_results(request, notification_id):
 def my_votes(request):
     """Страница с историей голосований пользователя."""
     
-    votes = EventAttendance.objects.filter(
-        user=request.user
-    ).select_related('notification__event_type').order_by('-notification__event_date')
+    votes = EventAttendance.objects.filter(user=request.user, notification__sent_at__isnull=False).select_related('notification__event_type').order_by('-notification__event_date')
+    from django.core.paginator import Paginator
+    votes = Paginator(votes, 20).get_page(request.GET.get('page'))
     
     context = {
         'votes': votes,

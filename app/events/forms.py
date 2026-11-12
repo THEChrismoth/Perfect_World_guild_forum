@@ -8,7 +8,7 @@ from .models import Party
 
 class PartyRosterForm(forms.Form):
     leader = forms.ModelChoiceField(label='Лидер', queryset=User.objects.none(), required=False)
-    members = forms.ModelMultipleChoiceField(label='Участники', queryset=User.objects.none(), required=False)
+    members = forms.ModelMultipleChoiceField(label='Участники', queryset=User.objects.none(), required=False, widget=forms.CheckboxSelectMultiple)
 
     def __init__(self, *args, party, **kwargs):
         super().__init__(*args, **kwargs)
@@ -20,7 +20,6 @@ class PartyRosterForm(forms.Form):
         self.fields['leader'].queryset = users
         self.fields['members'].queryset = users
         self.fields['leader'].widget.attrs['class'] = 'ui-input'
-        self.fields['members'].widget.attrs.update({'class': 'ui-input', 'size': 10})
         if not self.is_bound:
             self.initial.update(leader=party.leader_id, members=list(party.members.values_list('user_id', flat=True)))
 

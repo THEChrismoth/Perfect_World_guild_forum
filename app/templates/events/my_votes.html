@@ -1,51 +1,5 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
-{% endblock %}
-
-{% block content %}
-<div class="my-votes-container">
-    <div class="my-votes-header">
-        <h1>🗳️ Мои голосования</h1>
-        <a href="{% url 'events:event_index' %}" class="btn-back">← Назад к ивентам</a>
-    </div>
-    
-    {% if votes %}
-        <div class="votes-list">
-            {% for vote in votes %}
-            <div class="vote-item">
-                <div class="vote-header">
-                    <div class="vote-icon">{{ vote.notification.event_type.icon }}</div>
-                    <div class="vote-title">
-                        <h3>{{ vote.notification.event_type.name }}</h3>
-                        <div class="vote-date">📅 {{ vote.notification.event_date|date:"d.m.Y" }}</div>
-                    </div>
-                    <div class="vote-status status-{{ vote.status }}">
-                        {% if vote.status == 'yes' %}✅ Приду
-                        {% elif vote.status == 'no' %}❌ Не приду
-                        {% else %}🤔 Возможно{% endif %}
-                    </div>
-                </div>
-                {% if vote.comment %}
-                <div class="vote-comment">
-                    💬 {{ vote.comment }}
-                </div>
-                {% endif %}
-                <div class="vote-actions">
-                    <a href="{% url 'events:vote_view' notification_id=vote.notification.id %}" class="btn-change">Изменить ответ</a>
-                    <a href="{% url 'events:vote_results' notification_id=vote.notification.id %}" class="btn-results">Результаты</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">🗳️</div>
-            <p>Вы еще не участвовали ни в одном голосовании</p>
-            <a href="{% url 'events:event_index' %}" class="btn-browse">Посмотреть ивенты</a>
-        </div>
-    {% endif %}
-</div>
+{% extends 'events/base_events.html' %}
+{% block events_content %}
+<nav class="ev-crumbs" aria-label="Путь"><a href="{% url 'events:event_index' %}">Ивенты</a><span> / Мои ответы</span></nav><header class="ui-page-head"><div><h1 class="ui-page-title">Мои ответы</h1><p class="ui-page-sub">Ваши планы участия по датам. Фактическая явка — в отчёте ивента.</p></div></header>
+<div class="ui-stack">{% for vote in votes %}<article class="ui-card"><div class="ev-card-top"><div class="ev-grow"><h2 class="ui-card-title">{{ vote.notification.event_type.name }}</h2><p class="ev-muted">{{ vote.notification.event_date|date:'d.m.Y' }}{% if vote.notification.start_time %} · {{ vote.notification.start_time|time:'H:i' }} МСК{% endif %}</p></div><span class="ui-badge {% if vote.status == 'yes' %}ui-badge-success{% elif vote.status == 'maybe' %}ui-badge-warning{% else %}ui-badge-muted{% endif %}">{% if vote.status == 'yes' %}Буду{% elif vote.status == 'no' %}Не буду{% else %}Под вопросом{% endif %}</span></div>{% if vote.comment %}<p class="ev-message">{{ vote.comment }}</p>{% endif %}<div class="ev-card-actions">{% if vote.notification.response_open %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'events:vote_view' vote.notification.pk %}">Изменить ответ</a>{% endif %}<a class="ui-btn ui-btn-ghost ui-btn-sm" href="{% url 'events:vote_results' vote.notification.pk %}">Ответы и явка →</a></div></article>{% empty %}<div class="ui-card ui-empty"><h2>Ответов пока нет</h2><p>Выберите ближайший ивент и сообщите, планируете ли участвовать.</p><a class="ui-btn ui-btn-secondary" href="{% url 'events:event_index' %}">К ивентам</a></div>{% endfor %}</div>{% include 'events/includes/pagination.html' with page=votes %}
 {% endblock %}

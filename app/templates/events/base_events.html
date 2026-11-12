@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Ивенты · {{ site_settings.site_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'events/css/events.css' %}">{% endblock %}
+{% block content %}<div class="ev-page">{% block events_content %}{% endblock %}</div>{% endblock %}

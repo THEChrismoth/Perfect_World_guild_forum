@@ -1,66 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'events/css/events.css' %}">
-{% endblock %}
-
-{% block content %}
-<div class="events-container">
-    <h1>📋 Ивенты гильдии</h1>
-    
-    {% if event_types_data %}
-        <div class="event-types-list">
-            {% for item in event_types_data %}
-            <div class="event-type-card">
-                <div class="event-type-header">
-                    <div class="event-type-icon">{{ item.event_type.icon }}</div>
-                    <h2>{{ item.event_type.name }}</h2>
-                    <a href="{% url 'events:event_detail' event_type_slug=item.event_type.slug %}" class="btn-detail">Подробнее →</a>
-                </div>
-                
-                <div class="event-type-description">
-                    {{ item.event_type.description|truncatewords:30 }}
-                </div>
-                
-                <div class="event-stats">
-                    <div class="stat">
-                        <span class="stat-value">{{ item.event_type.parties_count }}</span>
-                        <span class="stat-label">отрядов</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">{{ item.event_type.party_size }}</span>
-                        <span class="stat-label">чел/отряд</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-value">{{ item.total_slots }}</span>
-                        <span class="stat-label">всего мест</span>
-                    </div>
-                </div>
-                
-                {% if item.parties %}
-                <div class="parties-preview">
-                    <h4>Состав отрядов:</h4>
-                    <div class="parties-grid">
-                        {% for party in item.parties %}
-                        <div class="party-preview">
-                            <div class="party-number">Отряд {{ party.number }}</div>
-                            <div class="party-members-count">
-                                {{ party.filled_slots }}/{{ party.total_slots }}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-            {% endfor %}
-        </div>
-    {% else %}
-        <div class="empty-state">
-            <div class="empty-icon">📭</div>
-            <p>Активных ивентов пока нет</p>
-        </div>
-    {% endif %}
-</div>
+{% extends 'events/base_events.html' %}
+{% load ga_admin %}
+{% block events_content %}
+<header class="ui-page-head"><div><h1 class="ui-page-title">Ивенты гильдии</h1><p class="ui-page-sub">Постоянные отряды, ближайшие сборы и явка на каждую дату.</p></div><div class="ui-page-actions"><a class="ui-btn ui-btn-secondary" href="{% url 'events:my_votes' %}">{% ga_icon 'user' %}Мои ответы</a>{% if perms.events.add_eventtype %}<a class="ui-btn ui-btn-primary" href="{% url 'admin:events_eventtype_add' %}">{% ga_icon 'plus' %}Создать тип</a>{% endif %}</div></header>
+{% if upcoming %}<section class="ui-card ev-upcoming"><div class="ui-card-head"><h2 class="ui-card-title">Ближайшие даты</h2><span class="ui-badge ui-badge-muted">Время по Москве</span></div><div class="ev-date-list">{% for date in upcoming %}{% include 'events/includes/date_row.html' %}{% endfor %}</div></section>{% endif %}
+<div class="ev-types">{% for item in event_types_data %}<article class="ui-card ev-type-card">
+<div class="ev-card-top"><span class="ev-type-symbol" aria-hidden="true">{% ga_icon 'swords' %}</span><div><h2 class="ui-card-title"><a href="{{ item.event_type.get_absolute_url }}">{{ item.event_type.name }}</a></h2><p class="ev-muted">Постоянный состав</p></div><span class="ui-badge ui-badge-muted">{{ item.event_type.parties_count }} отр.</span></div>
+<p class="ev-description">{{ item.event_type.description|default:"Состав и даты проведения ивента."|truncatewords:30 }}</p>
+<div class="ev-capacity"><span>Занято мест</span><strong>{{ item.filled_slots }} / {{ item.total_slots }}</strong></div><meter class="ev-meter" min="0" max="{{ item.total_slots }}" value="{{ item.filled_slots }}">{{ item.filled_slots }} из {{ item.total_slots }}</meter>
+<div class="ev-card-actions"><a class="ui-btn ui-btn-secondary ui-btn-sm" href="{{ item.event_type.get_absolute_url }}">Отряды и даты {% ga_icon 'chevron-right' %}</a>{% if perms.events.add_eventnotification %}<a class="ui-btn ui-btn-ghost ui-btn-sm" href="{% url 'events:invitation_create' item.event_type.slug %}">Назначить дату</a>{% endif %}</div>
+</article>{% empty %}<div class="ui-card ui-empty"><span class="ui-empty-icon">{% ga_icon 'swords' %}</span><h2>Ивентов пока нет</h2><p>Создайте тип ивента, затем заполните постоянные отряды.</p></div>{% endfor %}</div>
 {% endblock %}
