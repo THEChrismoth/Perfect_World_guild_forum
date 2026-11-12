@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="ui-page-head"><div><h1 class="ui-page-title">Назначить дату · {{ event_type.name }}</h1><p class="ui-page-sub">Постоянные отряды сохраняются. Приглашение получат все активные члены гильдии.</p></div></div>
+<form method="post" class="ui-card ui-form">{% csrf_token %}{{ form.non_field_errors }}
+{% for field in form %}<div class="ui-field">{{ field.label_tag }}{{ field }}{{ field.errors }}{% if field.help_text %}<p class="ui-page-sub">{{ field.help_text }}</p>{% endif %}</div>{% endfor %}
+<p class="ui-page-sub">Время начала — по Москве. Фактическое присутствие учитывается через TeamSpeak.</p>
+<div class="ui-page-actions"><button class="ui-btn ui-btn-primary" name="send" value="yes">Сохранить и отправить</button><button class="ui-btn ui-btn-secondary" name="send" value="no">Сохранить без отправки</button><a class="ui-btn ui-btn-ghost" href="{{ event_type.get_absolute_url }}">Отмена</a></div>
+</form>
+{% endblock %}

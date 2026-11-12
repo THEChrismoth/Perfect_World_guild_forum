@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
+from django.db import transaction
 from notifications.utils import VOTE_BUTTON, send_notification
-from .models import EventNotification
+from .models import EventNotification, EventRosterEntry, Party
 
 
 def get_recipient_users(notification):
@@ -21,12 +22,12 @@ def get_recipient_users(notification):
             guild_group = Group.objects.get(name='Член гильдии')
             users = guild_group.user_set.filter(is_active=True)
         except Group.DoesNotExist:
-            # Если группы "Член гильдии" нет, берем всех активных пользователей.
-            users = User.objects.filter(is_active=True)
+            users = User.objects.none()
     
     return users
 
 
+@transaction.atomic
 def send_event_notification(notification_id):
     """Отправляет уведомление выбранным группам пользователей через модуль notifications.
 
@@ -35,17 +36,22 @@ def send_event_notification(notification_id):
     """
     
     try:
-        notification = EventNotification.objects.get(id=notification_id)
+        notification = EventNotification.objects.select_for_update().select_related('event_type').get(id=notification_id)
     except EventNotification.DoesNotExist:
         return 0
     
+    if notification.sent_at:
+        return 0
+
     event_type = notification.event_type
     event_date = notification.event_date
     event_date_str = event_date.strftime('%d.%m.%Y')
     weekday = get_weekday_name(event_date)
     
     # Получаем пользователей для отправки.
-    users = get_recipient_users(notification)
+    users = list(get_recipient_users(notification))
+    if not users:
+        return 0
     
     # Ссылка для голосования.
     vote_url = f"/events/vote/{notification.id}/"
@@ -70,6 +76,22 @@ def send_event_notification(notification_id):
         notification.sent_to_users.add(user)
         sent_count += 1
     
+    # Состав фиксируется один раз: последующее редактирование не меняет историю.
+    from .models import Event
+    Event.objects.select_for_update().get(event_type=event_type)
+    invited_ids = {user.pk for user in users}
+    entries = {}
+    for party in Party.objects.filter(event__event_type=event_type).prefetch_related('members'):
+        if party.leader_id in invited_ids:
+            entries.setdefault(party.leader_id, (party.number, True))
+        for member in party.members.all():
+            if member.user_id in invited_ids:
+                entries.setdefault(member.user_id, (party.number, False))
+    EventRosterEntry.objects.bulk_create([
+        EventRosterEntry(notification=notification, user_id=user_id, party_number=number, is_leader=leader)
+        for user_id, (number, leader) in entries.items()
+    ])
+
     # Обновляем время отправки.
     notification.sent_at = timezone.now()
     notification.save()
@@ -120,3 +142,34 @@ def get_weekday_name(date_obj):
     """Возвращает русское название дня недели."""
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     return weekdays[date_obj.weekday()]
+
+
+def get_presence_report(notification):
+    """Сопоставляет приглашение, ответ и фактическое посещение на одну дату."""
+    from teamspeak.models import EventPresence
+    responses = {item.user_id: item for item in notification.attendances.select_related('user')}
+    presence = {item.user_id: item for item in EventPresence.objects.filter(notification=notification).select_related('user')}
+    slots = {item.user_id: item for item in notification.roster_entries.all()}
+    users = {user.pk: user for user in notification.sent_to_users.all()}
+    for item in [*responses.values(), *presence.values()]:
+        users[item.user_id] = item.user
+    rows = []
+    for user in sorted(users.values(), key=lambda user: user.username.casefold()):
+        answer = responses.get(user.pk)
+        mark = presence.get(user.pk)
+        minutes = mark.minutes if mark else 0
+        slot = slots.get(user.pk)
+        present = bool(mark) and minutes >= notification.event_type.min_presence_minutes
+        if not notification.event_type.ts_channels.strip() or not notification.start_time:
+            label = 'Учёт не настроен'
+        elif present:
+            label = 'Присутствовал'
+        elif notification.ends_at <= timezone.now():
+            label = 'Недостаточно минут' if mark else 'Не отмечен в TeamSpeak'
+        elif notification.starts_at <= timezone.now():
+            label = 'Учёт идёт'
+        else:
+            label = 'Ожидается'
+        rows.append({'user': user, 'answer': answer, 'minutes': minutes, 'slot': slot,
+                     'present': present, 'presence_label': label})
+    return rows

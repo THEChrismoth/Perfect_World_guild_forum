@@ -6,6 +6,9 @@
 {% endblock %}
 
 {% block content %}
+{% if not notification.sent_at %}<div class="ui-card"><h2 class="ui-card-title">Приглашение ещё не отправлено</h2>{% if perms.events.change_eventnotification %}<form method="post" action="{% url 'events:invitation_send' notification.pk %}">{% csrf_token %}<button class="ui-btn ui-btn-primary">Отправить приглашение</button></form>{% endif %}</div>{% endif %}
+{% include 'events/includes/presence.html' %}
+
 <div class="vote-results-container">
     <div class="vote-results-header">
         <h1>📊 Результаты голосования</h1>

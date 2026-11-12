@@ -31,3 +31,35 @@ class PartyRosterForm(forms.Form):
         from .services import validate_roster
         validate_roster(self.party, data['leader'], list(data['members']))
         return data
+
+
+class InvitationForm(forms.ModelForm):
+    class Meta:
+        from .models import EventNotification
+        model = EventNotification
+        fields = ['event_date', 'start_time', 'duration_minutes', 'subject', 'message']
+        widgets = {
+            'event_date': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+            'start_time': forms.TimeInput(attrs={'type': 'time'}, format='%H:%M'),
+            'message': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, event_type, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.instance.event_type = event_type
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'ui-input'
+        self.fields['start_time'].required = True
+        self.fields['subject'].help_text = 'Можно оставить пустым — название и дата подставятся автоматически.'
+
+    def clean(self):
+        from django.utils import timezone
+        data = super().clean()
+        day = data.get('event_date')
+        if day and day < timezone.localdate():
+            self.add_error('event_date', 'Эта дата уже прошла.')
+        if day and self._meta.model.objects.filter(event_type=self.instance.event_type, event_date=day).exists():
+            self.add_error('event_date', 'На эту дату уже назначен ивент этого типа.')
+        if data.get('duration_minutes', 0) < 1:
+            self.add_error('duration_minutes', 'Длительность должна быть больше нуля.')
+        return data

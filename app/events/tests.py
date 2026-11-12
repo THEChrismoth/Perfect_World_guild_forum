@@ -98,3 +98,86 @@ class PermanentRosterTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertIn('parties_count', form.errors)
         self.assertIn('party_size', form.errors)
+
+@override_settings(SECURE_SSL_REDIRECT=False)
+class DatedInvitationTests(TestCase):
+    def setUp(self):
+        from datetime import timedelta, time
+        from django.utils import timezone
+        from .models import EventNotification, Event
+        self.kind = EventType.objects.create(name='Дата', ts_channels='Гильдия / Дата')
+        self.user = User.objects.create_user('invited')
+        self.user.groups.add(Group.objects.get_or_create(name=GUILD_GROUP)[0])
+        self.invitation = EventNotification.objects.create(event_type=self.kind,
+            event_date=timezone.localdate() + timedelta(days=1), start_time=time(20))
+        self.party = Event.objects.get(event_type=self.kind).parties.get()
+        self.party.leader = self.user
+        self.party.save()
+
+    def test_draft_send_is_idempotent_and_snapshots_roster(self):
+        from notifications.models import Notification
+        from .utils import send_event_notification
+        self.assertIsNone(self.invitation.sent_at)
+        self.assertEqual(send_event_notification(self.invitation.pk), 1)
+        self.assertEqual(send_event_notification(self.invitation.pk), 0)
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 1)
+        slot = self.invitation.roster_entries.get()
+        self.assertEqual(slot.user_id, self.user.pk)
+        self.assertTrue(slot.is_leader)
+        self.party.leader = None
+        self.party.save()
+        self.assertTrue(self.invitation.roster_entries.get().is_leader)
+
+    def test_draft_is_private_and_uninvited_cannot_answer(self):
+        self.client.force_login(self.user)
+        url = reverse('events:vote_view', args=[self.invitation.pk])
+        self.assertEqual(self.client.get(url).status_code, 404)
+        from .utils import send_event_notification
+        send_event_notification(self.invitation.pk)
+        self.assertEqual(self.client.get(url).status_code, 200)
+        outsider = User.objects.create_user('not-invited')
+        outsider.groups.add(Group.objects.get(name=GUILD_GROUP))
+        self.client.force_login(outsider)
+        self.assertEqual(self.client.post(url, {'status': 'yes'}).status_code, 404)
+
+    def test_closed_invitation_rejects_answers(self):
+        from django.utils import timezone
+        from .utils import send_event_notification
+        send_event_notification(self.invitation.pk)
+        self.invitation.refresh_from_db()
+        self.invitation.points_processed_at = timezone.now()
+        self.invitation.save()
+        self.client.force_login(self.user)
+        response = self.client.post(reverse('events:vote_view', args=[self.invitation.pk]), {'status': 'yes'})
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(self.invitation.attendances.exists())
+
+    def test_report_keeps_promises_separate_from_presence(self):
+        from .models import EventAttendance
+        from .utils import send_event_notification, get_presence_report
+        from teamspeak.models import EventPresence
+        send_event_notification(self.invitation.pk)
+        EventAttendance.objects.create(notification=self.invitation, user=self.user, status='yes')
+        self.assertFalse(get_presence_report(self.invitation)[0]['present'])
+        EventPresence.objects.create(notification=self.invitation, user=self.user, minutes=30)
+        self.assertTrue(get_presence_report(self.invitation)[0]['present'])
+
+    def test_no_guild_recipients_does_not_broadcast_to_everyone(self):
+        from .utils import send_event_notification
+        self.user.groups.clear()
+        self.assertEqual(send_event_notification(self.invitation.pk), 0)
+        self.invitation.refresh_from_db()
+        self.assertIsNone(self.invitation.sent_at)
+
+    def test_date_creation_requires_permission_and_send_requires_post(self):
+        from django.contrib.auth.models import Permission
+        from django.utils import timezone
+        self.client.force_login(self.user)
+        url = reverse('events:invitation_create', args=[self.kind.slug])
+        self.assertEqual(self.client.get(url).status_code, 403)
+        self.user.user_permissions.add(Permission.objects.get(codename='add_eventnotification'))
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.get(reverse('events:invitation_send', args=[self.invitation.pk])).status_code, 405)
+        response = self.client.post(url, {'event_date': timezone.localdate().isoformat(), 'start_time': '20:00',
+            'duration_minutes': 60, 'send': 'no'})
+        self.assertEqual(response.status_code, 302)

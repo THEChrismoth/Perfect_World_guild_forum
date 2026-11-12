@@ -1,9 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.core.exceptions import PermissionDenied
+from django.http import Http404
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 from core.roles import guild_member_required
 from .models import EventType, Event, Party, PartyMember, EventNotification, EventAttendance
-from .utils import get_attendance_stats
+from .utils import get_attendance_stats, get_presence_report
 
 
 @login_required
@@ -133,7 +137,7 @@ def event_detail(request, event_type_slug):
 def vote_view(request, notification_id):
     """Страница голосования по уведомлению."""
     
-    notification = get_object_or_404(EventNotification, id=notification_id)
+    notification = _get_invitation(request, notification_id)
     event_type = notification.event_type
     
     # Проверяем, голосовал ли уже пользователь.
@@ -143,6 +147,9 @@ def vote_view(request, notification_id):
     ).first()
     
     if request.method == 'POST':
+        if not notification.response_open:
+            messages.error(request, 'Приём ответов на этот ивент завершён или приглашение ещё не отправлено')
+            return redirect('events:vote_results', notification_id=notification.pk)
         status = request.POST.get('status')
         comment = request.POST.get('comment', '')
         
@@ -185,8 +192,8 @@ def vote_view(request, notification_id):
 def vote_results(request, notification_id):
     """Страница результатов голосования."""
     
+    notification = _get_invitation(request, notification_id)
     stats = get_attendance_stats(notification_id)
-    notification = stats['notification']
     
     if not notification:
         messages.error(request, 'Уведомление не найдено')
@@ -196,6 +203,7 @@ def vote_results(request, notification_id):
         'notification': notification,
         'event_type': notification.event_type,
         'stats': stats,
+        'presence_rows': get_presence_report(notification),
     }
     
     return render(request, 'events/vote_results.html', context)
@@ -238,3 +246,50 @@ def party_edit(request, party_id):
             messages.success(request, 'Постоянный отряд сохранён')
             return redirect(party.event.get_absolute_url())
     return render(request, 'events/party_edit.html', {'form': form, 'party': party, 'event_type': party.event.event_type})
+
+
+def _get_invitation(request, notification_id):
+    """Открывает приглашение получателю или пользователю с правом просмотра."""
+    notification = get_object_or_404(EventNotification.objects.select_related('event_type'), pk=notification_id)
+    manager = any(request.user.has_perm(f'events.{action}_eventnotification') for action in ('view', 'change', 'add'))
+    if not manager and (not notification.sent_at or not notification.sent_to_users.filter(pk=request.user.pk).exists()):
+        raise Http404
+    return notification
+
+
+@login_required
+@guild_member_required
+def invitation_create(request, event_type_slug):
+    """Назначает дату и отправляет приглашение вручную."""
+    from .forms import InvitationForm
+    from .utils import send_event_notification
+    if not request.user.has_perm('events.add_eventnotification'):
+        raise PermissionDenied
+    event_type = get_object_or_404(EventType, slug=event_type_slug, is_active=True)
+    form = InvitationForm(request.POST or None, event_type=event_type)
+    if request.method == 'POST' and form.is_valid():
+        notification = form.save()
+        if request.POST.get('send') == 'yes':
+            count = send_event_notification(notification.pk)
+            messages.success(request, f'Приглашение отправлено: {count} получателей' if count else 'Дата сохранена, получателей нет')
+        else:
+            messages.success(request, 'Дата сохранена. Приглашение можно отправить позже')
+        return redirect('events:vote_results', notification_id=notification.pk)
+    return render(request, 'events/invitation_form.html', {'form': form, 'event_type': event_type})
+
+
+@login_required
+@guild_member_required
+@require_POST
+def invitation_send(request, notification_id):
+    """Отправляет сохранённое приглашение по явному действию пользователя."""
+    from .utils import send_event_notification
+    if not request.user.has_perm('events.change_eventnotification'):
+        raise PermissionDenied
+    notification = get_object_or_404(EventNotification, pk=notification_id)
+    if notification.event_date < timezone.localdate():
+        messages.error(request, 'Нельзя отправить приглашение на прошедшую дату')
+    else:
+        count = send_event_notification(notification.pk)
+        messages.success(request, f'Приглашение отправлено: {count}' if count else 'Приглашение уже отправлено или нет получателей')
+    return redirect('events:vote_results', notification_id=notification.pk)

@@ -1,0 +1,7 @@
+<section class="ui-card">
+<h2 class="ui-card-title">Фактическая явка · {{ notification.event_date|date:"d.m.Y" }}</h2>
+<p class="ui-page-sub">Ответ на приглашение и присутствие — разные данные. Для зачёта нужно {{ event_type.min_presence_minutes }} мин. в канале TeamSpeak.</p>
+{% if presence_rows %}<div style="overflow-x:auto"><table class="ui-table"><thead><tr><th>Игрок</th><th>Отряд на дату</th><th>Ответ</th><th>Минут</th><th>Явка</th></tr></thead><tbody>
+{% for row in presence_rows %}<tr><td><a href="{% url 'profile_view' row.user.username %}">{{ row.user.username }}</a></td><td>{% if row.slot %}{{ row.slot.party_number }}{% if row.slot.is_leader %} · лидер{% endif %}{% else %}—{% endif %}</td><td>{{ row.answer.get_status_display|default:"Нет ответа" }}</td><td>{{ row.minutes }}</td><td>{{ row.presence_label }}</td></tr>{% endfor %}
+</tbody></table></div>{% else %}<p class="ui-page-sub">Приглашённых игроков пока нет.</p>{% endif %}
+</section>

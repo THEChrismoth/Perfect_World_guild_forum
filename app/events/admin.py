@@ -275,6 +275,11 @@ class EventNotificationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     readonly_fields = ['sent_at', 'responses_count', 'points_processed_at']
     filter_horizontal = ['recipient_groups']
 
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.sent_at:
+            return [*self.readonly_fields, 'event_type', 'event_date', 'start_time', 'duration_minutes', 'recipient_groups']
+        return self.readonly_fields
+
     fieldsets = (
         ('Когда', {
             'fields': ('event_type', 'event_date', 'start_time', 'duration_minutes'),
@@ -320,7 +325,7 @@ class EventNotificationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         from .utils import send_event_notification
         
         sent_count = 0
-        for notification in queryset:
+        for notification in queryset.filter(sent_at__isnull=True):
             result = send_event_notification(notification.id)
             if result > 0:
                 sent_count += 1
@@ -361,7 +366,7 @@ class EventNotificationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     
     def changeform_view(self, request, object_id=None, form_url='', extra_context=None):
         extra_context = extra_context or {}
-        extra_context['show_send_button'] = True
+        extra_context['show_send_button'] = not object_id or not EventNotification.objects.filter(pk=object_id, sent_at__isnull=False).exists()
         
         # Добавляем статистику голосования если уведомление уже существует.
         if object_id:

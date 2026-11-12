@@ -8,6 +8,8 @@ urlpatterns = [
     # Фиксированные адреса должны идти до <slug>, иначе my-votes/ примется за slug ивента.
     path('parties/<int:party_id>/edit/', views.party_edit, name='party_edit'),
     path('my-votes/', views.my_votes, name='my_votes'),
+    path('vote/<int:notification_id>/send/', views.invitation_send, name='invitation_send'),
+    path('<slug:event_type_slug>/invite/', views.invitation_create, name='invitation_create'),
     path('vote/<int:notification_id>/', views.vote_view, name='vote_view'),
     path('vote/<int:notification_id>/results/', views.vote_results, name='vote_results'),
     path('<slug:event_type_slug>/', views.event_detail, name='event_detail'),

@@ -185,8 +185,8 @@ class EventNotification(models.Model):
     )
     duration_minutes = models.PositiveIntegerField('Длительность, минут', default=120)
     points_processed_at = models.DateTimeField('Очки начислены', null=True, blank=True, editable=False)
-    subject = models.CharField('Тема', max_length=200)
-    message = models.TextField('Сообщение')
+    subject = models.CharField('Тема', max_length=200, blank=True)
+    message = models.TextField('Сообщение', blank=True)
     
     # Группы получателей (можно выбрать несколько).
     recipient_groups = models.ManyToManyField(
@@ -196,7 +196,7 @@ class EventNotification(models.Model):
         help_text='Выберите группы пользователей, которые получат уведомление. Если не выбрано - отправляется всем членам гильдии'
     )
     
-    sent_at = models.DateTimeField('Отправлено', auto_now_add=True, null=True, blank=True)
+    sent_at = models.DateTimeField('Отправлено', null=True, blank=True)
     sent_to_users = models.ManyToManyField(
         User,
         related_name='event_notifications',
@@ -212,6 +212,21 @@ class EventNotification(models.Model):
     
     def __str__(self):
         return f"{self.event_type.name} - {self.event_date}"
+
+    def save(self, *args, **kwargs):
+        if not self.subject:
+            self.subject = f'{self.event_type.name} · {self.event_date:%d.%m.%Y}'
+        super().save(*args, **kwargs)
+
+    @property
+    def response_open(self):
+        """Возвращает возможность ответить на отправленное приглашение."""
+        from django.utils import timezone
+        if not self.sent_at or self.points_processed_at:
+            return False
+        if self.ends_at:
+            return timezone.now() < self.ends_at
+        return timezone.localdate() <= self.event_date
 
     @property
     def starts_at(self):
@@ -280,3 +295,15 @@ def sync_event_parties(sender, instance, raw=False, **kwargs):
     for party in event.parties.filter(number__gt=instance.parties_count):
         if not party.leader_id and not party.members.exists():
             party.delete()
+
+
+class EventRosterEntry(models.Model):
+    """Сохраняет место приглашённого игрока в отряде на дату рассылки."""
+    notification = models.ForeignKey(EventNotification, on_delete=models.CASCADE, related_name='roster_entries')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    party_number = models.PositiveIntegerField('Номер отряда')
+    is_leader = models.BooleanField('Лидер', default=False)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['notification', 'user'], name='unique_event_roster_user')]
+        ordering = ['party_number', '-is_leader', 'user__username']
