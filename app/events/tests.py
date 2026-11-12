@@ -181,3 +181,47 @@ class DatedInvitationTests(TestCase):
         response = self.client.post(url, {'event_date': timezone.localdate().isoformat(), 'start_time': '20:00',
             'duration_minutes': 60, 'send': 'no'})
         self.assertEqual(response.status_code, 302)
+
+    def test_duplicate_date_and_invalid_duration_return_form_errors(self):
+        from .forms import InvitationForm
+        data = {'event_date': self.invitation.event_date.isoformat(), 'start_time': '20:00', 'duration_minutes': 60}
+        form = InvitationForm(data, event_type=self.kind)
+        self.assertFalse(form.is_valid())
+        self.assertIn('event_date', form.errors)
+        data['duration_minutes'] = 'invalid'
+        self.assertFalse(InvitationForm(data, event_type=self.kind).is_valid())
+
+    def test_response_can_change_without_duplicates_and_comment_is_escaped(self):
+        from .utils import send_event_notification
+        send_event_notification(self.invitation.pk)
+        self.client.force_login(self.user)
+        url = reverse('events:vote_view', args=[self.invitation.pk])
+        self.client.post(url, {'status': 'yes', 'comment': 'First'})
+        self.client.post(url, {'status': 'maybe', 'comment': '<script>alert(1)</script>'})
+        self.assertEqual(self.invitation.attendances.count(), 1)
+        self.assertEqual(self.invitation.attendances.get().status, 'maybe')
+        result = self.client.get(reverse('events:vote_results', args=[self.invitation.pk]))
+        self.assertNotContains(result, '<script>alert(1)</script>')
+        self.assertContains(result, '&lt;script&gt;')
+
+    def test_selected_groups_are_respected(self):
+        from .utils import send_event_notification
+        selected = Group.objects.create(name='Invite-selected')
+        self.invitation.recipient_groups.add(selected)
+        self.assertEqual(send_event_notification(self.invitation.pk), 0)
+        self.user.groups.add(selected)
+        self.assertEqual(send_event_notification(self.invitation.pk), 1)
+
+    def test_other_date_does_not_reuse_answers_or_presence(self):
+        from datetime import timedelta
+        from .models import EventNotification, EventAttendance
+        from .utils import send_event_notification, get_presence_report
+        from teamspeak.models import EventPresence
+        send_event_notification(self.invitation.pk)
+        EventAttendance.objects.create(notification=self.invitation, user=self.user, status='yes')
+        EventPresence.objects.create(notification=self.invitation, user=self.user, minutes=30)
+        other = EventNotification.objects.create(event_type=self.kind, event_date=self.invitation.event_date + timedelta(days=1))
+        send_event_notification(other.pk)
+        row = get_presence_report(other)[0]
+        self.assertIsNone(row['answer'])
+        self.assertFalse(row['present'])

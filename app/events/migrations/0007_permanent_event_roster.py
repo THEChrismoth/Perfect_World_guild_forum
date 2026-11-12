@@ -13,7 +13,7 @@ def merge_rosters(apps, schema_editor):
     for event_type in EventType.objects.using(alias).all():
         rosters = list(Event.objects.using(alias).filter(event_type=event_type).order_by('pk'))
         if not rosters:
-            continue
+            rosters = [Event.objects.using(alias).create(event_type=event_type)]
         target = rosters[0]
         for duplicate in rosters[1:]:
             number = Party.objects.using(alias).filter(event=target).aggregate(value=models.Max('number'))['value'] or 0
@@ -31,6 +31,8 @@ def merge_rosters(apps, schema_editor):
         if actual > event_type.parties_count:
             event_type.parties_count = actual
             event_type.save(using=alias, update_fields=['parties_count'])
+        for number in range(1, event_type.parties_count + 1):
+            Party.objects.using(alias).get_or_create(event=target, number=number)
 
 
 class Migration(migrations.Migration):

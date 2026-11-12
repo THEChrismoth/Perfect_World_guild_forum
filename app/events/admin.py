@@ -263,6 +263,8 @@ class EventNotificationForm(forms.ModelForm):
         if event_type and event_type.ts_channels.strip() and not cleaned_data.get('start_time'):
             self.add_error('start_time', f'У типа «{event_type.name}» включён учёт посещения в TeamSpeak — '
                                          'без времени начала очки не начислятся')
+        if cleaned_data.get('duration_minutes') is not None and cleaned_data['duration_minutes'] < 1:
+            self.add_error('duration_minutes', 'Длительность должна быть больше нуля.')
         return cleaned_data
 
 

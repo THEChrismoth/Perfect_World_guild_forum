@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 
 from core.roles import GUILD_GROUP
-from .models import Party
+from .models import EventNotification
 
 
 class PartyRosterForm(forms.Form):
@@ -34,7 +34,6 @@ class PartyRosterForm(forms.Form):
 
 class InvitationForm(forms.ModelForm):
     class Meta:
-        from .models import EventNotification
         model = EventNotification
         fields = ['event_date', 'start_time', 'duration_minutes', 'subject', 'message']
         widgets = {
@@ -59,6 +58,6 @@ class InvitationForm(forms.ModelForm):
             self.add_error('event_date', 'Эта дата уже прошла.')
         if day and self._meta.model.objects.filter(event_type=self.instance.event_type, event_date=day).exists():
             self.add_error('event_date', 'На эту дату уже назначен ивент этого типа.')
-        if data.get('duration_minutes', 0) < 1:
+        if data.get('duration_minutes') is not None and data['duration_minutes'] < 1:
             self.add_error('duration_minutes', 'Длительность должна быть больше нуля.')
         return data

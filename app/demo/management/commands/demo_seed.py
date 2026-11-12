@@ -215,6 +215,8 @@ class Command(BaseCommand):
     def past_event(self, event_type, date):
         notification = self.notification(event_type, date)
         notification.sent_to_users.set(self.guild)
+        notification.sent_at = notification.starts_at - datetime.timedelta(days=2)
+        notification.save(update_fields=['sent_at'])
         for user in self.guild:
             status = self.answer(notification, user, [75, 15, 10])
             # Большинство «Приду» пришли, часть «Возможно» тоже — по ним бот TS насчитал минуты.

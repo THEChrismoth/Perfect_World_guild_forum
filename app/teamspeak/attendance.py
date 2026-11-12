@@ -47,7 +47,7 @@ def path_matches(client_path, channel_rules):
 def _tracked_notifications():
     from events.models import EventNotification
     return (EventNotification.objects
-            .filter(start_time__isnull=False, points_processed_at__isnull=True)
+            .filter(start_time__isnull=False, sent_at__isnull=False, points_processed_at__isnull=True)
             .exclude(event_type__ts_channels='')
             .select_related('event_type'))
 
@@ -116,7 +116,7 @@ def finalize(notification_id, now=None):
     with transaction.atomic():
         notification = (EventNotification.objects.select_for_update()
                          .select_related('event_type').get(pk=notification_id))
-        if notification.points_processed_at:
+        if notification.points_processed_at or not notification.sent_at:
             return False
         event_type = notification.event_type
         title = f'{event_type.icon} {event_type.name} {notification.event_date:%d.%m}'

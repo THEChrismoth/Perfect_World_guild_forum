@@ -1,12 +1,13 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.http import Http404
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 from core.roles import guild_member_required
-from .models import EventType, Event, Party, PartyMember, EventNotification, EventAttendance
+from .models import EventType, Event, Party, EventNotification, EventAttendance
 from .utils import get_attendance_stats, get_presence_report
 
 
@@ -91,30 +92,15 @@ def vote_view(request, notification_id):
         if not notification.response_open:
             messages.error(request, 'Приём ответов на этот ивент завершён или приглашение ещё не отправлено')
             return redirect('events:vote_results', notification_id=notification.pk)
-        status = request.POST.get('status')
-        comment = request.POST.get('comment', '')
-        
-        if status in ['yes', 'no', 'maybe']:
-            if existing_vote:
-                # Обновляем существующий голос.
-                existing_vote.status = status
-                existing_vote.comment = comment
-                existing_vote.save()
-                messages.success(request, f'Ваш ответ обновлен: {existing_vote.get_status_display()}')
-            else:
-                # Создаем новый голос.
-                EventAttendance.objects.create(
-                    notification=notification,
-                    user=request.user,
-                    status=status,
-                    comment=comment
-                )
-                messages.success(request, 'Ваш ответ учтен! Спасибо за участие в опросе.')
-            
-            return redirect('events:vote_results', notification_id=notification_id)
+        from .services import save_response
+        try:
+            save_response(notification.pk, request.user, request.POST.get('status'), request.POST.get('comment', ''))
+        except ValidationError as error:
+            messages.error(request, ' '.join(error.messages))
         else:
-            messages.error(request, 'Пожалуйста, выберите вариант ответа')
-    
+            messages.success(request, 'Ваш ответ сохранён')
+            return redirect('events:vote_results', notification_id=notification_id)
+
     # Статистика.
     stats = get_attendance_stats(notification_id)
     
@@ -122,6 +108,7 @@ def vote_view(request, notification_id):
         'notification': notification,
         'event_type': event_type,
         'existing_vote': existing_vote,
+        'can_answer': notification.response_open and notification.sent_to_users.filter(pk=request.user.pk).exists(),
         'stats': stats,
     }
     
@@ -136,10 +123,6 @@ def vote_results(request, notification_id):
     notification = _get_invitation(request, notification_id)
     stats = get_attendance_stats(notification_id)
     
-    if not notification:
-        messages.error(request, 'Уведомление не найдено')
-        return redirect('events:event_index')
-    
     from django.core.paginator import Paginator
     rows = get_presence_report(notification)
     page = Paginator(rows, 40).get_page(request.GET.get('page'))
@@ -148,6 +131,7 @@ def vote_results(request, notification_id):
         'presence_rows': page, 'presence_page': page, 'invited_count': notification.sent_to_users.count(),
         'present_count': sum(row['present'] for row in rows),
         'unanswered_count': sum(row['answer'] is None for row in rows),
+        'can_answer': notification.response_open and notification.sent_to_users.filter(pk=request.user.pk).exists(),
     }
     
     return render(request, 'events/vote_results.html', context)
@@ -173,7 +157,6 @@ def my_votes(request):
 @guild_member_required
 def party_edit(request, party_id):
     """Редактирует постоянный отряд по праву управления отрядами."""
-    from django.core.exceptions import PermissionDenied, ValidationError
     from .forms import PartyRosterForm
     from .services import save_party_roster
 
@@ -212,13 +195,18 @@ def invitation_create(request, event_type_slug):
     event_type = get_object_or_404(EventType, slug=event_type_slug, is_active=True)
     form = InvitationForm(request.POST or None, event_type=event_type)
     if request.method == 'POST' and form.is_valid():
-        notification = form.save()
-        if request.POST.get('send') == 'yes':
-            count = send_event_notification(notification.pk)
-            messages.success(request, f'Приглашение отправлено: {count} получателей' if count else 'Дата сохранена, получателей нет')
+        try:
+            with transaction.atomic():
+                notification = form.save()
+                count = send_event_notification(notification.pk) if request.POST.get('send') == 'yes' else 0
+        except IntegrityError:
+            form.add_error('event_date', 'На эту дату уже назначен ивент этого типа.')
         else:
-            messages.success(request, 'Дата сохранена. Приглашение можно отправить позже')
-        return redirect('events:vote_results', notification_id=notification.pk)
+            if request.POST.get('send') == 'yes':
+                messages.success(request, f'Приглашение отправлено: {count} получателей' if count else 'Дата сохранена, получателей нет или ивент уже завершён')
+            else:
+                messages.success(request, 'Дата сохранена. Приглашение можно отправить позже')
+            return redirect('events:vote_results', notification_id=notification.pk)
     return render(request, 'events/invitation_form.html', {'form': form, 'event_type': event_type})
 
 

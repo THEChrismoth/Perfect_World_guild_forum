@@ -272,7 +272,7 @@ class AttendanceTests(TestCase):
         local = timezone.localtime(self.start)
         self.notification = EventNotification.objects.create(
             event_type=self.event_type, event_date=local.date(), start_time=local.time(), duration_minutes=60,
-            subject='МТВ', message='Сбор',
+            subject='МТВ', message='Сбор', sent_at=self.start - datetime.timedelta(days=1),
         )
         self.notification.sent_to_users.set([self.present, self.promised, self.silent])
         EventAttendance.objects.create(notification=self.notification, user=self.promised, status='yes')
@@ -340,6 +340,14 @@ class AttendanceTests(TestCase):
         self.promised.profile.save()
         self.finish()
         self.assertEqual(User.objects.get(pk=self.promised.pk).profile.activity_points, 0)
+
+    def test_draft_is_not_tracked_or_finalized(self):
+        self.notification.sent_at = None
+        self.notification.save(update_fields=['sent_at'])
+        self.assertEqual(self.report(1, ['Гильдия', 'МТВ / ГВГ']), 0)
+        self.assertEqual(self.finish(), 0)
+        self.assertFalse(attendance.finalize(self.notification.pk, self.start + datetime.timedelta(minutes=61)))
+        self.assertFalse(PointsTransaction.objects.filter(user__in=[self.present, self.promised, self.silent]).exists())
 
     def test_presence_api(self):
         with override_settings(TSBOT_API_TOKEN=TOKEN):

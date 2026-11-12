@@ -1,7 +1,8 @@
 from django.contrib.auth.models import User, Group
 from django.utils import timezone
 from django.db import transaction
-from notifications.utils import VOTE_BUTTON, send_notification
+from notifications.utils import VOTE_BUTTON, build_message_html
+from notifications.models import Notification
 from .models import EventNotification, EventRosterEntry, Party
 
 
@@ -36,7 +37,7 @@ def send_event_notification(notification_id):
     """
     
     try:
-        notification = EventNotification.objects.select_for_update().select_related('event_type').get(id=notification_id)
+        notification = EventNotification.objects.select_for_update(of=('self',)).select_related('event_type').get(id=notification_id)
     except EventNotification.DoesNotExist:
         return 0
     
@@ -44,6 +45,9 @@ def send_event_notification(notification_id):
         return 0
 
     event_type = notification.event_type
+    if (not event_type.is_active or notification.event_date < timezone.localdate()
+            or (notification.ends_at and notification.ends_at <= timezone.now())):
+        return 0
     event_date = notification.event_date
     event_date_str = event_date.strftime('%d.%m.%Y')
     weekday = get_weekday_name(event_date)
@@ -62,20 +66,15 @@ def send_event_notification(notification_id):
 📅 Дата: {weekday}, {event_date_str}
 🎯 Ивент: {event_type.icon} {event_type.name}"""
     
-    # Отправляем уведомления через модуль notifications.
-    sent_count = 0
-    for user in users:
-        send_notification(
-            user=user,
-            title=notification.subject,
-            message=full_message,
-            notification_type='warning',
-            link=vote_url,
-            button=VOTE_BUTTON,
-        )
-        notification.sent_to_users.add(user)
-        sent_count += 1
-    
+    Notification.objects.bulk_create([
+        Notification(user=user, title=notification.subject,
+                     message=build_message_html(full_message, vote_url, VOTE_BUTTON),
+                     notification_type='warning', link=vote_url)
+        for user in users
+    ])
+    notification.sent_to_users.set(users)
+    sent_count = len(users)
+
     # Состав фиксируется один раз: последующее редактирование не меняет историю.
     from .models import Event
     Event.objects.select_for_update().get(event_type=event_type)
