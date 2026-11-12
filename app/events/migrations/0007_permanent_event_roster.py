@@ -33,6 +33,10 @@ def merge_rosters(apps, schema_editor):
             event_type.save(using=alias, update_fields=['parties_count'])
         for number in range(1, event_type.parties_count + 1):
             Party.objects.using(alias).get_or_create(event=target, number=number)
+    if schema_editor.connection.vendor == 'postgresql':
+        # После переноса отрядов отложенные внешние ключи должны провериться
+        # до изменения ограничения на той же таблице внутри этой транзакции.
+        schema_editor.execute('SET CONSTRAINTS ALL IMMEDIATE')
 
 
 class Migration(migrations.Migration):
