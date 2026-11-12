@@ -91,16 +91,16 @@ class EventType(models.Model):
 
 
 class Event(models.Model):
-    """Ивент — создается на основе EventType, отряды заполняются вручную."""
+    """Хранит единственный постоянный состав для типа ивента."""
     
-    event_type = models.ForeignKey(
+    event_type = models.OneToOneField(
         EventType,
         on_delete=models.PROTECT,
-        related_name='events',
+        related_name='roster',
         verbose_name='Тип ивента'
     )
     
-    notes = models.TextField('Примечания', blank=True, help_text='Особенности на эту неделю')
+    notes = models.TextField('Примечания', blank=True, help_text='Постоянные примечания к составу')
     is_active = models.BooleanField('Активен', default=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -263,50 +263,20 @@ class EventAttendance(models.Model):
         return f"{self.user.username} - {self.notification.event_type.name} ({self.notification.event_date}): {self.get_status_display()}"
 
 
-# ========== СИГНАЛЫ ДЛЯ АВТОМАТИЧЕСКОГО СОЗДАНИЯ ОТРЯДОВ ==========
+# Синхронизация постоянных отрядов
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-@receiver(post_save, sender=EventType)
-def create_event_and_parties(sender, instance, created, **kwargs):
-    """При создании типа ивента автоматически создаем Event и отряды."""
-    if created:
-        # Создаем ивент.
-        event = Event.objects.create(
-            event_type=instance,
-            is_active=True
-        )
-        
-        # Создаем отряды.
-        for i in range(instance.parties_count):
-            Party.objects.create(
-                event=event,
-                number=i + 1
-            )
-
 
 @receiver(post_save, sender=EventType)
-def update_parties_count(sender, instance, **kwargs):
-    """При изменении количества отрядов в EventType обновляем отряды в Event."""
-    if not instance.pk:
+def sync_event_parties(sender, instance, raw=False, **kwargs):
+    """Создаёт постоянный состав и синхронизирует пустые отряды."""
+    if raw:
         return
-    
-    try:
-        event = Event.objects.get(event_type=instance)
-    except Event.DoesNotExist:
-        return
-    
-    current_parties = event.parties.count()
-    
-    # Если нужно добавить отряды.
-    if instance.parties_count > current_parties:
-        for i in range(current_parties + 1, instance.parties_count + 1):
-            Party.objects.create(event=event, number=i)
-    
-    # Если нужно удалить отряды (только пустые).
-    elif instance.parties_count < current_parties:
-        parties_to_remove = event.parties.filter(number__gt=instance.parties_count)
-        for party in parties_to_remove:
-            if party.members.count() == 0 and not party.leader:
-                party.delete()
+    event, _ = Event.objects.get_or_create(event_type=instance)
+    for number in range(1, instance.parties_count + 1):
+        Party.objects.get_or_create(event=event, number=number)
+    for party in event.parties.filter(number__gt=instance.parties_count):
+        if not party.leader_id and not party.members.exists():
+            party.delete()

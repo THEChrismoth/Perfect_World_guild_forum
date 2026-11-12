@@ -38,6 +38,7 @@
             <div class="party-card-detailed">
                 <div class="party-header-detailed">
                     <h3>Отряд {{ party.number }}</h3>
+                    {% if perms.events.change_party %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'events:party_edit' party.id %}">Редактировать</a>{% endif %}
                     <div class="party-stats-detailed">
                         <span class="filled">{{ party.filled_slots }}</span>/<span class="total">{{ party.total_slots }}</span>
                     </div>

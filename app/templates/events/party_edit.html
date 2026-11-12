@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="ui-page-head"><div><h1 class="ui-page-title">Отряд {{ party.number }} · {{ event_type.name }}</h1><p class="ui-page-sub">Постоянный состав. Размер отряда — {{ event_type.party_size }} с учётом лидера.</p></div></div>
+<form method="post" class="ui-card ui-form">{% csrf_token %}
+    {{ form.non_field_errors }}
+    {% for field in form %}<div class="ui-field">{{ field.label_tag }}{{ field }}{{ field.errors }}{% if field.name == 'members' %}<p class="ui-page-sub">Для выбора нескольких игроков используйте Ctrl / Cmd. На телефоне — выбор из списка.</p>{% endif %}</div>{% endfor %}
+    <div class="ui-page-actions"><button class="ui-btn ui-btn-primary" type="submit">Сохранить отряд</button><a class="ui-btn ui-btn-secondary" href="{{ event_type.get_absolute_url }}">Отмена</a></div>
+</form>
+{% endblock %}

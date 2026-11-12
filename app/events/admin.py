@@ -5,6 +5,7 @@ from django.utils.html import format_html
 from django.shortcuts import redirect
 from django.contrib import messages
 from django import forms
+from django.db import models
 from django.contrib.auth.models import Group
 
 from core.admin_mixins import NoRelatedPopupsMixin, related_hint
@@ -15,8 +16,21 @@ def _parties_button(url):
     return format_html('<a class="btn btn-outline-primary" href="{}">Управление отрядами</a>', url)
 
 
+class PartyMemberFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        """Проверяет весь отряд с учётом удалений и выбранного лидера."""
+        super().clean()
+        if any(self.errors):
+            return
+        from .services import validate_roster
+        members = [form.cleaned_data['user'] for form in self.forms
+                   if form.cleaned_data.get('user') and not form.cleaned_data.get('DELETE')]
+        validate_roster(self.instance, self.instance.leader, members)
+
+
 class PartyMemberInline(NoRelatedPopupsMixin, admin.TabularInline):
     model = PartyMember
+    formset = PartyMemberFormSet
     extra = 1
     fields = ['user', 'joined_at']
     readonly_fields = ['joined_at']
@@ -40,7 +54,7 @@ class PartyAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
     
     def event_link(self, obj):
-        url = reverse('admin:events_event_change', args=[obj.event.id])
+        url = reverse('admin:events_eventtype_change', args=[obj.event.event_type_id])
         return format_html('<a href="{}">{}</a>', url, obj.event)
     event_link.short_description = 'Ивент'
     
@@ -89,6 +103,16 @@ class EventTypeForm(forms.ModelForm):
                 and not cleaned_data.get('points_present') and not cleaned_data.get('points_absent'):
             self.add_error('points_present', 'Каналы TeamSpeak указаны, но очков за участие и штрафа нет — '
                                              'учёт посещения ничего не изменит')
+        if self.instance.pk:
+            event = Event.objects.filter(event_type=self.instance).first()
+            if event:
+                for party in event.parties.all():
+                    if party.members_count > (cleaned_data.get('party_size') or 0):
+                        self.add_error('party_size', 'Размер меньше существующего состава отряда.')
+                        break
+                if event.parties.filter(number__gt=cleaned_data.get('parties_count', 0) or 0).filter(
+                        models.Q(leader__isnull=False) | models.Q(members__isnull=False)).exists():
+                    self.add_error('parties_count', 'Сначала освободите удаляемые отряды.')
         return cleaned_data
 
 
@@ -128,7 +152,7 @@ class EventTypeAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
             event = Event.objects.get(event_type=obj)
         except Event.DoesNotExist:
             return '—'
-        return _parties_button(reverse('admin:events_party_changelist') + f'?event__id__exact={event.id}')
+        return _parties_button(obj.get_absolute_url())
     view_parties_link.short_description = 'Отряды'
 
 
@@ -147,6 +171,15 @@ class EventForm(forms.ModelForm):
 @admin.register(Event)
 class EventAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     form = EventForm
+
+    def get_model_perms(self, request):
+        return {}
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
     list_display = ['__str__', 'event_type_link', 'is_active', 'parties_info_short', 'manage_parties_link']
     list_filter = ['event_type', 'is_active']
     search_fields = ['event_type__name', 'notes']
@@ -179,6 +212,9 @@ class EventAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
 
 @admin.register(PartyMember)
 class PartyMemberAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
+    def get_model_perms(self, request):
+        return {}
+
     list_display = ['user_link', 'party_link', 'joined_at', 'delete_link']
     list_filter = ['party__event__event_type', 'party__event']
     search_fields = ['user__username', 'party__event__event_type__name']

@@ -45,7 +45,8 @@ def event_index(request):
                     })
                 
                 parties_data.append({
-                    'number': party.number,
+                    'id': party.pk,
+                'number': party.number,
                     'members': members_list,
                     'total_slots': event_type.party_size,
                     'filled_slots': len(members_list)
@@ -105,6 +106,7 @@ def event_detail(request, event_type_slug):
                 })
             
             parties_data.append({
+                'id': party.pk,
                 'number': party.number,
                 'members': members_list,
                 'total_slots': event_type.party_size,
@@ -213,3 +215,26 @@ def my_votes(request):
     }
     
     return render(request, 'events/my_votes.html', context)
+
+
+@login_required
+@guild_member_required
+def party_edit(request, party_id):
+    """Редактирует постоянный отряд по праву управления отрядами."""
+    from django.core.exceptions import PermissionDenied, ValidationError
+    from .forms import PartyRosterForm
+    from .services import save_party_roster
+
+    if not request.user.has_perm('events.change_party'):
+        raise PermissionDenied
+    party = get_object_or_404(Party.objects.select_related('event__event_type'), pk=party_id)
+    form = PartyRosterForm(request.POST or None, party=party)
+    if request.method == 'POST' and form.is_valid():
+        try:
+            save_party_roster(party, form.cleaned_data['leader'], form.cleaned_data['members'])
+        except ValidationError as error:
+            form.add_error(None, error)
+        else:
+            messages.success(request, 'Постоянный отряд сохранён')
+            return redirect(party.event.get_absolute_url())
+    return render(request, 'events/party_edit.html', {'form': form, 'party': party, 'event_type': party.event.event_type})
