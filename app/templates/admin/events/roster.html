@@ -1,0 +1,24 @@
+{% extends 'admin/events/base.html' %}
+{% load ga_admin %}
+{% block content %}
+<div id="content-main" class="ga-events-content">
+    {% include 'admin/events/includes/navigation.html' with events_section='eventtype' %}
+    <header class="ga-events-head">
+        <div><h1>{{ event_type.name }}</h1><p>Постоянные отряды · до {{ event_type.party_size }} игроков с учётом лидера.</p></div>
+        {% if perms.events.add_eventnotification %}<a class="btn btn-primary" href="{% url 'admin:events_eventnotification_add' %}?event_type={{ event_type.pk }}">{% ga_icon 'calendar' %}Назначить дату</a>{% endif %}
+    </header>
+    {% include 'admin/events/includes/type_navigation.html' with type_section='roster' %}
+    <div class="ga-events-rosters">
+    {% for party in parties %}
+        <section class="ga-card">
+            <div class="ga-card-head"><h2>Отряд {{ party.number }}</h2><span class="ga-events-capacity">{{ party.members_count }} / {{ event_type.party_size }}</span></div>
+            <ul class="ga-events-players">
+                {% if party.leader %}<li><strong>{{ party.leader.username }}</strong><span class="ga-pill ga-pill-voting">Лидер</span></li>{% endif %}
+                {% for member in party.members.all %}<li><span>{{ member.user.username }}</span></li>{% empty %}{% if not party.leader %}<li class="ga-events-help">Игроки ещё не назначены</li>{% endif %}{% endfor %}
+            </ul>
+            {% if can_edit_parties %}<a class="ga-btn-secondary" href="{% url 'admin:events_party_change' party.pk %}">{% ga_icon 'pencil' %}Редактировать состав</a>{% endif %}
+        </section>
+    {% empty %}<section class="ga-card"><p>Отряды ещё не созданы. Проверьте число отрядов в настройках типа.</p></section>{% endfor %}
+    </div>
+</div>
+{% endblock %}

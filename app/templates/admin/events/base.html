@@ -1,0 +1,7 @@
+{% extends 'admin/base_site.html' %}
+{% block extrastyle %}{{ block.super }}{{ media.css }}{% endblock %}
+{% block bodyclass %}{{ block.super }} ga-events-page{% endblock %}
+{% block breadcrumbs %}
+<div class="breadcrumbs"><a href="{% url 'admin:index' %}">Дашборд</a> &rsaquo; <a href="{% url 'admin:events_eventtype_changelist' %}">Ивенты</a> &rsaquo; {{ event_type.name }}</div>
+{% endblock %}
+{% block content_title %}{% endblock %}

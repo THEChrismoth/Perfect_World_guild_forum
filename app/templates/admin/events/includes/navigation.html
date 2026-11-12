@@ -1,0 +1,9 @@
+{% load ga_admin %}
+<nav class="ga-events-nav" aria-label="Управление ивентами">
+    {% if perms.events.view_eventtype or perms.events.change_eventtype or perms.events.add_eventtype %}
+        <a href="{% url 'admin:events_eventtype_changelist' %}" {% if events_section == 'eventtype' %}aria-current="page"{% endif %}>{% ga_icon 'swords' %}Типы ивентов</a>
+    {% endif %}
+    {% if perms.events.view_eventnotification or perms.events.change_eventnotification or perms.events.add_eventnotification %}
+        <a href="{% url 'admin:events_eventnotification_changelist' %}" {% if events_section == 'eventnotification' %}aria-current="page"{% endif %}>{% ga_icon 'calendar' %}Даты проведения</a>
+    {% endif %}
+</nav>

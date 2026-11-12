@@ -1,0 +1,59 @@
+/* Ивенты: настройки типа, постоянные отряды и даты проведения */
+.ga-events-content { min-width: 0; }
+.ga-events-nav { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; margin: 0 0 18px; border: 1px solid var(--hairline-color); border-radius: 12px; background: var(--ga-page-bg); width: fit-content; max-width: 100%; }
+.ga-events-nav a { display: inline-flex; align-items: center; gap: 7px; padding: 10px 14px; border-radius: 8px; color: var(--body-quiet-color); font-size: 13px; font-weight: 600; text-decoration: none; }
+.ga-events-nav a[aria-current] { background: var(--ga-card-bg); color: var(--link-fg); box-shadow: var(--ga-card-shadow); }
+.ga-events-page .ga-events-nav a, .ga-events-page .ga-events-subnav a { text-decoration: none !important; }
+.ga-events-nav .ga-icon { width: 16px; height: 16px; }
+.ga-events-help { color: var(--body-quiet-color); font-size: 13px; line-height: 1.65; margin: 0 0 18px; overflow-wrap: anywhere; }
+.ga-events-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 18px; }
+.ga-events-head h1 { margin: 0 0 6px; color: var(--body-loud-color); font-size: 24px; font-weight: 700; overflow-wrap: anywhere; }
+.ga-events-head p { margin: 0; color: var(--body-quiet-color); font-size: 13px; }
+.ga-events-head .btn, .ga-events-submit .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; }
+.ga-events-head .ga-icon, .ga-events-submit .ga-icon { width: 16px; height: 16px; }
+.ga-events-subnav { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 20px; margin: 0 0 20px; padding-bottom: 12px; border-bottom: 1px solid var(--hairline-color); }
+.ga-events-subnav a { color: var(--body-quiet-color); text-decoration: none; font-size: 13px; font-weight: 600; padding: 5px 0; }
+.ga-events-subnav a[aria-current] { color: var(--link-fg); }
+.ga-events-note { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px; margin: 0 0 20px; border: 1px solid var(--hairline-color); border-radius: 12px; background: var(--ga-card-bg); font-size: 13px; line-height: 1.6; }
+.ga-events-note span { color: var(--body-quiet-color); }
+.ga-events-rosters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); align-items: stretch; gap: 16px; }
+.ga-events-rosters .ga-card { display: flex; flex-direction: column; min-width: 0; }
+.ga-events-rosters .ga-card > .ga-btn-secondary { margin-top: auto; align-self: start; }
+.ga-events-rosters .ga-card-head h2 { margin: 0; padding: 0; background: none; color: var(--body-loud-color); font-size: 15px; }
+.ga-events-capacity { color: var(--body-quiet-color); font-size: 12px; }
+.ga-events-players { margin: 0 0 18px; padding: 0; list-style: none; }
+.ga-events-players li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--hairline-color); list-style: none; overflow-wrap: anywhere; font-size: 13px; }
+.ga-events-players li:last-child { border: none; }
+.ga-events-date-summary { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; margin: 0 0 16px; }
+.ga-events-date-summary > div { min-width: 0; padding: 16px 20px; border: 1px solid var(--hairline-color); border-radius: 12px; background: var(--ga-card-bg); }
+.ga-events-date-summary span { display: block; margin-bottom: 7px; color: var(--body-quiet-color); font-size: 12px; }
+.ga-events-date-summary strong { font-size: 17px; font-weight: 600; color: var(--body-loud-color); overflow-wrap: anywhere; }
+.ga-events-inline-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+.ga-events-inline-actions:last-child { margin-bottom: 0; }
+.ga-events-submit { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; }
+.ga-events-submit .deletelink { margin-left: auto; }
+.ga-events-editor { max-width: 840px; }
+.ga-events-field { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+.ga-events-field > label { color: var(--body-loud-color); font-size: 14px; font-weight: 600; }
+.ga-events-field > input, .ga-events-field > select { box-sizing: border-box; width: 100%; max-width: 100%; min-height: 42px; padding: 9px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--body-bg); color: var(--body-fg); font: inherit; }
+.ga-events-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 10px; max-height: 360px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 10px; background: var(--ga-page-bg); }
+.ga-events-options label { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 6px 10px; border-radius: 7px; font-size: 13px; overflow-wrap: anywhere; }
+.ga-events-options label:has(input:checked) { background: var(--ga-soft); }
+.ga-events-options [hidden] { display: none; }
+.ga-events-options input { flex-shrink: 0; accent-color: var(--ga-accent); }
+.ga-events-roster-form .errorlist { color: var(--error-fg); padding: 10px 16px; margin: 0; }
+.ga-events-page #id_recipient_groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.ga-events-page #id_recipient_groups label { float: none; width: auto; display: flex; align-items: center; gap: 8px; min-height: 38px; }
+.ga-events-page #id_recipient_groups input { accent-color: var(--ga-accent); }
+@media (max-width: 600px) {
+    .ga-events-head h1 { font-size: 21px; }
+    .ga-events-nav { width: auto; }
+    .ga-events-nav a { flex: 1; justify-content: center; padding: 10px 8px; font-size: 12px; }
+    .ga-events-nav .ga-icon { display: none; }
+    .ga-events-date-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .ga-events-date-summary > div:first-child { grid-column: 1 / -1; }
+    .ga-events-date-summary > div { padding: 14px; }
+    .ga-events-options { grid-template-columns: 1fr; }
+    .ga-events-submit .deletelink { margin-left: 0; }
+    .ga-events-page .ga-btn-secondary, .ga-events-page .btn { min-height: 40px; box-sizing: border-box; }
+}

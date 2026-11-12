@@ -1,83 +1,31 @@
-{% extends "admin/change_form.html" %}
-{% load i18n admin_urls %}
-
+{% extends 'admin/change_form.html' %}
+{% load ga_admin %}
+{% block content_subtitle %}{% endblock %}
+{% block bodyclass %}{{ block.super }} ga-events-page{% endblock %}
+{% block form_top %}
+    {% include 'admin/events/includes/navigation.html' %}
+    {% if date_object %}
+        <section class="ga-events-date-summary">
+            <div><span>Приглашение</span><strong>{% if date_object.sent_at %}Отправлено {{ date_object.sent_at|date:'d.m.Y H:i' }}{% else %}Черновик{% endif %}</strong></div>
+            <div><span>Приглашено</span><strong>{{ invited_total }}</strong></div>
+            <div><span>Ответили</span><strong>{{ responses_total }}</strong></div>
+        </section>
+        <div class="ga-events-inline-actions">
+            <a class="ga-btn-secondary" href="{% url 'events:vote_results' date_object.pk %}">{% ga_icon 'activity' %}Ответы и явка</a>
+            {% if perms.events.view_eventtype or perms.events.change_party %}<a class="ga-btn-secondary" href="{% url 'admin:events_eventtype_roster' date_object.event_type_id %}">{% ga_icon 'users' %}Постоянные отряды</a>{% endif %}
+        </div>
+    {% endif %}
+    <p class="ga-events-help">{% if date_object.sent_at %}Дата, время и получатели зафиксированы. Изменение текста не отправляет новое уведомление.{% else %}Сохраните дату черновиком или отправьте приглашение игрокам, когда состав готов.{% endif %}</p>
+{% endblock %}
 {% block submit_buttons_bottom %}
-<div class="submit-row">
-    <input type="submit" value="{% trans 'Save' %}" name="_save" class="default">
-
+<div class="submit-row ga-events-submit">
     {% if show_send_button %}
-        <input type="submit" value="📢 Отправить уведомление" name="_send_notification" class="ga-submit-success">
+        <button type="submit" name="_send_notification" class="btn btn-primary">{% ga_icon 'megaphone' %}Сохранить и отправить</button>
+        <button type="submit" name="_continue" class="ga-btn-secondary">Сохранить черновик</button>
+    {% elif has_change_permission %}
+        <input type="submit" name="_save" value="Сохранить изменения" class="default">
     {% endif %}
-
-    {% if show_delete_link %}
-        <p class="deletelink-box"><a href="{% url opts|admin_urlname:'delete' original.pk|admin_urlquote %}" class="deletelink">{% trans "Delete" %}</a></p>
-    {% endif %}
-
-    <input type="submit" value="{% trans 'Save and add another' %}" name="_addanother">
-    <input type="submit" value="{% trans 'Save and continue editing' %}" name="_continue">
+    <a class="ga-btn-secondary" href="{% url 'admin:events_eventnotification_changelist' %}">К списку дат</a>
+    {% if change and has_delete_permission %}<a class="deletelink" href="{% url 'admin:events_eventnotification_delete' original.pk %}">Удалить дату</a>{% endif %}
 </div>
-
-{% if attendance_stats and original %}
-<div class="module ga-attendance">
-    <h2>📊 Статистика голосования</h2>
-
-    <div class="ga-attendance-grid">
-        <div class="ga-attendance-box ga-yes">
-            <span class="ga-attendance-value">{{ attendance_stats.yes_count }}</span>
-            <span>✅ Придут</span>
-        </div>
-        <div class="ga-attendance-box ga-no">
-            <span class="ga-attendance-value">{{ attendance_stats.no_count }}</span>
-            <span>❌ Не придут</span>
-        </div>
-        <div class="ga-attendance-box ga-maybe">
-            <span class="ga-attendance-value">{{ attendance_stats.maybe_count }}</span>
-            <span>🤔 Возможно</span>
-        </div>
-        <div class="ga-attendance-box ga-total">
-            <span class="ga-attendance-value">{{ attendance_stats.total_count }}</span>
-            <span>📊 Всего ответили</span>
-        </div>
-    </div>
-
-    {% if attendance_stats.yes_users %}
-        <div class="ga-attendance-group ga-yes">
-            <strong>✅ Пойдут ({{ attendance_stats.yes_count }}):</strong>
-            <div class="ga-chips">
-                {% for att in attendance_stats.yes_users %}
-                    <span class="ga-chip">{{ att.user.username }}{% if att.comment %} 💬{% endif %}</span>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if attendance_stats.maybe_users %}
-        <div class="ga-attendance-group ga-maybe">
-            <strong>🤔 Возможно ({{ attendance_stats.maybe_count }}):</strong>
-            <div class="ga-chips">
-                {% for att in attendance_stats.maybe_users %}
-                    <span class="ga-chip">{{ att.user.username }}{% if att.comment %} 💬{% endif %}</span>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-
-    {% if attendance_stats.no_users %}
-        <div class="ga-attendance-group ga-no">
-            <strong>❌ Не пойдут ({{ attendance_stats.no_count }}):</strong>
-            <div class="ga-chips">
-                {% for att in attendance_stats.no_users %}
-                    <span class="ga-chip">{{ att.user.username }}{% if att.comment %} 💬{% endif %}</span>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-
-    <div class="ga-attendance-footer">
-        <a href="{% url 'admin:events_eventattendance_changelist' %}?notification__id__exact={{ original.id }}" class="btn btn-outline-primary">
-            📋 Подробная статистика
-        </a>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

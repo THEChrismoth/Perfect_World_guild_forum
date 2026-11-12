@@ -76,6 +76,9 @@ class GuildAdminSite(admin.AdminSite):
         app_list = super().get_app_list(request, app_label)
         for app in app_list:
             app['icon'] = APP_ICON.get(app['app_label'], 'folder')
+            if app['app_label'] == 'events':
+                positions = {'EventType': 0, 'EventNotification': 1}
+                app['models'].sort(key=lambda model: positions.get(model['object_name'], 2))
         app_list.sort(key=lambda app: (APP_POSITION.get(app['app_label'], len(APP_ORDER)), app['name']))
         return app_list
 

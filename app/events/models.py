@@ -205,8 +205,8 @@ class EventNotification(models.Model):
     )
     
     class Meta:
-        verbose_name = 'Уведомление об ивенте'
-        verbose_name_plural = 'Уведомления об ивентах'
+        verbose_name = 'Дата проведения'
+        verbose_name_plural = 'Даты проведения'
         ordering = ['-event_date', '-sent_at']
         unique_together = ['event_type', 'event_date']
     

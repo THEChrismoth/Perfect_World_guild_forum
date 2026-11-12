@@ -1,0 +1,26 @@
+{% extends 'admin/events/base.html' %}
+{% load static %}
+{% block content %}
+<div id="content-main" class="ga-events-content ga-events-editor">
+    <header class="ga-events-head"><div><h1>{{ event_type.name }} · отряд {{ party.number }}</h1><p>Постоянный состав · {{ event_type.party_size }} мест вместе с лидером.</p></div></header>
+    {% include 'admin/events/includes/type_navigation.html' with type_section='roster' %}
+    <form method="post" class="ga-card ga-events-roster-form">{% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="ga-events-field">{{ form.leader.label_tag }}{{ form.leader }}{{ form.leader.errors }}</div>
+        <div class="ga-events-field">
+            <label for="player-search">Участники</label>
+            <input type="search" id="player-search" placeholder="Найти игрока по нику" aria-controls="player-options" data-player-search>
+            <div id="player-options" class="ga-events-options">
+                {% for option in form.members %}<label data-player-option>{{ option.tag }}<span>{{ option.choice_label }}</span></label>{% endfor %}
+            </div>
+            {{ form.members.errors }}
+            <p class="ga-events-help">Лидер выбирается отдельно. Один игрок может быть только в одном отряде этого типа.</p>
+        </div>
+        <div class="ga-events-inline-actions">
+            {% if can_edit %}<button class="btn btn-primary" type="submit">Сохранить состав</button>{% endif %}
+            <a class="ga-btn-secondary" href="{% url 'admin:events_eventtype_roster' event_type.pk %}">К отрядам</a>
+        </div>
+    </form>
+</div>
+<script src="{% static 'events/js/roster.js' %}" defer></script>
+{% endblock %}

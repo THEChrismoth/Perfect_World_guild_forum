@@ -1,0 +1,5 @@
+<nav class="ga-events-subnav" aria-label="Настройки ивента">
+    {% if perms.events.view_eventtype or perms.events.change_eventtype %}<a href="{% url 'admin:events_eventtype_change' event_type.pk %}" {% if type_section == 'settings' %}aria-current="page"{% endif %}>Настройки</a>{% endif %}
+    {% if perms.events.view_eventtype or perms.events.change_party %}<a href="{% url 'admin:events_eventtype_roster' event_type.pk %}" {% if type_section == 'roster' %}aria-current="page"{% endif %}>Постоянные отряды</a>{% endif %}
+    {% if perms.events.view_eventnotification or perms.events.change_eventnotification %}<a href="{% url 'admin:events_eventnotification_changelist' %}?event_type__id__exact={{ event_type.pk }}">Даты и приглашения</a>{% endif %}
+</nav>

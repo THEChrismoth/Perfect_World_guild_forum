@@ -1,0 +1,19 @@
+{% extends 'admin/change_form.html' %}
+{% block content_subtitle %}{% endblock %}
+{% block bodyclass %}{{ block.super }} ga-events-page{% endblock %}
+{% block form_top %}
+    {% include 'admin/events/includes/navigation.html' %}
+    {% if event_type %}
+        {% include 'admin/events/includes/type_navigation.html' with type_section='settings' %}
+        <div class="ga-events-note"><strong>{{ roster_summary }}</strong><span>Постоянный состав сохраняется между датами. Игроков можно назначить на вкладке «Постоянные отряды».</span></div>
+    {% else %}
+        <div class="ga-events-note"><strong>Сначала создайте тип ивента</strong><span>Отряды появятся после сохранения. Затем назначьте игроков и дату проведения.</span></div>
+    {% endif %}
+{% endblock %}
+{% block submit_buttons_bottom %}
+<div class="submit-row ga-events-submit">
+    {% if has_change_permission or add and has_add_permission %}<input type="submit" name="_continue" value="Сохранить настройки" class="default">{% endif %}
+    {% if event_type and perms.events.change_party %}<a class="ga-btn-secondary" href="{% url 'admin:events_eventtype_roster' event_type.pk %}">К постоянным отрядам</a>{% endif %}
+    {% if change and has_delete_permission %}<a class="deletelink" href="{% url 'admin:events_eventtype_delete' original.pk %}">Удалить тип</a>{% endif %}
+</div>
+{% endblock %}
