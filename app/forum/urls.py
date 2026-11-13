@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.forum_view, name='index'),
+    path('forum/', views.forum_view, name='index'),
     path('subcategory/<slug:slug>/', views.subcategory_detail, name='subcategory_detail'),
     path('topic/create/<slug:slug>/', views.topic_create, name='topic_create'),
     path('topic/<slug:slug>/', views.topic_detail, name='topic_detail'),

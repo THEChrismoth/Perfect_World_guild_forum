@@ -5,9 +5,11 @@ from django.contrib.auth.decorators import login_not_required
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from core.home import home
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('', home, name='home'),
     path('', include('forum.urls')),
     path('koslist/', include('koslist.urls')),
     path('profiles/', include('profiles.urls')),

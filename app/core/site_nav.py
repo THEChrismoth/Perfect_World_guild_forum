@@ -25,7 +25,10 @@ def build_site_nav(request, unread_notifications=0):
     current = match.func.__module__.split('.')[0] if match else ''
 
     member = is_guild_member(user)
-    guild_items = [_item('Форум', 'message', reverse('index'), 'forum', current)]
+    guild_items = [
+        _item('Главная', 'dashboard', reverse('home'), 'core', current),
+        _item('Форум', 'message', reverse('index'), 'forum', current),
+    ]
     # Ивенты и аукцион — только для членов гильдии: остальным пункта нет, а не ошибка доступа.
     if member:
         guild_items += [

@@ -265,7 +265,8 @@ class SiteNavTests(TestCase):
 
         self.user.groups.add(Group.objects.create(name='Член гильдии'))
 
-        self.assertEqual(self.current_items('/'), ['Форум'])
+        self.assertEqual(self.current_items('/'), ['Главная'])
+        self.assertEqual(self.current_items(reverse('index')), ['Форум'])
         self.assertEqual(self.current_items(reverse('events:event_index')), ['Ивенты'])
         self.assertEqual(self.current_items(reverse('auction:auction_index')), ['Аукцион'])
         self.assertEqual(self.current_items('/koslist/'), ['Кос-лист'])
@@ -325,7 +326,7 @@ class SiteSettingsTests(TestCase):
     def test_default_name_shown(self):
         response = self.client.get('/')
 
-        self.assertContains(response, '<title>Гильдия</title>', html=True)
+        self.assertContains(response, '<title>Главная · Гильдия</title>', html=True)
 
     def test_changed_name_shown(self):
         settings = SiteSettings.load()
@@ -334,7 +335,7 @@ class SiteSettingsTests(TestCase):
 
         response = self.client.get('/')
 
-        self.assertContains(response, '<title>Ermitage</title>', html=True)
+        self.assertContains(response, '<title>Главная · Ermitage</title>', html=True)
         self.assertContains(response, '<span class="site-brand-text">Ermitage</span>', html=True)
 
     def test_only_one_record(self):

@@ -63,7 +63,7 @@ def main():
                                      'value': client.cookies[settings.SESSION_COOKIE_NAME].value,
                                      'url': url}])
                 page = context.new_page()
-                for section, route in [('forum', '/'), ('admin', '/admin/')]:
+                for section, route in [('forum', '/forum/'), ('admin', '/admin/')]:
                     stacks = []
                     for theme, title in [('dark', 'Тёмная тема'), ('light', 'Светлая тема')]:
                         page.goto(url + route)
