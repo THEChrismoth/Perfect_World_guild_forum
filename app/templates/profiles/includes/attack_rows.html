@@ -1,0 +1,2 @@
+{# Атака и пробив определяются классом игрока. Параметр: gear. #}
+{% for stat in gear.attack_stats %}<div><dt>{{ stat.label }}</dt><dd>{{ stat.value }}</dd></div>{% endfor %}

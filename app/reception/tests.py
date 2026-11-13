@@ -215,7 +215,9 @@ class ApplicationFormTests(TestCase):
 
         page = self.client.get(reverse('reception:application_form'))
         self.assertContains(page, 'Сет ПЗ')
-        self.assertContains(page, '0 / 15000')
+        self.assertContains(page, 'Маг. атака')
+        self.assertContains(page, '<dd>15000</dd>', html=True)
+        self.assertNotContains(page, 'Физ. / маг. атака')
         self.assertContains(page, 'Изменить в профиле')
 
         response = self.client.post(reverse('reception:application_form'), {

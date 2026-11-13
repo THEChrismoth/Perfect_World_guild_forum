@@ -7,6 +7,15 @@ from django.utils import timezone
 
 from core.accents import ACCENT_CHOICES
 
+# Тип атаки определяется классом персонажа.
+MAGIC_CLASSES = frozenset({'mag', 'zhrec', 'dru', 'sham', 'mist', 'zhnec', 'bard'})
+
+
+def damage_type(player_class):
+    """Возвращает тип атаки и пробива для класса персонажа."""
+    return 'magic' if player_class in MAGIC_CLASSES else 'physical'
+
+
 # Иконки классов персонажей (static_src/class_icon/).
 CLASS_ICONS = {
     'var': 'class_icon/var.png',
@@ -179,7 +188,7 @@ class GearSet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gear_sets', verbose_name='Игрок')
     kind = models.CharField('Сет', max_length=2, choices=KIND_CHOICES)
 
-    # Физ. и маг. атака и пробив — пары для физ. и маг. ДД.
+    # Оба типа хранятся для сохранности данных; форма и профиль показывают тип по классу.
     hp = models.IntegerField(default=0, verbose_name='HP')
     bd = models.IntegerField(default=0, verbose_name='Боевой дух (БД)')
     bu = models.IntegerField(default=0, verbose_name='Бонус уровня (БУ)')
@@ -200,6 +209,16 @@ class GearSet(models.Model):
 
     def __str__(self):
         return f'{self.get_kind_display()} — {self.user.username}'
+
+    @property
+    def attack_stats(self):
+        """Возвращает атаку и пробив только своего типа для класса игрока."""
+        magic = damage_type(self.user.profile.player_class) == 'magic'
+        return [
+            {'label': 'Маг. атака' if magic else 'Физ. атака', 'value': self.ma if magic else self.fa},
+            {'label': 'Маг. пробив' if magic else 'Физ. пробив',
+             'value': self.magic_pierce if magic else self.physical_pierce},
+        ]
 
     def is_empty(self):
         return not any(getattr(self, field) for field in self.STAT_FIELDS)

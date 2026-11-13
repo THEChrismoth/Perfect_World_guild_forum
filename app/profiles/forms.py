@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from core.captcha import TOKEN_FIELD, verify_captcha
 from core.models import SiteSettings
-from .models import GearSet, Profile, class_icon_url
+from .models import MAGIC_CLASSES, GearSet, Profile, class_icon_url, damage_type
 
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
@@ -86,24 +86,50 @@ class ProfileForm(forms.ModelForm):
 
 
 class GearSetForm(forms.ModelForm):
-    """Характеристики одного сета брони. На странице две такие формы — с приставками pa- и pz-."""
+    """Редактирует атаку и пробив по классу, сохраняя второй тип без изменений."""
+
+    attack = forms.IntegerField(label='Атака', min_value=0, required=False)
+    pierce = forms.IntegerField(label='Пробив', min_value=0, required=False)
 
     class Meta:
         model = GearSet
-        fields = GearSet.STAT_FIELDS
+        fields = tuple(name for name in GearSet.STAT_FIELDS
+                       if name not in ('fa', 'ma', 'physical_pierce', 'magic_pierce'))
 
-    # Характеристики по группам — как на странице профиля. Пара полей — одна строка «физ. / маг.».
     STAT_GROUPS = {
         'main': [('HP', 'hp'), ('Боевой дух (БД)', 'bd'), ('Бонус уровня (БУ)', 'bu')],
-        'attack': [('Показатель атаки (ПА)', 'pa'), ('Физ. / маг. атака', 'fa', 'ma'),
-                   ('Физ. / маг. пробив', 'physical_pierce', 'magic_pierce')],
+        'attack': [('Показатель атаки (ПА)', 'pa'), ('Атака', 'attack'), ('Пробив', 'pierce')],
         'defense': [('Показатель защиты (ПЗ)', 'pz'), ('Физ. защита', 'physical_defense'),
                     ('Маг. защита', 'magic_defense')],
     }
 
+    def __init__(self, *args, player_class=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if player_class is None and self.instance.user_id:
+            player_class = self.instance.user.profile.player_class
+        self.damage_type = damage_type(player_class)
+        magic = self.damage_type == 'magic'
+        for name, physical, magical in [('attack', 'fa', 'ma'), ('pierce', 'physical_pierce', 'magic_pierce')]:
+            field = self.fields[name]
+            field.label = ('Маг. ' if magic else 'Физ. ') + ('атака' if name == 'attack' else 'пробив')
+            self.initial.setdefault(name, getattr(self.instance, magical if magic else physical))
+            field.widget.attrs.update({
+                'data-damage-stat': name, 'data-damage-type': self.damage_type,
+                'data-physical-value': getattr(self.instance, physical),
+                'data-magic-value': getattr(self.instance, magical),
+                'data-magic-classes': ','.join(sorted(MAGIC_CLASSES)),
+            })
+
     def stat_groups(self):
-        return {group: [{'label': label, 'fields': [self[name] for name in names]} for label, *names in items]
+        return {group: [{'label': self.fields[names[0]].label if names[0] in ('attack', 'pierce') else label,
+                         'fields': [self[name] for name in names]} for label, *names in items]
                 for group, items in self.STAT_GROUPS.items()}
+
+    def save(self, commit=True):
+        magic = self.damage_type == 'magic'
+        setattr(self.instance, 'ma' if magic else 'fa', self.cleaned_data['attack'] or 0)
+        setattr(self.instance, 'magic_pierce' if magic else 'physical_pierce', self.cleaned_data['pierce'] or 0)
+        return super().save(commit=commit)
 
 
 class UserForm(forms.ModelForm):

@@ -13,7 +13,7 @@ from django.utils import timezone
 from auction.models import PointsTransaction
 from events.models import EventAttendance, EventNotification
 from notifications.utils import VOTE_BUTTON, send_notification
-from profiles.models import GearSet
+from profiles.models import MAGIC_CLASSES, GearSet
 from teamspeak.models import GUILD_GROUP
 
 from .accounts import ADMIN_APPS, ADMIN_GROUP, DEMO_ROLES, GUEST_GROUP
@@ -24,7 +24,6 @@ GUEST_START_POINTS = 100
 # Сколько прошедших ивентов засчитать гостю, чтобы у него была история очков.
 GUEST_PAST_EVENTS = 2
 
-MAGIC_CLASSES = {'mag', 'zhrec', 'dru', 'sham', 'mist', 'bard'}
 GUEST_CLASSES = ['var', 'mag', 'luk', 'zhrec', 'obor', 'dru', 'sin', 'sham', 'strazh', 'strel']
 
 

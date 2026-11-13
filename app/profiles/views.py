@@ -184,7 +184,9 @@ def profile_edit(request):
     user_form = UserForm(data, instance=request.user)
     profile_form = ProfileForm(data, request.FILES or None, instance=profile)
     # Два сета брони — две формы с приставками pa- и pz-, чтобы поля не путались.
-    set_forms = [GearSetForm(data, instance=gear, prefix=gear.kind) for gear in profile.gear_sets()]
+    selected_class = request.POST.get('player_class', profile.player_class) if data is not None else profile.player_class
+    set_forms = [GearSetForm(data, instance=gear, prefix=gear.kind, player_class=selected_class)
+                 for gear in profile.gear_sets()]
     set_forms.sort(key=lambda form: form.instance.kind)
 
     if request.method == 'POST':

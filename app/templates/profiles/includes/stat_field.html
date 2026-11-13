@@ -1,4 +1,4 @@
-{# Характеристика в форме профиля: одно поле или пара «физ. / маг.» в одной строке. Параметр: stat (label, fields). #}
+{# Характеристика в форме профиля. Параметр: stat (label, fields). #}
 <div class="ui-field{% if stat.fields|length > 1 %} pf-pair{% endif %}">
     <label for="{{ stat.fields.0.id_for_label }}">{{ stat.label }}</label>
     <div class="pf-pair-inputs">

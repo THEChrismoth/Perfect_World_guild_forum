@@ -302,13 +302,14 @@ class ProfilePageTests(TestCase):
 
         self.client.force_login(self.owner)
         page = self.client.get(reverse('profile_edit'))
-        self.assertContains(page, 'Физ. / маг. атака')
+        self.assertContains(page, 'Физ. атака')
+        self.assertNotContains(page, 'Физ. / маг. атака')
         self.assertContains(page, 'name="pa-hp"')
         self.assertContains(page, 'name="pz-hp"')
 
         data = {f'{kind}-{name}': 0 for kind in ('pa', 'pz') for name in GearSet.STAT_FIELDS}
         data.update({'username': 'owner', 'player_class': 'mag', 'main_set': 'pz',
-                     'pa-hp': 42000, 'pa-ma': 15000, 'pz-hp': 55000, 'pz-pz': 300})
+                     'pa-hp': 42000, 'pa-attack': 15000, 'pz-hp': 55000, 'pz-pz': 300})
         response = self.client.post(reverse('profile_edit'), data)
 
         self.assertRedirects(response, reverse('profile_view', args=['owner']))

@@ -60,8 +60,7 @@
                         <h3 class="pf-group-title">Атака</h3>
                         <dl>
                             <div><dt>Показатель атаки</dt><dd>{{ gear.pa }}</dd></div>
-                            <div><dt>Физ. / маг. атака</dt><dd>{{ gear.fa }} / {{ gear.ma }}</dd></div>
-                            <div><dt>Физ. / маг. пробив</dt><dd>{{ gear.physical_pierce }} / {{ gear.magic_pierce }}</dd></div>
+                            {% include 'profiles/includes/attack_rows.html' %}
                         </dl>
                     </div>
                     <div class="pf-group">

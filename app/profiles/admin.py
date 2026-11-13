@@ -7,6 +7,7 @@ from django.db import models
 from core.admin_mixins import NoRelatedPopupsMixin
 from .models import GearSet, Profile
 from . import admin_views
+from .forms import GearSetForm
 
 
 class ProfileInline(admin.StackedInline):
@@ -31,12 +32,26 @@ class ProfileInline(admin.StackedInline):
 class GearSetInline(admin.StackedInline):
     """Два сета брони игрока — ПА и ПЗ; их ровно два, добавлять и удалять нельзя."""
     model = GearSet
+    form = GearSetForm
     can_delete = False
     extra = 0
     max_num = 2
-    fields = ('kind', ('hp', 'bd', 'bu'), ('pa', 'fa', 'ma'), ('physical_pierce', 'magic_pierce'),
+    fields = ('kind', ('hp', 'bd', 'bu'), ('pa', 'attack', 'pierce'),
               ('pz', 'physical_defense', 'magic_defense'))
     readonly_fields = ('kind',)
+
+    class Media:
+        js = ('profiles/js/damage_stats.js',)
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        selected = request.POST.get('profile-0-player_class', obj.profile.player_class if obj else None)
+
+        class ClassGearSetFormSet(formset):
+            def get_form_kwargs(self, index):
+                return {**super().get_form_kwargs(index), 'player_class': selected}
+
+        return ClassGearSetFormSet
 
     def has_add_permission(self, request, obj=None):
         return False
