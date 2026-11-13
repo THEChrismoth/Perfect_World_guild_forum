@@ -1810,6 +1810,21 @@ html.theme-transition *::after {
 .notice-answer.is-selected { border-color: var(--accent); background: rgba(var(--accent-rgb), .16); }
 .notice-card a:focus-visible, .notice-card button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .notice-delete-form { margin: 0 0 0 auto; }
+@media (max-width: 768px) {
+    /* Меню привязано к панели, чтобы кнопки справа не сдвигали его за экран. */
+    .notifications-dropdown { position: static; }
+    .notifications-menu {
+        right: 16px;
+        top: calc(100% + 8px);
+        width: calc(100% - 32px);
+        max-width: none;
+    }
+    .notifications-list {
+        max-height: min(400px, calc(100vh - 150px));
+        max-height: min(400px, calc(100dvh - 150px));
+        overscroll-behavior-y: contain;
+    }
+}
 @media (max-width: 480px) {
     .notice-card { padding: 12px; }
     .notice-card-main { gap: 8px; }
