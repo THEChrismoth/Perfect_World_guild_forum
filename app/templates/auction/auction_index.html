@@ -15,6 +15,9 @@
     </div>
     <div class="ui-page-actions">
         <a href="{% url 'auction:my_bids' %}" class="ui-btn ui-btn-secondary">{% ga_icon "user" %}Мои ставки</a>
+        {% if perms.auction.add_auctionlot %}
+            <a href="{% url 'admin:auction_auctionlot_add' %}" class="ui-btn ui-btn-primary">{% ga_icon "plus" %}Создать лот</a>
+        {% endif %}
     </div>
 </div>
 
