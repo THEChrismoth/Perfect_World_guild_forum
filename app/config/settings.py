@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'reception',
     'notifications',
     'events',
+    'skirmishes',
     'backups',
     'teamspeak',
     'demo',

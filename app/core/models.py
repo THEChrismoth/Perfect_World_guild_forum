@@ -37,6 +37,18 @@ class SiteSettings(models.Model):
                   '(меню пользователя в шапке админ-панели → «Цвет оформления»)'
     )
 
+    # ===== Быстрые сборы =====
+    skirmish_ts_channel = models.CharField(
+        'TS-канал для замесов', max_length=255, blank=True,
+        help_text='Полный путь, например «Гильдия / Замесы». Настраивается один раз для всех быстрых сборов.'
+    )
+    skirmish_include_children = models.BooleanField('Учитывать подканалы', default=True)
+    skirmish_min_minutes = models.PositiveSmallIntegerField(
+        'Минимум минут для участия в замесе', default=10,
+        validators=[MinValueValidator(1), MaxValueValidator(1440)],
+        help_text='Присутствие считает TS-бот. Вход по коду сам по себе не подтверждает участие.'
+    )
+
     # ===== Регистрация =====
     email_verification = models.BooleanField(
         'Подтверждать email при регистрации',

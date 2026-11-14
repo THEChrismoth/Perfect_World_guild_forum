@@ -33,7 +33,7 @@ def guild_member_required(view):
     return wrapper
 
 MODERATOR_GROUP = 'Модератор'
-MODERATOR_APPS = ['auction', 'reception', 'events']
+MODERATOR_APPS = ['auction', 'reception', 'events', 'skirmishes']
 # Просмотр игроков нужен, чтобы выбирать участников отрядов в ивентах (поиск по игрокам).
 MODERATOR_EXTRA_PERMISSIONS = [('auth', 'view_user')]
 

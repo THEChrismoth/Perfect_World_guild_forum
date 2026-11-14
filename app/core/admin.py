@@ -86,6 +86,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
     readonly_fields = ('email_password_status', 'captcha_key_status', 'email_status', 'captcha_status')
     fieldsets = (
         ('Основное', {'fields': ('site_name', 'favicon', 'accent_color')}),
+        ('Замесы', {
+            'fields': ('skirmish_ts_channel', 'skirmish_include_children', 'skirmish_min_minutes'),
+            'description': 'Общий канал для внезапных сборов. Изменения действуют на следующие замесы.',
+        }),
         ('Регистрация', {
             'fields': ('email_verification', 'email_status', 'captcha_enabled', 'captcha_status'),
         }),
