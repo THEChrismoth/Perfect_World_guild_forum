@@ -26,6 +26,8 @@ from django.views.decorators.http import require_GET, require_POST
 from . import attendance
 from .models import TeamSpeakSettings, TsTask
 from .tasks import apply_task_result
+from skirmishes.models import Skirmish
+from skirmishes.presence import record_presence as record_skirmish_presence
 
 logger = logging.getLogger(__name__)
 MAX_TASKS_PER_POLL = 20
@@ -69,9 +71,13 @@ def state(request):
         TsTask.objects.filter(pk__in=[task.pk for task in tasks]).update(status='running', started_at=now)
 
     attendance.finalize_due(now)
+    sessions = attendance.active_sessions(now)
+    skirmish_id = Skirmish.objects.filter(ended_at__isnull=True).values_list('pk', flat=True).first()
     return JsonResponse({
         'tasks': [{'id': task.pk, 'type': task.type, 'payload': task.payload} for task in tasks],
-        'track_presence': bool(attendance.active_sessions(now)),
+        'track_presence': bool(sessions) or skirmish_id is not None,
+        'active_skirmish_id': skirmish_id,
+        'presence_key': f"{skirmish_id or ''}:" + ','.join(str(session.pk) for session in sessions),
     })
 
 
@@ -99,12 +105,26 @@ def task_result(request, task_id):
 @require_POST
 def presence(request):
     data = _json_body(request)
-    if data is None or not isinstance(data.get('clients'), list):
+    if not isinstance(data, dict) or not isinstance(data.get('clients'), list):
         return JsonResponse({'error': 'Ожидается {"clients": [...]}'}, status=400)
+    clients = data['clients']
+    if len(clients) > 2000 or any(
+        not isinstance(client, dict)
+        or not isinstance(client.get('uid'), str) or not 1 <= len(client['uid']) <= 64
+        or not isinstance(client.get('path'), list) or len(client['path']) > 32
+        or any(not isinstance(part, str) or len(part) > 255 for part in client['path'])
+        or not isinstance(client.get('nickname', ''), str) or len(client.get('nickname', '')) > 128
+        for client in clients
+    ):
+        return JsonResponse({'error': 'Некорректный список клиентов TS'}, status=400)
+    session_id = data.get('skirmish_id')
+    if session_id is not None and (type(session_id) is not int or session_id < 1):
+        return JsonResponse({'error': 'Некорректный номер замеса'}, status=400)
     now = timezone.now()
     marks = attendance.record_presence(data['clients'], now)
+    skirmish_marks = record_skirmish_presence(clients, session_id, now)
     attendance.finalize_due(now)
-    return JsonResponse({'ok': True, 'marks': marks})
+    return JsonResponse({'ok': True, 'marks': marks, 'skirmish_marks': skirmish_marks})
 
 
 @bot_api

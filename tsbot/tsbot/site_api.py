@@ -46,8 +46,8 @@ class SiteApi:
     def task_result(self, task_id, ok, data=None, error=''):
         return self._request('POST', f'tasks/{task_id}/', {'ok': ok, 'data': data or {}, 'error': error})
 
-    def presence(self, clients):
-        return self._request('POST', 'presence/', {'clients': clients})
+    def presence(self, clients, skirmish_id=None):
+        return self._request('POST', 'presence/', {'clients': clients, 'skirmish_id': skirmish_id})
 
     def license(self):
         return self._request('GET', 'license/', raw=True)

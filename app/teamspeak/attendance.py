@@ -34,12 +34,12 @@ def _normalize(path_text):
     return ' / '.join(part.strip() for part in path_text.split(PATH_SEPARATOR) if part.strip())
 
 
-def path_matches(client_path, channel_rules):
+def path_matches(client_path, channel_rules, include_children=True):
     """Канал клиента — один из каналов ивента или его подканал."""
     joined = _normalize(PATH_SEPARATOR.join(client_path))
     for rule in channel_rules:
         rule = _normalize(rule)
-        if joined == rule or joined.startswith(rule + ' / '):
+        if joined == rule or (include_children and joined.startswith(rule + ' / ')):
             return True
     return False
 

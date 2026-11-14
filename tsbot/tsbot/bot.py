@@ -32,6 +32,7 @@ class Bot:
         self.log = log
         self.query = None
         self.last_presence = 0
+        self.presence_key = None
         self.last_keepalive = time.time()
         self.handlers = {
             'verify_link': self.verify_link,
@@ -211,7 +212,8 @@ class Bot:
 
     def presence_snapshot(self):
         paths = channel_paths(self.query.command('channellist'))
-        return [{'uid': c['client_unique_identifier'], 'path': paths.get(c['cid'], [])}
+        return [{'uid': c['client_unique_identifier'], 'path': paths.get(c['cid'], []),
+                 'nickname': c.get('client_nickname', '')}
                 for c in self.online_clients()]
 
     # ----- цикл -----
@@ -223,9 +225,11 @@ class Bot:
             self.log(f'Задача #{task["id"]} {task["type"]}: {"готово" if ok else "ошибка — " + error}')
             self.api.task_result(task['id'], ok, data, error)
 
-        if state.get('track_presence') and now - self.last_presence >= PRESENCE_INTERVAL:
-            self.api.presence(self.presence_snapshot())
+        presence_key = state.get('presence_key', 'active') if state.get('track_presence') else None
+        if presence_key is not None and (presence_key != self.presence_key or now - self.last_presence >= PRESENCE_INTERVAL):
+            self.api.presence(self.presence_snapshot(), skirmish_id=state.get('active_skirmish_id'))
             self.last_presence = now
+        self.presence_key = presence_key
 
         if now - self.last_keepalive >= KEEPALIVE_INTERVAL:
             self.query.command('whoami')

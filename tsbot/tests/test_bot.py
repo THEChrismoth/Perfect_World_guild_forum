@@ -154,13 +154,15 @@ class FakeApi:
     def __init__(self):
         self.results = []
         self.presence_calls = []
+        self.skirmish_ids = []
         self.license_data = b'LICENSE'
 
     def task_result(self, task_id, ok, data=None, error=''):
         self.results.append((task_id, ok, data, error))
 
-    def presence(self, clients):
+    def presence(self, clients, skirmish_id=None):
         self.presence_calls.append(clients)
+        self.skirmish_ids.append(skirmish_id)
 
     def license(self):
         return self.license_data
@@ -334,7 +336,8 @@ class TaskTests(unittest.TestCase):
         self.bot.tick(1000, {'tasks': [{'id': 7, 'type': 'grant_guild', 'payload': {'uid': UID}}], 'track_presence': True})
 
         self.assertEqual(self.api.results[0][:2], (7, True))
-        self.assertEqual(self.api.presence_calls, [[{'uid': UID, 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}]])
+        self.assertEqual(self.api.presence_calls, [[{'uid': UID, 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1'],
+                                                    'nickname': 'Аквилон'}]])
         # Чаще раза в минуту не отправляется, а вне ивента — вообще.
         self.bot.tick(1010, {'tasks': [], 'track_presence': True})
         self.assertEqual(len(self.api.presence_calls), 1)
@@ -345,6 +348,13 @@ class TaskTests(unittest.TestCase):
         ok, _, error = self.run_task('make_coffee')
         self.assertFalse(ok)
         self.assertIn('Неизвестная', error)
+
+    def test_new_skirmish_forces_snapshot_without_waiting_a_minute(self):
+        self.bot.tick(1000, {'track_presence': True, 'presence_key': ':1'})
+        self.bot.tick(1003, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5})
+        self.bot.tick(1006, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5})
+        self.assertEqual(len(self.api.presence_calls), 2)
+        self.assertEqual(self.api.skirmish_ids, [None, 5])
 
 
 if __name__ == '__main__':
