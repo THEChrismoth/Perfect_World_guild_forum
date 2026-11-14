@@ -4,10 +4,13 @@
     {% if active_skirmish %}
     <div class="sk-current"><span class="ui-badge ui-badge-success">Идёт сбор</span><a href="{{ active_skirmish.get_absolute_url }}">{{ active_skirmish.title }}</a></div>
     <p class="sk-muted">{% if my_skirmish_participation %}{% if my_skirmish_participation.joined_at %}Вы присоединились.{% else %}Вы определены через TS.{% endif %} В TS: {{ my_skirmish_participation.minutes }} мин.{% else %}Присоединитесь по коду или заходите в настроенный TS-канал с подтверждённой привязкой.{% endif %}</p>
-    <form method="post" action="{% url 'skirmishes:join' %}" class="sk-join">{% csrf_token %}<label class="sk-code-label">{{ skirmish_join_form.code.label }}{{ skirmish_join_form.code }}</label><button class="ui-btn ui-btn-primary">Присоединиться</button></form>
-    <a class="sk-widget-link ui-card-link" href="{{ active_skirmish.get_absolute_url }}">Открыть сбор →</a>
     {% else %}
     <p class="sk-muted">Сейчас активного замеса нет. Здесь появится быстрый сбор гильдии.</p>
-    {% if can_manage_skirmishes %}<form method="post" action="{% url 'skirmishes:start' %}">{% csrf_token %}<button class="ui-btn ui-btn-primary">{% ga_icon 'zap' %}Начать замес</button></form>{% endif %}
     {% endif %}
+    {% if active_skirmish or not can_manage_skirmishes %}
+    <form method="post" action="{% url 'skirmishes:join' %}" class="sk-join">{% csrf_token %}<label class="sk-code-label">{{ skirmish_join_form.code.label }}{{ skirmish_join_form.code }}</label><button class="ui-btn ui-btn-primary">Присоединиться</button></form>
+    {% else %}
+    <form method="post" action="{% url 'skirmishes:start' %}">{% csrf_token %}<button class="ui-btn ui-btn-primary">{% ga_icon 'zap' %}Начать замес</button></form>
+    {% endif %}
+    {% if active_skirmish %}<a class="sk-widget-link ui-card-link" href="{{ active_skirmish.get_absolute_url }}">Открыть сбор →</a>{% endif %}
 </section>

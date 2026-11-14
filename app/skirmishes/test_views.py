@@ -85,6 +85,17 @@ class ViewTests(TestCase):
         self.assertContains(response, 'value="0012"')
         self.assertFalse(Participant.objects.exists())
 
+    def test_member_can_enter_code_on_home_without_active_skirmish(self):
+        self.client.force_login(self.member)
+        response = self.client.get('/')
+        self.assertContains(response, 'name="code"')
+        self.assertContains(response, f'action="{reverse("skirmishes:join")}"')
+        self.assertNotContains(response, 'Начать замес')
+        self.client.force_login(self.actor)
+        response = self.client.get('/')
+        self.assertContains(response, 'Начать замес')
+        self.assertNotContains(response, 'name="code"')
+
     def test_history_pagination_mine_and_counts(self):
         for number in range(22):
             session = Skirmish.objects.create(title=f'Сбор {number}', code='0001', ts_channel='Гильдия',
