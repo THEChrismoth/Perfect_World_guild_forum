@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, User
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import connection, transaction
 from django.utils import timezone
 
 from auction.models import AuctionLot, PointsTransaction
@@ -74,16 +74,46 @@ class Command(BaseCommand):
         # Очистка и заполнение — одна транзакция: при сбросе работающего демо
         # посетители видят старые данные до последнего момента, а не пустую базу.
         with transaction.atomic():
+            if connection.vendor == 'postgresql':
+                # Отложенные FK-проверки прежних записей должны завершиться до TRUNCATE.
+                with connection.cursor() as cursor:
+                    cursor.execute('SET CONSTRAINTS ALL IMMEDIATE')
             call_command('flush', interactive=False, verbosity=0)
-            SiteSettings.objects.update_or_create(pk=1, defaults={'site_name': f'{GUILD_NAME} · демо'})
+            SiteSettings.objects.update_or_create(pk=1, defaults={
+                'site_name': f'{GUILD_NAME} · демо', 'skirmish_ts_channel': 'Гильдия / МТВ / ГВГ',
+            })
             self.create_users()
             self.create_forum()
             self.create_events()
+            self.create_skirmishes()
             self.create_auction()
             self.create_reception()
             self.create_koslist()
 
         self.stdout.write(self.style.SUCCESS(f'Демо-гильдия «{GUILD_NAME}» создана'))
+
+    def create_skirmishes(self):
+        """Добавляет примеры сборов; настоящий TS-бот в демо не подключён."""
+        from skirmishes.models import Participant, Skirmish, UnidentifiedPresence
+
+        past = Skirmish.objects.create(
+            title='Вечерний замес у города', code='1842', organizer=self.admin,
+            started_at=self.now - datetime.timedelta(days=1, hours=1),
+            ended_at=self.now - datetime.timedelta(days=1), reviewed_at=self.now - datetime.timedelta(hours=23),
+            reviewed_by=self.admin, ts_channel='Гильдия / МТВ / ГВГ',
+        )
+        active = Skirmish.objects.create(
+            title='Сбор на PvP', code='7586', organizer=self.admin,
+            started_at=self.now - datetime.timedelta(minutes=20), ts_channel=past.ts_channel,
+            last_report_at=self.now,
+        )
+        for number, user in enumerate(self.members[:8]):
+            Participant.objects.create(skirmish=past, user=user, minutes=35 + number)
+            Participant.objects.create(skirmish=active, user=user, minutes=4 + number * 2,
+                joined_at=active.started_at if number % 2 else None,
+                first_seen_at=active.started_at, last_seen_at=self.now, last_minute=self.now.replace(second=0, microsecond=0))
+        UnidentifiedPresence.objects.create(skirmish=active, uid='demo-unlinked-uid', nickname='Воин_без_привязки',
+            minutes=7, first_seen_at=active.started_at, last_seen_at=self.now, last_minute=self.now.replace(second=0, microsecond=0))
 
     # ===== Игроки =====
 

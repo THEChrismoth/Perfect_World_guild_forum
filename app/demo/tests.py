@@ -168,6 +168,9 @@ class DemoSeedTests(TestCase):
         self.assertTrue(AuctionLot.objects.filter(status='ended').exists())
         self.assertTrue(EventNotification.objects.filter(points_processed_at__isnull=False).exists())
         self.assertTrue(Application.objects.filter(status='voting').exists())
+        from skirmishes.models import Skirmish
+        self.assertEqual(Skirmish.objects.filter(ended_at__isnull=True).count(), 1)
+        self.assertTrue(Skirmish.objects.filter(reviewed_at__isnull=False).exists())
 
         # Гость-участник получил историю очков и приглашения на ближайшие ивенты.
         self.client.post(reverse('demo:login', args=['member']))
@@ -176,7 +179,7 @@ class DemoSeedTests(TestCase):
         self.assertTrue(Notification.objects.filter(user=guest, link__startswith='/events/vote/').exists())
 
         # Главные страницы открываются под каждой ролью; ивенты и аукцион — только членам гильдии.
-        members_only = [reverse('events:event_index'), reverse('auction:auction_index')]
+        members_only = [reverse('events:event_index'), reverse('auction:auction_index'), reverse('skirmishes:index')]
         for role in DEMO_ROLES:
             self.client.post(reverse('demo:login', args=[role]))
             for url in ['/', '/koslist/', *members_only]:

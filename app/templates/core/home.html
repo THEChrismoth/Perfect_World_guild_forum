@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static ga_admin %}
 {% block title %}Главная · {{ site_settings.site_name }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/home.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/home.css' %}"><link rel="stylesheet" href="{% static 'skirmishes/skirmishes.css' %}">{% endblock %}
 {% block content %}
 <div class="hd-page">
     <header class="ui-page-head hd-head">
@@ -27,11 +27,14 @@
             {% if upcoming|length > 1 %}<div class="hd-next-dates">{% for date in upcoming|slice:'1:' %}<a href="{% url 'events:vote_view' date.pk %}"><span>{{ date.event_type.name }}</span><time>{{ date.event_date|date:'d.m' }}{% if date.start_time %} · {{ date.start_time|time:'H:i' }}{% endif %}</time>{% ga_icon 'chevron-right' %}</a>{% endfor %}</div>{% endif %}
             {% else %}<div class="hd-empty"><span class="hd-empty-icon">{% ga_icon 'calendar' %}</span><h3>Пока можно выдохнуть</h3><p>Отправленных приглашений на ближайшие сборы ещё нет.</p><a class="ui-card-link" href="{% url 'events:event_index' %}">Посмотреть постоянные отряды →</a></div>{% endif %}
         </section>
+        <div class="hd-side-stack">
+        {% include 'skirmishes/widget.html' %}
         <section class="ui-card hd-attention">
             <div class="ui-card-head"><h2 class="ui-card-title">Требует внимания</h2>{% if attention %}<span class="hd-count">{{ attention|length }}</span>{% endif %}</div>
             {% for task in attention %}<a class="hd-task" href="{{ task.url }}"><span class="hd-task-icon">{% ga_icon task.icon %}</span><div><strong>{{ task.title }}</strong><p>{{ task.text }}</p></div>{% ga_icon 'chevron-right' %}</a>{% empty %}<div class="hd-empty hd-empty-small"><span class="hd-empty-icon">{% ga_icon 'check' %}</span><h3>Всё под контролем</h3><p>Срочных действий сейчас нет.</p></div>{% endfor %}
             <a class="hd-inbox" href="{% url 'notifications:notification_list' %}">{% ga_icon 'bell' %}{% if unread_notifications_count %}Непрочитанных уведомлений: {{ unread_notifications_count }}{% else %}Все уведомления{% endif %} →</a>
         </section>
+        </div>
     </div>
     {% else %}
     <div class="hd-candidate-grid">

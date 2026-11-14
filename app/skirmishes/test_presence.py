@@ -15,7 +15,7 @@ from .presence import record_presence
 @override_settings(SECURE_SSL_REDIRECT=False, TSBOT_API_TOKEN='test-token')
 class PresenceTests(TestCase):
     def setUp(self):
-        self.now = timezone.now().replace(second=5, microsecond=0)
+        self.now = (timezone.now() - timedelta(minutes=1)).replace(second=5, microsecond=0)
         self.session = Skirmish.objects.create(title='Сбор', code='0123', ts_channel='Гильдия / Замесы',
                                                started_at=self.now - timedelta(seconds=1), min_minutes=2)
         self.user = User.objects.create_user('Игрок')

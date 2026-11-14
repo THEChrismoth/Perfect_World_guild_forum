@@ -62,6 +62,8 @@ def home(request):
             'profile': user.profile, 'quick_actions': [], 'attention': []}
     if member:
         data.update(member_data(user))
+        from skirmishes.views import widget_data
+        data.update(widget_data(user))
         if data['unanswered_events']:
             data['attention'].append({'icon': 'calendar', 'title': 'Сообщите о планах участия',
                 'text': f"Ближайших ивентов без ответа: {data['unanswered_events']}", 'url': reverse('events:event_index')})

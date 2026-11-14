@@ -13,6 +13,7 @@ APP_ORDER = [
     ('reception', 'file-text'),
     ('profiles', 'table'),
     ('events', 'swords'),
+    ('skirmishes', 'zap'),
     ('auction', 'gavel'),
     ('koslist', 'skull'),
     ('forum', 'message'),
@@ -27,7 +28,7 @@ APP_ICON = dict(APP_ORDER)
 
 # Группы бокового меню. Разделы, которых здесь нет, попадают в «Прочее».
 NAV_GROUPS = [
-    ('Гильдия', ('reception', 'profiles', 'events', 'auction', 'koslist')),
+    ('Гильдия', ('reception', 'profiles', 'events', 'skirmishes', 'auction', 'koslist')),
     ('Сообщество', ('forum', 'notifications', 'teamspeak')),
     ('Система', ('auth', 'core', 'backups')),
 ]

@@ -33,6 +33,7 @@ def build_site_nav(request, unread_notifications=0):
     if member:
         guild_items += [
             _item('Ивенты', 'swords', reverse('events:event_index'), 'events', current),
+            _item('Замесы', 'zap', reverse('skirmishes:index'), 'skirmishes', current),
             _item('Аукцион', 'gavel', reverse('auction:auction_index'), 'auction', current),
         ]
     # Приём: член гильдии голосует по заявкам, остальные подают заявку и следят за своими.

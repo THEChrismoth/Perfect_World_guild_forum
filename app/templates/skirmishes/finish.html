@@ -1,0 +1,2 @@
+{% extends 'skirmishes/base.html' %}
+{% block skirmishes_content %}<section class="ui-card"><h1 class="ui-page-title">Завершить замес?</h1><p class="sk-muted">{{ skirmish.title }}. Учёт TS и вход по коду остановятся. Затем можно проверить состав и подтвердить итоги.</p><form method="post" class="ui-page-actions">{% csrf_token %}<button class="ui-btn ui-btn-primary">Завершить замес</button><a class="ui-btn ui-btn-secondary" href="{{ skirmish.get_absolute_url }}">Продолжить сбор</a></form></section>{% endblock %}

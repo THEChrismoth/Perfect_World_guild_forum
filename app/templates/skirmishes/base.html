@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Замесы · {{ site_settings.site_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'skirmishes/skirmishes.css' %}">{% endblock %}
+{% block content %}<div class="sk-page ui-stack">{% block skirmishes_content %}{% endblock %}</div>{% endblock %}

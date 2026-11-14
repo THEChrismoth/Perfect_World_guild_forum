@@ -25,4 +25,4 @@ ADMIN_GROUP = 'Администратор'
 # Все аккаунты посетителей, чтобы отличать их от вымышленных игроков гильдии.
 GUEST_GROUP = 'Демо-гость'
 # Права группы администраторов: всё по делам гильдии, без пользователей, настроек и бэкапов.
-ADMIN_APPS = ['events', 'auction', 'reception', 'profiles', 'forum', 'koslist', 'notifications']
+ADMIN_APPS = ['events', 'skirmishes', 'auction', 'reception', 'profiles', 'forum', 'koslist', 'notifications']
