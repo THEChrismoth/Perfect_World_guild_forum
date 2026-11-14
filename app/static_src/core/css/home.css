@@ -80,6 +80,7 @@
 .hd-positive { color: var(--success); }
 .hd-candidate-grid { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); gap: 20px; margin-bottom: 22px; }
 .hd-candidate-status { color: var(--text-strong); font-size: 22px; margin: 20px 0 10px; }
+.hd-candidate-status + .hd-muted { margin: 0 0 16px; }
 .hd-person { display: flex; align-items: center; gap: 12px; margin: 22px 0; }
 .hd-person strong { color: var(--text-strong); overflow-wrap: anywhere; }
 .hd-person p { margin: 6px 0 0; }
