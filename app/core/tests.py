@@ -164,6 +164,7 @@ class SiteSettingsAdminTests(TestCase):
         'site_name': 'Гильдия', 'accent_color': 'indigo', 'email_port': '587', 'email_security': 'tls',
         'email_host': '', 'email_host_user': '', 'email_host_password': '', 'email_from': '',
         'captcha_site_key': '', 'captcha_private_key': '',
+        'skirmish_ts_channel': '', 'skirmish_min_minutes': '10', 'skirmish_include_children': 'on',
     }
 
     def setUp(self):
