@@ -4,6 +4,7 @@
 .sk-muted { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
 .sk-widget .ui-card-title { display: inline-flex; align-items: center; gap: 8px; }
 .sk-widget .ui-card-title .ga-icon { width: 18px; height: 18px; color: var(--accent-light); }
+.sk-widget > .sk-muted { margin: 12px 0 16px; }
 .sk-current { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 .sk-current a { color: var(--text-strong); font-size: 15px; font-weight: 600; text-decoration: none; }
 .sk-join { display: flex; align-items: end; flex-wrap: wrap; gap: 10px; }
