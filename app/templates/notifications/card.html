@@ -17,7 +17,7 @@
     {% elif notification.link %}
         <a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'notifications:mark_as_read' notification.id %}?next={{ notification.link|urlencode }}">Подробнее →</a>
     {% endif %}
-    {% if full_page %}<form class="notice-delete-form" method="post" action="{% url 'notifications:delete_notification' notification.id %}" onsubmit="return confirm('Удалить уведомление?')">{% csrf_token %}<button class="ui-btn ui-btn-danger ui-btn-sm notice-delete" type="submit" aria-label="Удалить уведомление"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg><span>Удалить</span></button></form>{% endif %}
+    {% if full_page %}<form class="notice-delete-form" method="post" action="{% url 'notifications:delete_notification' notification.id %}" data-notification-delete="one">{% csrf_token %}<button class="ui-btn ui-btn-danger ui-btn-sm notice-delete" type="submit" aria-label="Удалить уведомление"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7m4-7v7"/></svg><span>Удалить</span></button></form>{% endif %}
     </div>
     {% endif %}
 </article>

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static ga_admin %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'notification/css/notification_list.css' %}">
@@ -15,7 +15,7 @@
                 {% csrf_token %}
                 <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">Все прочитаны</button>
             </form>
-            <form method="post" action="{% url 'notifications:delete_all' %}" onsubmit="return confirm('Удалить все ваши уведомления?')">
+            <form method="post" action="{% url 'notifications:delete_all' %}" data-notification-delete="all">
                 {% csrf_token %}
                 <button type="submit" class="ui-btn ui-btn-danger ui-btn-sm">Удалить все</button>
             </form>
@@ -40,4 +40,13 @@
         <a href="/" class="btn-back">← Вернуться на главную</a>
     </div>
 </div>
+<dialog class="site-modal" id="notification-delete-dialog" data-user-id="{{ user.pk }}" aria-labelledby="notification-delete-title" aria-describedby="notification-delete-description">
+    <div class="site-modal-box">
+        <div class="site-modal-head"><h2 id="notification-delete-title">Удалить уведомление?</h2><button type="button" class="site-icon-btn" data-dialog-close aria-label="Закрыть">{% ga_icon 'x' %}</button></div>
+        <p id="notification-delete-description" class="notice-delete-description">Уведомление будет удалено из вашего списка.</p>
+        <label class="notice-delete-preference"><input type="checkbox" id="notification-delete-remember"><span>Не спрашивать при удалении одного уведомления в этой вкладке</span></label>
+        <div class="notice-dialog-actions"><button type="button" class="ui-btn ui-btn-secondary" data-dialog-close autofocus>Отмена</button><button type="button" class="ui-btn ui-btn-danger" id="notification-delete-confirm">Удалить</button></div>
+    </div>
+</dialog>
+<script src="{% static 'notification/js/delete_confirmation.js' %}" defer></script>
 {% endblock %}

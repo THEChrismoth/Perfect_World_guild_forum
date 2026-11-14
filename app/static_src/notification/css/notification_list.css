@@ -11,3 +11,9 @@
 .back-link { text-align: center; margin-top: 20px; }
 .btn-back { color: var(--accent-light); text-decoration: none; }
 .btn-back:hover { text-decoration: underline; }
+.notice-delete-description { margin: 0 0 16px; color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+.notice-delete-preference { display: flex; align-items: start; gap: 10px; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.notice-delete-preference[hidden] { display: none; }
+.notice-delete-preference input { width: 16px; height: 16px; margin-top: 2px; flex-shrink: 0; accent-color: var(--accent); }
+.notice-dialog-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: 8px; margin-top: 20px; }
+@media (max-width: 480px) { .notice-dialog-actions .ui-btn { flex: 1; min-width: 100px; } }

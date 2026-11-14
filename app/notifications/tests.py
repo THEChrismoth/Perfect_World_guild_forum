@@ -109,6 +109,13 @@ class NotificationViewTests(TestCase):
         self.assertEqual(self.client.post(url).status_code, 302)
         self.assertTrue(Notification.objects.filter(pk=self.notification.pk).exists())
 
+    def test_delete_uses_site_dialog_instead_of_browser_confirm(self):
+        response = self.client.get(reverse('notifications:notification_list'))
+        self.assertContains(response, 'id="notification-delete-dialog"')
+        self.assertContains(response, 'data-notification-delete="one"')
+        self.assertContains(response, 'data-notification-delete="all"')
+        self.assertNotContains(response, 'onsubmit="return confirm(')
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class NotificationCardTests(TestCase):
     def test_details_link_is_a_button_outside_message(self):
