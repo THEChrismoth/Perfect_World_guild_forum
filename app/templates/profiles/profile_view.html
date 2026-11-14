@@ -80,7 +80,8 @@
 
 {% include 'profiles/includes/points_card.html' %}
 
-{% if is_owner and ts_enabled and ts_is_guild_member %}
-    {% include 'teamspeak/profile_card.html' %}
+{% if is_owner and ts_is_guild_member %}
+    {% if demo_mode %}{% include 'demo/teamspeak_card.html' %}
+    {% elif ts_enabled %}{% include 'teamspeak/profile_card.html' %}{% endif %}
 {% endif %}
 {% endblock %}

@@ -1,0 +1,18 @@
+/* Демонстрация возможностей TeamSpeak без подключения к голосовому серверу */
+.demo-ts-card > p { margin: 12px 0 16px; line-height: 1.6; }
+.demo-ts-card .ui-card-title { display: inline-flex; align-items: center; gap: 8px; }
+.demo-ts-card .ui-card-title .ga-icon { width: 18px; height: 18px; color: var(--accent-light); }
+.demo-ts-card .ui-btn { white-space: normal; height: auto; min-height: 38px; line-height: 1.4; padding: 10px 12px; }
+.demo-ts-page { max-width: 1240px; min-width: 0; margin: 0 auto; }
+.demo-ts-page .ui-page-title { overflow-wrap: anywhere; }
+.demo-ts-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); align-items: start; gap: 20px; }
+.demo-ts-copy { margin: 12px 0 16px; color: var(--text-muted); font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.demo-ts-success { display: flex; align-items: start; gap: 8px; color: var(--success); font-size: 13px; line-height: 1.6; }
+.demo-ts-page .ga-icon { flex-shrink: 0; width: 18px; height: 18px; }
+.demo-ts-room { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; color: var(--text-strong); overflow-wrap: anywhere; }
+.demo-ts-channels ul { list-style: none; padding: 0; margin: 16px 0; }
+.demo-ts-channels li { color: var(--text); overflow-wrap: anywhere; font-size: 13px; line-height: 1.7; padding: 5px 0; }
+.demo-ts-channels li .ga-icon { vertical-align: middle; margin-right: 6px; }
+.demo-ts-channels li > ul { margin: 8px 0 8px 8px; padding-left: 18px; border-left: 1px solid var(--hairline); }
+@media (max-width: 760px) { .demo-ts-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 430px) { .demo-ts-page .ui-btn { white-space: normal; height: auto; min-height: 44px; padding: 10px 12px; line-height: 1.4; } }

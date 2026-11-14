@@ -1,5 +1,6 @@
 """Боковое меню сайта (templates/includes/site_sidebar.html). Иконки — имена из core/templatetags/ga_admin.py."""
 from django.urls import reverse
+from django.conf import settings
 
 from .roles import is_guild_member
 
@@ -36,6 +37,8 @@ def build_site_nav(request, unread_notifications=0):
             _item('Замесы', 'zap', reverse('skirmishes:index'), 'skirmishes', current),
             _item('Аукцион', 'gavel', reverse('auction:auction_index'), 'auction', current),
         ]
+        if settings.DEMO_MODE:
+            guild_items.append(_item('TeamSpeak', 'headphones', reverse('demo:teamspeak'), 'demo', current))
     # Приём: член гильдии голосует по заявкам, остальные подают заявку и следят за своими.
     reception_url = reverse('reception:application_list' if member else 'reception:my_applications')
     guild_items += [

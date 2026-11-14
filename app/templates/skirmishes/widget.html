@@ -13,4 +13,5 @@
     <form method="post" action="{% url 'skirmishes:start' %}">{% csrf_token %}<button class="ui-btn ui-btn-primary">{% ga_icon 'zap' %}Начать замес</button></form>
     {% endif %}
     {% if active_skirmish %}<a class="sk-widget-link ui-card-link" href="{{ active_skirmish.get_absolute_url }}">Открыть сбор →</a>{% endif %}
+    {% if demo_mode %}<p class="sk-muted">Демонстрация:{% if active_skirmish %} код примера <strong>{{ active_skirmish.code }}</strong>.{% endif %} <a class="ui-card-link" href="{% url 'demo:teamspeak' %}">Попробовать учёт TS →</a></p>{% endif %}
 </section>

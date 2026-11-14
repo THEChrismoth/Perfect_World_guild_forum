@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="{% static 'css/accents.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui.css' %}">
+    {% if demo_mode %}<link rel="stylesheet" href="{% static 'demo/preview.css' %}">{% endif %}
     {% if site_settings.favicon %}
         <link rel="icon" href="{{ site_settings.favicon.url }}">
     {% else %}
