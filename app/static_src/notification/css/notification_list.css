@@ -1,6 +1,8 @@
 .notifications-page { max-width: 800px; margin: 0 auto; padding: 20px; }
 .notifications-page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .notifications-page-header h1 { margin: 0; color: var(--text-strong); font-size: 24px; }
+.notifications-page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.notifications-page-actions form { margin: 0; }
 .mark-all-btn { padding: 7px 12px; border: 1px solid var(--hairline); border-radius: 6px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
 .mark-all-btn:hover { background: var(--hover); }
 .notifications-list-page { display: grid; gap: 10px; }

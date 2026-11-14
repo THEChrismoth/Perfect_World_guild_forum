@@ -70,3 +70,12 @@ def delete_notification(request, notification_id):
     notification.delete()
     messages.success(request, 'Уведомление удалено')
     return redirect('notifications:notification_list')
+
+
+@login_required
+@require_POST
+def delete_all_notifications(request):
+    """Удаляет все уведомления только текущего пользователя."""
+    Notification.objects.filter(user=request.user).delete()
+    messages.success(request, 'Все уведомления удалены')
+    return redirect('notifications:notification_list')

@@ -87,6 +87,28 @@ class NotificationViewTests(TestCase):
         self.client.post(url)
         self.assertFalse(Notification.objects.filter(pk=self.notification.pk).exists())
 
+    def test_delete_all_only_removes_own_read_and_unread_notifications(self):
+        other = User.objects.create_user('other-notification-user')
+        foreign = Notification.objects.create(user=other, title='Чужое', message='Текст')
+        Notification.objects.create(user=self.user, title='Прочитанное', message='Текст', is_read=True)
+        url = reverse('notifications:delete_all')
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertContains(self.client.get(reverse('notifications:notification_list')), 'Удалить все')
+        self.assertRedirects(self.client.post(url), reverse('notifications:notification_list'))
+        self.assertFalse(Notification.objects.filter(user=self.user).exists())
+        self.assertTrue(Notification.objects.filter(pk=foreign.pk).exists())
+        self.assertRedirects(self.client.post(url), reverse('notifications:notification_list'))
+
+    def test_delete_all_requires_login_and_csrf(self):
+        from django.test import Client
+        url = reverse('notifications:delete_all')
+        secure_client = Client(enforce_csrf_checks=True)
+        secure_client.force_login(self.user)
+        self.assertEqual(secure_client.post(url).status_code, 403)
+        self.client.logout()
+        self.assertEqual(self.client.post(url).status_code, 302)
+        self.assertTrue(Notification.objects.filter(pk=self.notification.pk).exists())
+
 @override_settings(SECURE_SSL_REDIRECT=False)
 class NotificationCardTests(TestCase):
     def test_details_link_is_a_button_outside_message(self):

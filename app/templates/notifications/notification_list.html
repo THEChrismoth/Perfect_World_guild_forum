@@ -10,10 +10,16 @@
     <div class="notifications-page-header">
         <h1>🔔 Все уведомления</h1>
         {% if notifications %}
-            <form method="post" action="{% url 'notifications:mark_all_as_read' %}" style="display: inline;">
+        <div class="notifications-page-actions">
+            <form method="post" action="{% url 'notifications:mark_all_as_read' %}">
                 {% csrf_token %}
-                <button type="submit" class="mark-all-btn" style="cursor: pointer; font: inherit;">Все прочитаны</button>
+                <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm">Все прочитаны</button>
             </form>
+            <form method="post" action="{% url 'notifications:delete_all' %}" onsubmit="return confirm('Удалить все ваши уведомления?')">
+                {% csrf_token %}
+                <button type="submit" class="ui-btn ui-btn-danger ui-btn-sm">Удалить все</button>
+            </form>
+        </div>
         {% endif %}
     </div>
 
