@@ -89,16 +89,24 @@ def vote_view(request, notification_id):
     ).first()
     
     if request.method == 'POST':
+        return_home = request.POST.get('return_to') == 'home'
         if not notification.response_open:
             messages.error(request, 'Приём ответов на этот ивент завершён или приглашение ещё не отправлено')
+            if return_home:
+                return redirect('home')
             return redirect('events:vote_results', notification_id=notification.pk)
         from .services import save_response
         try:
-            save_response(notification.pk, request.user, request.POST.get('status'), request.POST.get('comment', ''))
+            save_response(notification.pk, request.user, request.POST.get('status'),
+                          request.POST.get('comment', ''), preserve_comment=return_home)
         except ValidationError as error:
             messages.error(request, ' '.join(error.messages))
+            if return_home:
+                return redirect('home')
         else:
             messages.success(request, 'Ваш ответ сохранён')
+            if return_home:
+                return redirect('home')
             return redirect('events:vote_results', notification_id=notification_id)
 
     # Статистика.

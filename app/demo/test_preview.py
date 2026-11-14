@@ -70,6 +70,18 @@ class TeamSpeakPreviewTests(TestCase):
         self.client.post(reverse('teamspeak:request_access'), {'uid': 'A' * 27 + '='})
         self.assertFalse(TsTask.objects.exists())
 
+    def test_admin_quick_activity_action_works_but_accounts_stay_blocked(self):
+        self.user.is_staff = True
+        self.user.save()
+        response = self.client.get(reverse('admin:activity_management'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Таблица активности участников')
+        response = self.client.post(reverse('admin:update_activity_points'), {
+            'profile_id': self.user.profile.pk, 'field': 'current', 'value': 25,
+        }, content_type='application/json')
+        self.assertTrue(response.json()['success'])
+        self.assertEqual(self.client.get(reverse('admin:auth_user_changelist')).status_code, 302)
+
     def test_non_demo_rejects_all_preview_endpoints(self):
         with override_settings(DEMO_MODE=False):
             self.assertEqual(self.client.get(self.url).status_code, 404)

@@ -35,7 +35,7 @@ def save_party_roster(party, leader, members):
 
 
 @transaction.atomic
-def save_response(notification_id, user, status, comment):
+def save_response(notification_id, user, status, comment, *, preserve_comment=False):
     """Сохраняет ответ приглашённого под блокировкой даты проведения."""
     notification = EventNotification.objects.select_for_update().get(pk=notification_id)
     if not notification.response_open:
@@ -44,6 +44,11 @@ def save_response(notification_id, user, status, comment):
         raise ValidationError('Ответить могут только получатели приглашения.')
     if status not in dict(EventAttendance.STATUS_CHOICES):
         raise ValidationError('Выберите вариант ответа.')
+    if preserve_comment:
+        # Быстрый ответ меняет только статус: переносы строк комментария не проходят через скрытое поле.
+        stored_comment = (EventAttendance.objects.filter(notification=notification, user=user)
+                          .values_list('comment', flat=True).first())
+        comment = stored_comment or ''
     if len(comment) > 2000:
         raise ValidationError('Комментарий не должен превышать 2000 символов.')
     response, _ = EventAttendance.objects.update_or_create(

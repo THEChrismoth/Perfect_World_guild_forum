@@ -32,6 +32,9 @@ def _blocked_prefixes():
 
 
 def _blocked_message(path, blocked):
+    # Таблица очков находится внутри URL пользователей, но не управляет аккаунтами.
+    if path in (reverse('admin:activity_management'), reverse('admin:update_activity_points')):
+        return None
     return next((message for prefix, message in blocked if path.startswith(prefix)), None)
 
 

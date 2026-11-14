@@ -1,0 +1,8 @@
+<form class="notice-vote-form" method="post" action="{% url 'events:vote_view' event.pk %}">
+        {% csrf_token %}
+    {% if return_home %}<input type="hidden" name="return_to" value="home">{% endif %}
+        <input type="hidden" name="comment" value="{{ comment|default_if_none:'' }}">
+        <button name="status" value="yes" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if vote == 'yes' %}is-selected{% endif %}" aria-pressed="{% if vote == 'yes' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Буду</button>
+        <button name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if vote == 'maybe' %}is-selected{% endif %}" aria-pressed="{% if vote == 'maybe' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 0-1 1-1 2m0 2v1"/></svg>Под вопросом</button>
+        <button name="status" value="no" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if vote == 'no' %}is-selected{% endif %}" aria-pressed="{% if vote == 'no' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path transform="rotate(180 12 12)" d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Не буду</button>
+    </form>

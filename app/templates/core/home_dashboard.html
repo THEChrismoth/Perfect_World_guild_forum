@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static ga_admin %}
+{% block title %}Главная · {{ site_settings.site_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/home.css' %}"><link rel="stylesheet" href="{% static 'skirmishes/skirmishes.css' %}">{% endblock %}
+{% block content %}
+<div class="hd-page hd-dashboard">
+    <header class="ui-page-head hd-head"><div><p class="hd-eyebrow">{{ today|date:'l, d E' }} · {{ site_settings.site_name }}</p><h1 class="ui-page-title">Дашборд гильдии</h1><p class="ui-page-sub">{{ user.username }}, ближайшие сборы и всё, что требует вашего внимания.</p></div>{% if is_management_home %}<span class="ui-badge ui-badge-muted">Управление</span>{% endif %}</header>
+    <div class="hd-summary-grid">
+        <a class="ui-card hd-summary" href="{% url 'profile_view' user.username %}#points"><div><span>Ваши очки</span><strong>{{ available_points }}</strong><small>Доступно на аукционе</small></div>{% ga_icon 'star' %}</a>
+        <div class="ui-card hd-summary"><div><span>Онлайн в гильдии</span><strong>{{ guild_online }}<small>/{{ guild_total }}</small></strong><small>На сайте за 5 минут</small></div>{% ga_icon 'radio' %}</div>
+        <a class="ui-card hd-summary" href="{% url 'events:event_index' %}"><div><span>Предстоящие ивенты</span><strong>{{ upcoming_total }}</strong><small>{% if unanswered_events %}Без вашего ответа: {{ unanswered_events }}{% else %}Ближайшие сборы{% endif %}</small></div>{% ga_icon 'calendar' %}</a>
+        <a class="ui-card hd-summary" href="{% if active_skirmish %}{{ active_skirmish.get_absolute_url }}{% else %}{% url 'skirmishes:index' %}{% endif %}"><div><span>Замесы</span><strong>{% if active_skirmish %}1{% else %}0{% endif %}</strong><small>{% if active_skirmish %}Идёт сбор{% else %}Активного сбора нет{% endif %}</small></div>{% ga_icon 'zap' %}</a>
+    </div>
+    <section class="ui-card hd-upcoming">
+        <div class="ui-card-head"><h2 class="ui-card-title">{% ga_icon 'calendar' %}Предстоящие ивенты</h2><a class="ui-card-link" href="{% url 'events:event_index' %}">Все ивенты →</a></div>
+        <div class="hd-event-grid">
+        {% for event in upcoming %}
+            <article class="notice-card hd-event-card{% if event.is_invited and not event.my_answer %} is-unread{% endif %}">
+                <a class="notice-card-main" href="{% if event.is_invited %}{% url 'events:vote_view' event.pk %}{% else %}{{ event.event_type.get_absolute_url }}{% endif %}"><span class="notice-dot" aria-hidden="true"></span><div class="notice-copy"><div class="notice-title">{{ event.subject|default:event.event_type.name }}</div><div class="notice-meta">{{ event.event_date|date:'d E' }}{% if event.start_time %} · {{ event.start_time|time:'H:i' }} МСК{% endif %}{% if event.my_party %} · Отряд {{ event.my_party }}{% endif %}</div></div><span class="notice-tag">{{ event.event_type.name }}</span></a>
+                <div class="notice-actions">{% if event.is_invited %}{% include 'events/includes/response_buttons.html' with event=event vote=event.my_answer comment=event.my_comment return_home=True %}{% else %}<a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'events:vote_results' event.pk %}">Ответы и явка →</a>{% endif %}</div>
+            </article>
+        {% empty %}<p class="hd-empty-copy">{% if is_management_home %}Отправленных приглашений на ближайшие сборы пока нет.{% else %}У вас пока нет приглашений на ближайшие сборы.{% endif %}</p>{% endfor %}
+        </div>
+    </section>
+    <div class="hd-dashboard-lower">
+        <div class="hd-dashboard-stack">
+            {% include 'skirmishes/widget.html' %}
+            {% if is_management_home %}{% include 'core/includes/home_attention.html' %}{% endif %}
+        </div>
+        {% if is_management_home %}
+        <section class="ui-card hd-quick-actions"><div class="ui-card-head"><h2 class="ui-card-title">Быстрые действия</h2></div><div class="hd-action-list">{% for action in quick_actions %}<a class="hd-action" href="{{ action.url }}"><span class="hd-action-icon">{% ga_icon action.icon %}</span><span>{{ action.label }}</span>{% ga_icon 'chevron-right' %}</a>{% endfor %}</div></section>
+        {% else %}{% include 'core/includes/home_attention.html' %}{% endif %}
+    </div>
+    <nav class="hd-footer" aria-label="Другие разделы"><a href="{% url 'auction:auction_index' %}">{% ga_icon 'gavel' %}Аукцион · лотов: {{ lots_total }}</a><a href="{% url 'index' %}">{% ga_icon 'message' %}Форум</a>{% if demo_mode and not is_management_home %}<a href="{% url 'demo:teamspeak' %}">{% ga_icon 'headphones' %}Демонстрация TeamSpeak</a>{% endif %}</nav>
+</div>
+{% endblock %}

@@ -1,0 +1,6 @@
+{% load ga_admin %}
+<section class="ui-card hd-attention">
+    <div class="ui-card-head"><h2 class="ui-card-title">Требует внимания</h2>{% if attention %}<span class="hd-count">{{ attention|length }}</span>{% endif %}</div>
+    {% for task in attention %}<a class="hd-task" href="{{ task.url }}"><span class="hd-task-icon">{% ga_icon task.icon %}</span><div><strong>{{ task.title }}</strong><p>{{ task.text }}</p></div>{% ga_icon 'chevron-right' %}</a>{% empty %}<p class="hd-empty-copy">Срочных задач сейчас нет.</p>{% endfor %}
+    <a class="hd-inbox" href="{% url 'notifications:notification_list' %}">{% ga_icon 'bell' %}{% if unread_notifications_count %}Непрочитанных уведомлений: {{ unread_notifications_count }}{% else %}Все уведомления{% endif %} →</a>
+</section>

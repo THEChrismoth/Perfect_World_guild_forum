@@ -11,13 +11,7 @@
     {% if notification.card_event or notification.link or full_page %}
     <div class="notice-actions">
     {% if notification.card_event and notification.card_event.response_open %}
-    <form class="notice-vote-form" method="post" action="{% url 'events:vote_view' notification.card_event.pk %}">
-        {% csrf_token %}
-        <input type="hidden" name="comment" value="{{ notification.card_comment }}">
-        <button name="status" value="yes" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'yes' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'yes' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Буду</button>
-        <button name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'maybe' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'maybe' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 1 1 4 3c-1 0-1 1-1 2m0 2v1"/></svg>Под вопросом</button>
-        <button name="status" value="no" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer {% if notification.card_vote == 'no' %}is-selected{% endif %}" aria-pressed="{% if notification.card_vote == 'no' %}true{% else %}false{% endif %}"><svg viewBox="0 0 24 24" aria-hidden="true"><path transform="rotate(180 12 12)" d="M7 10v11H3V10h4Zm0 0 5-8c3 0 2 5 1 7h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7"/></svg>Не буду</button>
-    </form>
+    {% include 'events/includes/response_buttons.html' with event=notification.card_event vote=notification.card_vote comment=notification.card_comment %}
     {% elif notification.card_event %}
         <a class="ui-btn ui-btn-secondary ui-btn-sm" href="{% url 'events:vote_results' notification.card_event.pk %}">Ответы и явка →</a>
     {% elif notification.link %}

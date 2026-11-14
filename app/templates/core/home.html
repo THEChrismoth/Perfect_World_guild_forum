@@ -1,42 +1,10 @@
 {% extends 'base.html' %}
 {% load static ga_admin %}
 {% block title %}Главная · {{ site_settings.site_name }}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/home.css' %}"><link rel="stylesheet" href="{% static 'skirmishes/skirmishes.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'core/css/home.css' %}">{% endblock %}
 {% block content %}
 <div class="hd-page">
-    <header class="ui-page-head hd-head">
-        <div><p class="hd-eyebrow">{{ today|date:'l, d E' }} · {{ site_settings.site_name }}</p><h1 class="ui-page-title">{% if is_member %}С возвращением{% else %}Добро пожаловать{% endif %}, {{ user.username }}</h1><p class="ui-page-sub">{% if is_member %}Всё важное для гильдии и ваши планы на ближайшие дни.{% else %}Ваш профиль, заявка и общение с гильдией.{% endif %}</p></div>
-        {% if quick_actions %}<div class="ui-page-actions">{% for action in quick_actions %}<a class="ui-btn {% if forloop.first %}ui-btn-primary{% else %}ui-btn-secondary{% endif %}" href="{{ action.url }}">{% ga_icon action.icon %}{{ action.label }}</a>{% endfor %}</div>{% endif %}
-    </header>
-    {% if is_member %}
-    <div class="hd-metrics">
-        <a class="ui-card hd-metric" href="{% url 'profile_view' user.username %}#points"><span>{% ga_icon 'star' %}Доступно очков</span><strong>{{ available_points }}</strong><small>{% if frozen_points %}{{ frozen_points }} в ставках{% else %}Можно использовать на аукционе{% endif %}</small></a>
-        <a class="ui-card hd-metric" href="{% url 'events:event_index' %}"><span>{% ga_icon 'calendar' %}Ближайший сбор</span><strong class="hd-metric-date">{% if featured_event %}{{ featured_event.event_date|date:'d E' }}{% else %}Нет дат{% endif %}</strong><small>{% if featured_event %}{{ featured_event.event_type.name }}{% if featured_event.start_time %} · {{ featured_event.start_time|time:'H:i' }} МСК{% endif %}{% else %}Следите за приглашениями{% endif %}</small></a>
-        <a class="ui-card hd-metric" href="{% url 'auction:auction_index' %}"><span>{% ga_icon 'gavel' %}Идут торги</span><strong>{{ lots_total }}</strong><small>{% if outbid_count %}Перебитых ставок: {{ outbid_count }}{% else %}Лоты за очки активности{% endif %}</small></a>
-        <a class="ui-card hd-metric" href="{% url 'reception:application_list' %}"><span>{% ga_icon 'file-text' %}Нужен ваш голос</span><strong>{{ voting_count }}</strong><small>{% if voting_count %}Кандидаты ждут решения{% else %}Вы ответили на все голосования{% endif %}</small></a>
-    </div>
-    <div class="hd-main-grid">
-        <section class="ui-card hd-events">
-            <div class="ui-card-head"><h2 class="ui-card-title">{% ga_icon 'swords' %}Ближайшие ивенты</h2><a class="ui-card-link" href="{% url 'events:event_index' %}">Все ивенты →</a></div>
-            {% if featured_event %}
-            <div class="hd-feature">
-                <time class="hd-date" datetime="{{ featured_event.event_date|date:'Y-m-d' }}"><strong>{{ featured_event.event_date|date:'d' }}</strong><span>{{ featured_event.event_date|date:'E' }}</span></time>
-                <div class="hd-feature-copy"><span class="hd-eyebrow">Ваш ближайший сбор</span><h3>{{ featured_event.event_type.name }}</h3><p>{{ featured_event.event_date|date:'l, d.m.Y' }}{% if featured_event.start_time %} · {{ featured_event.start_time|time:'H:i' }} МСК{% endif %}</p><div class="hd-badges"><span class="ui-badge {% if featured_event.my_answer == 'yes' %}ui-badge-success{% elif featured_event.my_answer == 'maybe' %}ui-badge-warning{% else %}ui-badge-muted{% endif %}">{% if featured_event.my_answer == 'yes' %}Вы будете{% elif featured_event.my_answer == 'maybe' %}Под вопросом{% elif featured_event.my_answer == 'no' %}Вы не участвуете{% else %}Вы ещё не ответили{% endif %}</span>{% if featured_event.my_party %}<span class="ui-badge ui-badge-muted">Отряд {{ featured_event.my_party }}</span>{% endif %}</div></div>
-            </div>
-            <div class="ui-page-actions hd-feature-actions"><a class="ui-btn ui-btn-primary" href="{% url 'events:vote_view' featured_event.pk %}">{% if featured_event.my_answer %}Изменить ответ{% else %}Ответить на приглашение{% endif %}</a><a class="ui-btn ui-btn-secondary" href="{{ featured_event.event_type.get_absolute_url }}">Постоянные отряды</a></div>
-            {% if upcoming|length > 1 %}<div class="hd-next-dates">{% for date in upcoming|slice:'1:' %}<a href="{% url 'events:vote_view' date.pk %}"><span>{{ date.event_type.name }}</span><time>{{ date.event_date|date:'d.m' }}{% if date.start_time %} · {{ date.start_time|time:'H:i' }}{% endif %}</time>{% ga_icon 'chevron-right' %}</a>{% endfor %}</div>{% endif %}
-            {% else %}<div class="hd-empty"><span class="hd-empty-icon">{% ga_icon 'calendar' %}</span><h3>Пока можно выдохнуть</h3><p>Отправленных приглашений на ближайшие сборы ещё нет.</p><a class="ui-card-link" href="{% url 'events:event_index' %}">Посмотреть постоянные отряды →</a></div>{% endif %}
-        </section>
-        <div class="hd-side-stack">
-        {% include 'skirmishes/widget.html' %}
-        <section class="ui-card hd-attention">
-            <div class="ui-card-head"><h2 class="ui-card-title">Требует внимания</h2>{% if attention %}<span class="hd-count">{{ attention|length }}</span>{% endif %}</div>
-            {% for task in attention %}<a class="hd-task" href="{{ task.url }}"><span class="hd-task-icon">{% ga_icon task.icon %}</span><div><strong>{{ task.title }}</strong><p>{{ task.text }}</p></div>{% ga_icon 'chevron-right' %}</a>{% empty %}<div class="hd-empty hd-empty-small"><span class="hd-empty-icon">{% ga_icon 'check' %}</span><h3>Всё под контролем</h3><p>Срочных действий сейчас нет.</p></div>{% endfor %}
-            <a class="hd-inbox" href="{% url 'notifications:notification_list' %}">{% ga_icon 'bell' %}{% if unread_notifications_count %}Непрочитанных уведомлений: {{ unread_notifications_count }}{% else %}Все уведомления{% endif %} →</a>
-        </section>
-        </div>
-    </div>
-    {% else %}
+    <header class="ui-page-head hd-head"><div><p class="hd-eyebrow">{{ today|date:'l, d E' }} · {{ site_settings.site_name }}</p><h1 class="ui-page-title">Добро пожаловать, {{ user.username }}</h1><p class="ui-page-sub">Ваш профиль, заявка и общение с гильдией.</p></div>{% if quick_actions %}<div class="ui-page-actions">{% for action in quick_actions %}<a class="ui-btn ui-btn-secondary" href="{{ action.url }}">{% ga_icon action.icon %}{{ action.label }}</a>{% endfor %}</div>{% endif %}</header>
     <div class="hd-candidate-grid">
         <section class="ui-card"><div class="ui-card-head"><h2 class="ui-card-title">Ваш путь в гильдию</h2><span class="ui-badge ui-badge-muted">Кандидат</span></div>
             {% if my_application %}<h3 class="hd-candidate-status">{{ my_application.get_status_display }}</h3><p class="hd-muted">Заявка от {{ my_application.created_at|date:'d.m.Y' }}. Решение и дальнейшие шаги появятся в истории заявок.</p><a class="ui-btn ui-btn-primary" href="{% url 'reception:my_applications' %}">Мои заявки</a>
@@ -45,16 +13,8 @@
         </section>
         <section class="ui-card"><h2 class="ui-card-title">Профиль персонажа</h2><div class="hd-person"><span class="hd-person-avatar">{% if profile.avatar %}<img src="{{ profile.avatar.url }}" alt="">{% else %}{{ user.username|first|upper }}{% endif %}</span><div><strong>{{ user.username }}</strong><p class="hd-muted">{{ profile.get_player_class_display|default:'Класс ещё не выбран' }}</p></div></div><a class="ui-btn ui-btn-secondary" href="{% url 'profile_edit' %}">Редактировать профиль</a></section>
     </div>
-    {% endif %}
-    <div class="hd-bottom-grid{% if not is_member %} hd-bottom-single{% endif %}">
-        <section class="ui-card hd-discussions"><div class="ui-card-head"><h2 class="ui-card-title">Последние обсуждения</h2><a class="ui-card-link" href="{% url 'index' %}">Форум →</a></div>
-            {% for topic in topics %}<a class="hd-topic" href="{% url 'topic_detail' topic.slug %}"><span class="hd-topic-icon">{% ga_icon 'message' %}</span><div class="hd-topic-copy"><strong>{{ topic.title }}</strong><p>{{ topic.subcategory.title }} · {{ topic.author.username }} · {{ topic.last_activity|date:'d.m H:i' }}</p></div><span class="hd-replies" title="Сообщений">{{ topic.posts_total }}</span></a>{% empty %}<div class="hd-empty"><h3>Здесь будут новости общения</h3><p>Новые темы из доступных вам разделов появятся на главной.</p><a class="ui-btn ui-btn-secondary" href="{% url 'index' %}">Перейти на форум</a></div>{% endfor %}
-        </section>
-        {% if is_member %}<div class="hd-side-stack">
-            {% if demo_mode %}{% include 'demo/teamspeak_card.html' %}{% endif %}
-            <section class="ui-card"><div class="ui-card-head"><h2 class="ui-card-title">На аукционе</h2><a class="ui-card-link" href="{% url 'auction:auction_index' %}">Все лоты →</a></div>{% for lot in lots %}<a class="hd-lot" href="{{ lot.get_absolute_url }}"><span class="hd-lot-image">{% if lot.image %}<img src="{{ lot.image.url }}" alt="">{% else %}{% ga_icon 'gavel' %}{% endif %}</span><div><strong>{{ lot.name }}</strong><p>{% if lot.my_bid and lot.leader_id != user.pk %}Вашу ставку перебили{% elif lot.leader_id == user.pk %}Вы лидируете{% elif lot.end_date %}До {{ lot.end_date|date:'d.m H:i' }}{% else %}Торги открыты{% endif %}</p></div><b>{{ lot.current_price }} <span>оч.</span></b></a>{% empty %}<p class="hd-muted">Активных торгов пока нет.</p>{% endfor %}</section>
-            <section class="ui-card"><div class="ui-card-head"><h2 class="ui-card-title">Последние операции</h2><a class="ui-card-link" href="{% url 'profile_view' user.username %}#points">История →</a></div>{% for operation in transactions %}<div class="hd-operation"><div><strong>{{ operation.description }}</strong><time>{{ operation.created_at|date:'d.m H:i' }}</time></div><span class="{% if operation.transaction_type == 'credit' or operation.transaction_type == 'unfreeze' %}hd-positive{% else %}hd-muted{% endif %}">{% if operation.transaction_type == 'credit' or operation.transaction_type == 'unfreeze' %}+{% else %}−{% endif %}{{ operation.amount }}</span></div>{% empty %}<p class="hd-muted">Начисления и расходы появятся после первых операций.</p>{% endfor %}</section>
-        </div>{% endif %}
-    </div>
+    <section class="ui-card hd-discussions"><div class="ui-card-head"><h2 class="ui-card-title">Последние обсуждения</h2><a class="ui-card-link" href="{% url 'index' %}">Форум →</a></div>
+        {% for topic in topics %}<a class="hd-topic" href="{% url 'topic_detail' topic.slug %}"><span class="hd-topic-icon">{% ga_icon 'message' %}</span><div class="hd-topic-copy"><strong>{{ topic.title }}</strong><p>{{ topic.subcategory.title }} · {{ topic.author.username }} · {{ topic.last_activity|date:'d.m H:i' }}</p></div><span class="hd-replies" title="Сообщений">{{ topic.posts_total }}</span></a>{% empty %}<div class="hd-empty"><h3>Здесь будут новости общения</h3><p>Новые темы из доступных вам разделов появятся на главной.</p><a class="ui-btn ui-btn-secondary" href="{% url 'index' %}">Перейти на форум</a></div>{% endfor %}
+    </section>
 </div>
 {% endblock %}

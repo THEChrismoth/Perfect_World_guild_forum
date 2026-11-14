@@ -55,7 +55,8 @@ class GuildHomeTests(TestCase):
         EventAttendance.objects.create(notification=sent, user=self.user, status='yes')
         response = self.client.get('/')
         self.assertEqual(response.context['unanswered_events'], 0)
-        self.assertContains(response, 'Вы будете')
+        self.assertEqual(response.context['upcoming'][0].my_answer, 'yes')
+        self.assertContains(response, 'notice-answer is-selected')
 
     def test_feed_checks_parent_and_child_permissions_before_limiting(self):
         hidden = Group.objects.create(name='Private officers')
@@ -115,3 +116,135 @@ class GuildHomeTests(TestCase):
         response = self.client.get('/')
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse('login'), response.url)
+
+    def test_staff_home_is_compact_and_actions_follow_permissions(self):
+        self.make_member()
+        self.user.is_staff = True
+        self.user.save()
+        self.user.user_permissions.add(Permission.objects.get(codename='add_auctionlot'))
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'core/home_dashboard.html')
+        self.assertContains(response, 'Быстрые действия')
+        self.assertContains(response, 'Таблица активности')
+        self.assertContains(response, 'Создать лот')
+        self.assertNotContains(response, 'Пригласить на ивент')
+        self.assertNotContains(response, 'Разделы форума')
+        self.assertNotContains(response, 'Начать замес')
+        self.assertNotContains(response, 'Последние обсуждения')
+        self.assertNotContains(response, 'Последние операции')
+        self.assertContains(response, 'hd-summary-grid')
+        self.assertEqual(response.context['lots'], [])
+        self.assertEqual(response.context['topics'], [])
+
+    def test_manager_sees_sent_dates_without_being_a_recipient_but_not_drafts(self):
+        self.make_member()
+        self.user.is_staff = True
+        self.user.save()
+        self.user.user_permissions.add(Permission.objects.get(codename='view_eventnotification'))
+        tomorrow = timezone.localdate() + timedelta(days=1)
+        draft_kind = EventType.objects.create(name='Draft-only-event')
+        EventNotification.objects.create(event_type=draft_kind, event_date=tomorrow)
+        sent_kind = EventType.objects.create(name='Guild-event')
+        session = EventNotification.objects.create(event_type=sent_kind, event_date=tomorrow,
+                                                   start_time=time(20), sent_at=timezone.now())
+        response = self.client.get('/')
+        self.assertEqual(response.context['upcoming'][0], session)
+        self.assertContains(response, 'Guild-event')
+        self.assertNotContains(response, 'Draft-only-event')
+
+    def test_restricted_staff_gets_no_private_management_data(self):
+        self.make_member()
+        self.user.is_staff = True
+        self.user.save()
+        kind = EventType.objects.create(name='Uninvited-event')
+        EventNotification.objects.create(event_type=kind, event_date=timezone.localdate() + timedelta(days=1),
+                                         sent_at=timezone.now())
+        candidate = User.objects.create_user('restricted-candidate')
+        Application.objects.create(user=candidate, player_class='Маг', development_plans='Private')
+        response = self.client.get('/')
+        self.assertEqual(response.context['upcoming'], [])
+        self.assertNotContains(response, 'Новые заявки в гильдию')
+        self.assertNotContains(response, 'Uninvited-event')
+
+    def test_superuser_has_shared_overview_and_skirmish_controls(self):
+        admin = User.objects.create_superuser('dashboard-admin')
+        self.client.force_login(admin)
+        response = self.client.get('/')
+        self.assertContains(response, 'hd-summary-grid')
+        self.assertContains(response, 'Предстоящие ивенты')
+        self.assertContains(response, f'action="{reverse("skirmishes:start")}"')
+        self.assertContains(response, 'Пригласить на ивент')
+        self.assertContains(response, 'Разделы форума')
+        from skirmishes.models import Skirmish
+        active = Skirmish.objects.create(title='Active-skirmish', code='0123', ts_channel='Гильдия')
+        response = self.client.get('/')
+        self.assertContains(response, 'Active-skirmish')
+        self.assertContains(response, active.get_absolute_url())
+        self.assertNotContains(response, f'action="{reverse("skirmishes:start")}"')
+
+    def test_member_has_shared_compact_overview_without_management_actions(self):
+        self.make_member()
+        response = self.client.get('/')
+        self.assertTemplateUsed(response, 'core/home_dashboard.html')
+        self.assertContains(response, 'hd-summary-grid')
+        self.assertNotContains(response, 'Последние обсуждения')
+        self.assertNotContains(response, 'Быстрые действия')
+
+    def test_upcoming_total_includes_dates_beyond_two_cards(self):
+        self.make_member()
+        kind = EventType.objects.create(name='Three-dates')
+        for offset in [1, 2, 3]:
+            event = EventNotification.objects.create(event_type=kind,
+                event_date=timezone.localdate() + timedelta(days=offset), sent_at=timezone.now())
+            event.sent_to_users.add(self.user)
+        response = self.client.get('/')
+        self.assertEqual(len(response.context['upcoming']), 2)
+        self.assertEqual(response.context['upcoming_total'], 3)
+        self.assertEqual(response.context['unanswered_events'], 3)
+
+    def test_online_metric_counts_only_active_guild_members(self):
+        self.make_member()
+        for name, active, member, online in [('online-guild', True, True, True),
+                                            ('offline-guild', True, True, False),
+                                            ('inactive-guild', False, True, True),
+                                            ('online-outsider', True, False, True)]:
+            user = User.objects.create_user(name, is_active=active)
+            if member:
+                user.groups.add(self.group)
+            user.profile.last_activity = timezone.now() - timedelta(minutes=0 if online else 20)
+            user.profile.save()
+        response = self.client.get('/')
+        self.assertEqual(response.context['guild_total'], 3)
+        self.assertEqual(response.context['guild_online'], 2)
+
+    def test_inline_response_preserves_comment_and_returns_home(self):
+        self.make_member()
+        kind = EventType.objects.create(name='Inline-event')
+        event = EventNotification.objects.create(event_type=kind,
+            event_date=timezone.localdate() + timedelta(days=1), sent_at=timezone.now())
+        event.sent_to_users.add(self.user)
+        comment = 'Буду позже\nПосле босса'
+        entry = EventAttendance.objects.create(notification=event, user=self.user, status='maybe', comment=comment)
+        page = self.client.get('/')
+        self.assertContains(page, 'name="return_to" value="home"')
+        response = self.client.post(reverse('events:vote_view', args=[event.pk]),
+                                    {'status': 'yes', 'comment': 'Буду позже После босса', 'return_to': 'home'})
+        self.assertRedirects(response, '/')
+        entry.refresh_from_db()
+        self.assertEqual((entry.status, entry.comment), ('yes', comment))
+        response = self.client.post(reverse('events:vote_view', args=[event.pk]),
+                                    {'status': 'no', 'return_to': 'https://example.com'})
+        self.assertRedirects(response, reverse('events:vote_results', args=[event.pk]))
+
+    def test_uninvited_manager_sees_event_but_no_inline_response_form(self):
+        admin = User.objects.create_superuser('uninvited-dashboard-admin')
+        self.client.force_login(admin)
+        kind = EventType.objects.create(name='Not-invited-event')
+        event = EventNotification.objects.create(event_type=kind,
+            event_date=timezone.localdate() + timedelta(days=1), sent_at=timezone.now())
+        response = self.client.get('/')
+        self.assertContains(response, 'Not-invited-event')
+        self.assertNotContains(response, 'name="return_to"')
+        self.assertEqual(response.context['unanswered_events'], 0)
+        self.client.post(reverse('events:vote_view', args=[event.pk]), {'status': 'yes', 'return_to': 'home'})
+        self.assertFalse(EventAttendance.objects.filter(notification=event, user=admin).exists())

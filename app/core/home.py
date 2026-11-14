@@ -1,5 +1,8 @@
 """Главная страница гильдии: личные задачи и доступная пользователю активность."""
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db.models import Count, Exists, Max, OuterRef, Q, Subquery
 from django.db.models.functions import Coalesce
 from django.shortcuts import render
@@ -10,7 +13,7 @@ from auction.models import AuctionBid, AuctionLot
 from events.models import EventAttendance, EventNotification, EventRosterEntry
 from forum.models import SubCategory, Topic
 from reception.models import Application, ApplicationVote
-from .roles import is_guild_member
+from .roles import GUILD_GROUP, is_guild_member
 
 
 def recent_topics(user):
@@ -22,17 +25,22 @@ def recent_topics(user):
             .order_by('-last_activity', '-pk')[:6])
 
 
-def member_data(user):
+def member_data(user, include_all_events=False):
     """Собирает предстоящие приглашения, торги и голосования без изменения данных."""
     now = timezone.now()
     answers = EventAttendance.objects.filter(notification_id=OuterRef('pk'), user=user)
     slots = EventRosterEntry.objects.filter(notification_id=OuterRef('pk'), user=user)
+    invited = EventNotification.objects.filter(pk=OuterRef('pk'), sent_to_users=user)
     dates = (EventNotification.objects.filter(sent_at__isnull=False, event_type__is_active=True,
-             event_date__gte=timezone.localdate(), sent_to_users=user, points_processed_at__isnull=True)
+             event_date__gte=timezone.localdate(), points_processed_at__isnull=True)
              .select_related('event_type').annotate(my_answer=Subquery(answers.values('status')[:1]),
+                 my_comment=Subquery(answers.values('comment')[:1]), is_invited=Exists(invited),
                  my_party=Subquery(slots.values('party_number')[:1]))
              .order_by('event_date', 'start_time', 'pk'))
-    upcoming = [date for date in dates[:12] if date.response_open][:3]
+    if not include_all_events:
+        dates = dates.filter(sent_to_users=user)
+    visible_dates = [date for date in dates.iterator(chunk_size=50) if date.response_open]
+    upcoming = visible_dates[:2]
     bids = AuctionBid.objects.filter(lot_id=OuterRef('pk'))
     lots = (AuctionLot.objects.filter(status='active', start_date__lte=now)
             .filter(Q(end_date__gt=now) | Q(end_date__isnull=True))
@@ -45,12 +53,15 @@ def member_data(user):
     unvoted = voting.filter(already_voted=False).count()
     profile = user.profile
     available = profile.get_available_points()
-    transactions = user.points_transactions.order_by('-created_at', '-pk')[:3]
+    guild = User.objects.filter(is_active=True, groups__name=GUILD_GROUP).aggregate(
+        total=Count('pk', distinct=True),
+        online=Count('pk', filter=Q(profile__last_activity__gte=now - timedelta(minutes=5)), distinct=True))
     return {'upcoming': upcoming, 'featured_event': upcoming[0] if upcoming else None,
-            'unanswered_events': sum(not date.my_answer for date in upcoming),
-            'lots': list(lots[:3]), 'lots_total': lots.count(), 'outbid_count': outbid,
+            'upcoming_total': len(visible_dates), 'guild_online': guild['online'], 'guild_total': guild['total'],
+            'unanswered_events': sum(date.is_invited and not date.my_answer for date in visible_dates),
+            'lots': [], 'lots_total': lots.count(), 'outbid_count': outbid,
             'voting_count': unvoted, 'available_points': available,
-            'frozen_points': profile.activity_points - available, 'transactions': transactions}
+            'frozen_points': profile.activity_points - available, 'transactions': []}
 
 
 @login_required
@@ -58,10 +69,14 @@ def home(request):
     """Показывает главную с учётом членства, прав и личных задач игрока."""
     user = request.user
     member = is_guild_member(user)
-    data = {'is_member': member, 'topics': recent_topics(user), 'today': timezone.localdate(),
+    management = member and user.is_staff
+    data = {'is_member': member, 'is_management_home': management,
+            'topics': [] if member else recent_topics(user), 'today': timezone.localdate(),
             'profile': user.profile, 'quick_actions': [], 'attention': []}
     if member:
-        data.update(member_data(user))
+        include_all = management and any(user.has_perm(f'events.{action}_eventnotification')
+                                         for action in ('view', 'change', 'add'))
+        data.update(member_data(user, include_all_events=include_all))
         from skirmishes.views import widget_data
         data.update(widget_data(user))
         if data['unanswered_events']:
@@ -83,7 +98,7 @@ def home(request):
             ('events.add_eventtype', 'Создать ивент', 'plus', 'admin:events_eventtype_add'),
             ('auction.add_auctionlot', 'Создать лот', 'gavel', 'admin:auction_auctionlot_add'),
         ]:
-            if user.has_perm(permission):
+            if not management and user.has_perm(permission):
                 data['quick_actions'].append({'label': label, 'icon': icon, 'url': reverse(route)})
         if user.has_perm('reception.view_application'):
             pending = Application.objects.filter(status='pending').count()
@@ -91,4 +106,8 @@ def home(request):
             if pending:
                 data['attention'].insert(0, {'icon': 'file-text', 'title': 'Новые заявки в гильдию',
                     'text': f'Ожидают проверки: {pending}', 'url': reverse('admin:reception_application_changelist')})
-    return render(request, 'core/home.html', data)
+    if management:
+        from .home_management import management_data
+        data.update(management_data(user))
+    template = 'core/home_dashboard.html' if member else 'core/home.html'
+    return render(request, template, data)
