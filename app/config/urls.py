@@ -19,6 +19,7 @@ urlpatterns = [
     path('auction/', include('auction.urls', namespace='auction')),
     path('reception/', include('reception.urls')),
     path('notifications/', include('notifications.urls')),
+    path('messages/', include('messaging.urls')),
     path('events/', include('events.urls')),
     path('skirmishes/', include('skirmishes.urls')),
     path('teamspeak/', include('teamspeak.urls')),

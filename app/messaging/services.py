@@ -7,9 +7,10 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.db.models import F, Q
 from django.utils import timezone
+from django.views.decorators.debug import sensitive_variables
 
 from core.roles import GUILD_GROUP, is_guild_member
-from .crypto import decrypt, encrypt
+from .crypto import encrypt
 from .models import ContactBlock, Conversation, Message
 
 MAX_LENGTH = 4000
@@ -52,6 +53,7 @@ def _lock_pair(first_id, second_id):
 
 
 @transaction.atomic
+@sensitive_variables()
 def send_message(sender, recipient, text, client_id):
     """Сохраняет шифротекст один раз при повторах запроса и уведомляет без текста переписки."""
     if not isinstance(text, str) or not text.strip() or len(text) > MAX_LENGTH:
@@ -89,7 +91,7 @@ def send_message(sender, recipient, text, client_id):
     if not had_unread:
         from notifications.utils import send_notification
         send_notification(recipient, 'Новое личное сообщение', f'{sender.username} написал вам.',
-                          link=f'/messages/{dialog.pk}/', notification_type='info')
+                          link=dialog.get_absolute_url(), notification_type='info')
     return message, True
 
 

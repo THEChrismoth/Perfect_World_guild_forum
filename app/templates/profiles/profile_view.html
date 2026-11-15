@@ -25,6 +25,8 @@
         <div class="pf-side">
             <a href="{% url 'profile_edit' %}" class="ui-btn ui-btn-secondary">{% ga_icon "pencil" %}Редактировать</a>
         </div>
+    {% elif can_message %}
+        <div class="pf-side"><a href="{% url 'messaging:compose' profile_user.pk %}" class="ui-btn ui-btn-secondary">{% ga_icon 'message' %}Написать</a></div>
     {% endif %}
 </section>
 

@@ -4,12 +4,14 @@ from pathlib import Path
 
 from cryptography.fernet import Fernet, InvalidToken, MultiFernet
 from django.conf import settings
+from django.views.decorators.debug import sensitive_variables
 
 
 class MessageCryptoError(Exception):
     """Ключ недоступен или сообщение не прошло проверку целостности."""
 
 
+@sensitive_variables()
 def cipher():
     keys = settings.PRIVATE_MESSAGES_KEYS
     if not keys:
@@ -31,12 +33,14 @@ def configured():
         return False
 
 
+@sensitive_variables()
 def encrypt(text, conversation_id, sender_id, client_id):
     payload = {'v': 1, 'conversation': conversation_id, 'sender': sender_id,
                'client': str(client_id), 'text': text}
     return cipher().encrypt(json.dumps(payload, ensure_ascii=False).encode()).decode('ascii')
 
 
+@sensitive_variables()
 def decrypt(token, conversation_id, sender_id, client_id):
     try:
         payload = json.loads(cipher().decrypt(token.encode('ascii')))

@@ -1,0 +1,5 @@
+{% extends 'messaging/base.html' %}
+{% block messaging_content %}
+<header class="ui-page-head"><div><h1 class="ui-page-title">Личные сообщения</h1><p class="ui-page-sub">Начните диалог с {{ recipient.username }}.</p></div></header>
+<div class="pm-layout pm-has-conversation"><aside class="ui-card pm-sidebar" id="pm-sidebar">{% include 'messaging/sidebar.html' %}</aside><section class="ui-card pm-panel"><header class="pm-thread-head"><a class="ui-card-link" href="{% url 'messaging:inbox' %}">← Диалоги</a><a class="pm-recipient" href="{% url 'profile_view' recipient.username %}">{{ recipient.username }}</a></header><div class="pm-placeholder pm-new-dialog"><h2>Новое сообщение</h2><p class="pm-muted">Первое сообщение создаст ваш личный диалог.</p></div>{% if messaging_configured %}{% include 'messaging/composer.html' %}{% else %}<p class="pm-unavailable">Личные сообщения временно недоступны. Попробуйте позже.</p>{% endif %}<p class="pm-security">Текст переписки хранится зашифрованным на сервере.</p></section></div>
+{% endblock %}

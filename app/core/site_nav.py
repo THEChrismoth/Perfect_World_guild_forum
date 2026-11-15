@@ -20,6 +20,8 @@ def online_summary():
 
 def build_site_nav(request, unread_notifications=0):
     """Группы меню с отметкой раздела, в котором сейчас находимся. Только для вошедших пользователей."""
+    from messaging.context_processors import request_unread
+
     user = request.user
     match = getattr(request, 'resolver_match', None)
     # Раздел — приложение, чья страница сейчас открыта: forum, events, auction, reception…
@@ -49,6 +51,8 @@ def build_site_nav(request, unread_notifications=0):
     groups = [
         {'title': '', 'items': guild_items},
         {'title': 'Личное', 'items': [
+            _item('Сообщения', 'message', reverse('messaging:inbox'), 'messaging', current,
+                  badge=request_unread(request)),
             _item('Уведомления', 'bell', reverse('notifications:notification_list'), 'notifications', current,
                   badge=unread_notifications),
         ]},

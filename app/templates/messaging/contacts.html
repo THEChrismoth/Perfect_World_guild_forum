@@ -1,0 +1,6 @@
+{% extends 'messaging/base.html' %}
+{% load ga_admin %}
+{% block messaging_content %}
+<header class="ui-page-head"><div><h1 class="ui-page-title">Написать сообщение</h1><p class="ui-page-sub">Найдите собеседника по игровому нику.</p></div><a class="ui-btn ui-btn-secondary" href="{% url 'messaging:inbox' %}">← Диалоги</a></header>
+<section class="ui-card"><form method="get" class="pm-search"><label class="ui-field" for="pm-query"><span>Ник собеседника</span><input class="ui-input" id="pm-query" name="q" value="{{ query }}" maxlength="50" placeholder="Начните вводить ник…"></label><button class="ui-btn ui-btn-primary">Найти</button></form><div class="pm-contact-list">{% for contact in contacts %}<a class="pm-contact" href="{% url 'messaging:compose' contact.pk %}"><span class="pm-avatar">{{ contact.username|first|upper }}</span><div><strong>{{ contact.username }}</strong><span class="pm-muted">{% if contact.is_staff %}Администрация{% else %}Игрок{% endif %}</span></div>{% ga_icon 'chevron-right' %}</a>{% empty %}<p class="pm-muted">Доступных собеседников не найдено. Члены гильдии могут писать друг другу, кандидаты — администрации.</p>{% endfor %}</div></section>
+{% endblock %}

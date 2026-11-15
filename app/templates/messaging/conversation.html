@@ -1,0 +1,17 @@
+{% extends 'messaging/base.html' %}
+{% block messaging_content %}
+<header class="ui-page-head"><div><h1 class="ui-page-title">Личные сообщения</h1><p class="ui-page-sub">Диалог с {{ recipient.username }}.</p></div></header>
+<div class="pm-layout pm-has-conversation" data-pm-thread data-updates-url="{% url 'messaging:updates' dialog.pk %}" data-read-url="{% url 'messaging:read' dialog.pk %}" data-last-id="{{ last_id }}" data-history="{% if history %}yes{% else %}no{% endif %}">
+<aside class="ui-card pm-sidebar" id="pm-sidebar">{% include 'messaging/sidebar.html' %}</aside>
+<section class="ui-card pm-panel">
+    <header class="pm-thread-head"><div><a class="ui-card-link" href="{% url 'messaging:inbox' %}">← Диалоги</a><a class="pm-recipient" href="{% url 'profile_view' recipient.username %}">{{ recipient.username }}</a></div><form method="post" action="{% url 'messaging:block' dialog.pk %}">{% csrf_token %}<button class="ui-btn ui-btn-ghost ui-btn-sm" name="action" value="{% if blocked_by_me %}unblock{% else %}block{% endif %}">{% if blocked_by_me %}Разблокировать{% else %}Заблокировать{% endif %}</button></form></header>
+    <div class="pm-connection" role="status" aria-live="polite"></div>
+    <div class="pm-history">{% if older_before %}<a class="ui-card-link" href="?before={{ older_before }}">Более ранние сообщения ↑</a>{% endif %}{% if history %}<a class="ui-card-link" href="{{ dialog.get_absolute_url }}">К последним сообщениям ↓</a>{% endif %}</div>
+    <div class="pm-stream" id="pm-stream" aria-label="Переписка">
+    {% for row in message_rows %}<article class="pm-message{% if row.mine %} pm-message-mine{% endif %}{% if not row.available %} pm-message-unavailable{% endif %}" data-message-id="{{ row.id }}"><p class="pm-message-text">{{ row.text }}</p><footer><time datetime="{{ row.created_at }}">{{ row.time }}</time>{% if row.mine %}<span class="pm-receipt">{% if row.read %}Прочитано{% else %}Отправлено{% endif %}</span>{% endif %}</footer></article>{% empty %}<p class="pm-muted pm-no-messages">Сообщений пока нет.</p>{% endfor %}
+    </div>
+    {% if not history and last_id %}<form class="pm-read-form" method="post" action="{% url 'messaging:read' dialog.pk %}">{% csrf_token %}<input type="hidden" name="up_to" value="{{ last_id }}"><button class="ui-btn ui-btn-ghost ui-btn-sm">Отметить прочитанным</button></form>{% endif %}
+    {% if can_send and messaging_configured %}{% include 'messaging/composer.html' %}{% else %}<p class="pm-unavailable">{% if not messaging_configured %}Личные сообщения временно недоступны.{% elif blocked_by_me %}Вы заблокировали собеседника. История переписки сохранена.{% else %}Отправка сообщений в этот диалог недоступна.{% endif %}</p>{% endif %}
+</section>
+</div>
+{% endblock %}

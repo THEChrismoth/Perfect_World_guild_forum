@@ -53,6 +53,10 @@
 
         <div class="site-topbar-actions">
             {% if user.is_authenticated %}
+                <a class="site-icon-btn" href="{% url 'messaging:inbox' %}" data-pm-badge-url="{% url 'messaging:badge' %}" aria-label="Личные сообщения: {{ private_messages_unread }} непрочитанных">
+                    {% ga_icon 'message' %}<span class="notifications-badge" data-pm-badge{% if not private_messages_unread %} hidden{% endif %}>{{ private_messages_unread }}</span>
+                </a>
+                <script src="{% static 'messaging/badge.js' %}" defer></script>
                 <div class="notifications-dropdown">
                     <button type="button" class="site-icon-btn notifications-btn" onclick="toggleNotifications(event)"
                             aria-label="{% if unread_notifications_count %}Уведомления: {{ unread_notifications_count }} новых{% else %}Новых уведомлений нет{% endif %}">

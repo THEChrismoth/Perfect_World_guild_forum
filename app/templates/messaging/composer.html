@@ -1,0 +1,6 @@
+<form class="pm-send ui-form" method="post" action="{% if dialog %}{% url 'messaging:send' dialog.pk %}{% else %}{% url 'messaging:compose' recipient.pk %}{% endif %}" data-pm-send>
+    {% csrf_token %}{{ form.client_id }}
+    <div class="pm-errors" role="status" aria-live="polite">{{ form.non_field_errors }}{{ form.body.errors }}{{ form.client_id.errors }}</div>
+    <div class="ui-field">{{ form.body.label_tag }}{{ form.body }}</div>
+    <div class="pm-send-actions"><span class="pm-muted">До 4000 символов</span><button class="ui-btn ui-btn-primary" type="submit">Отправить</button></div>
+</form>

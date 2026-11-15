@@ -120,6 +120,8 @@ def set_accent(request):
 
 @login_required
 def profile_view(request, username):
+    from messaging.services import can_contact
+
     user = get_object_or_404(User, username=username)
     profile = user.profile
     is_owner = request.user == user
@@ -131,6 +133,7 @@ def profile_view(request, username):
         'profile_user': user,
         'profile': profile,
         'is_owner': is_owner,
+        'can_message': can_contact(request.user, user),
         'is_guild_member': is_guild_member,
         'gear_sets': profile.gear_sets(),
     }

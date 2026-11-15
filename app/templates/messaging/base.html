@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Сообщения · {{ site_settings.site_name }}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'messaging/messages.css' %}"><script src="{% static 'messaging/messages.js' %}" defer></script>{% endblock %}
+{% block content %}<div class="pm-page" data-pm-sidebar-url="{% url 'messaging:inbox' %}">{% block messaging_content %}{% endblock %}</div>{% endblock %}
