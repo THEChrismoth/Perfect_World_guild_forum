@@ -382,7 +382,7 @@
 
 /* ---------- Редактирование ---------- */
 .pf-edit {
-    max-width: 920px;
+    min-width: 0;
 }
 
 .pf-avatar-edit {
