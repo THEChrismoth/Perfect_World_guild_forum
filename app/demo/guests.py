@@ -128,6 +128,8 @@ def create_guest(role, rng=None):
                       f'Это ваш личный аккаунт {username}: очки, ставки и голоса только ваши. '
                       'Данные демо периодически сбрасываются.',
                       notification_type='info')
+    from .private_messages import welcome
+    welcome(user)
     return user
 
 

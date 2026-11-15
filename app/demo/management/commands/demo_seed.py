@@ -89,6 +89,9 @@ class Command(BaseCommand):
             self.create_auction()
             self.create_reception()
             self.create_koslist()
+            from demo.private_messages import welcome
+            for member in self.members + self.applicants:
+                welcome(member)
 
         self.stdout.write(self.style.SUCCESS(f'Демо-гильдия «{GUILD_NAME}» создана'))
 
