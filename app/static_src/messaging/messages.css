@@ -1,7 +1,7 @@
 /* Личные сообщения: общая тема сайта, без оформления пользовательского HTML */
 .pm-page { min-width: 0; }
 .pm-page .ui-page-title, .pm-page .ui-page-sub { overflow-wrap: anywhere; }
-.pm-layout { display: grid; grid-template-columns: minmax(230px, .85fr) minmax(0, 2fr); gap: 18px; align-items: stretch; height: max(540px, calc(100dvh - 200px)); }
+.pm-layout { display: grid; grid-template-columns: minmax(230px, 280px) minmax(0, 1fr); gap: 18px; align-items: stretch; height: max(540px, calc(100dvh - 200px)); }
 .pm-sidebar { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .pm-sidebar .ui-card-head, .pm-sidebar .pm-pagination { flex-shrink: 0; }
 .pm-dialogs { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
