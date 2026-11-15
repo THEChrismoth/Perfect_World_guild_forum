@@ -11,6 +11,7 @@ fi
 
 echo "Применяю миграции..."
 python manage.py migrate --noinput
+python manage.py init_messages_key
 
 echo "Заполняю демо-данные..."
 python manage.py demo_seed

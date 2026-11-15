@@ -35,6 +35,7 @@ services:
       - static:/app/static
       - media:/app/media
       - backups:/app/backups
+      - message_keys:/app/secrets
     depends_on:
       db:
         condition: service_healthy
@@ -115,6 +116,7 @@ services:
 
 # Данные хранятся в томах и переживают пересоздание контейнеров. docker compose down -v их удаляет.
 volumes:
+  message_keys:
   postgres_data:
   static:
   media:

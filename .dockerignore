@@ -5,6 +5,7 @@
 **/__pycache__
 **/*.py[oc]
 .env
+secrets/
 .env.*
 !.env.example
 db.sqlite3

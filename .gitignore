@@ -20,6 +20,7 @@ db.sqlite3
 media/
 /static/
 /backups/
+/secrets/
 
 # Данные незавершенной установки (guild setup).
 .guild-setup.json

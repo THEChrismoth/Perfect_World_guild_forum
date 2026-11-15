@@ -24,7 +24,8 @@ COPY app/ app/
 # Работаем не от root. Папки static, media и backups создаем заранее с нужным владельцем —
 # Docker скопирует эти права в тома при первом запуске.
 RUN useradd --create-home --uid 1000 app \
-    && mkdir -p /app/static /app/media /app/backups \
+    && mkdir -p /app/static /app/media /app/backups /app/secrets \
+    && chmod 700 /app/secrets \
     && chown -R app:app /app \
     && chmod +x /app/docker/entrypoint.sh
 USER app

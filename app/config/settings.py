@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'auction',
     'reception',
     'notifications',
+    'messaging',
     'events',
     'skirmishes',
     'backups',
@@ -96,6 +97,10 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+# Ключ переписки независим от Django и хранится отдельно от базы и её копий.
+PRIVATE_MESSAGES_KEYS = tuple(_env_list('PRIVATE_MESSAGES_KEYS'))
+PRIVATE_MESSAGES_KEY_FILE = os.getenv('PRIVATE_MESSAGES_KEY_FILE', os.path.join(ROOT_DIR, 'secrets', 'messages.keys'))
 
 
 # База данных: https://docs.djangoproject.com/en/6.0/ref/settings/#databases

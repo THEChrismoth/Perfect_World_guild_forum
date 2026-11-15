@@ -9,6 +9,7 @@ fi
 
 echo "Применяю миграции..."
 python manage.py migrate --noinput
+python manage.py init_messages_key
 
 echo "Собираю статику..."
 python manage.py collectstatic --noinput
