@@ -1,5 +1,5 @@
 /* Личные сообщения: общая тема сайта, без оформления пользовательского HTML */
-.pm-page { max-width: 1240px; margin: 0 auto; min-width: 0; }
+.pm-page { min-width: 0; }
 .pm-page .ui-page-title, .pm-page .ui-page-sub { overflow-wrap: anywhere; }
 .pm-layout { display: grid; grid-template-columns: minmax(230px, .85fr) minmax(0, 2fr); gap: 18px; align-items: stretch; height: max(540px, calc(100dvh - 200px)); }
 .pm-sidebar { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
