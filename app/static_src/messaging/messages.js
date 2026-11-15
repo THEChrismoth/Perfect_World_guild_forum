@@ -12,9 +12,11 @@
             const response = await fetch(url, {cache: 'no-store'});
             if (!response.ok || response.redirected) return;
             const data = await response.json();
+            const listScroll = sidebar.querySelector('.pm-dialogs')?.scrollTop || 0;
             // HTML строится серверным шаблоном с экранированием пользовательского текста.
             const fragment = new DOMParser().parseFromString(data.sidebar, 'text/html');
             sidebar.replaceChildren(...fragment.body.childNodes);
+            sidebar.querySelector('.pm-dialogs').scrollTop = listScroll;
             sidebar.querySelectorAll('.pm-dialog').forEach(link => link.classList.toggle('is-current', new URL(link.href).pathname === location.pathname));
             window.updatePrivateMessageBadge?.(data.unread);
         } catch (_) { /* Список останется доступен при временной потере сети. */ }
