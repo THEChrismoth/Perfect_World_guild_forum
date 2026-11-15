@@ -1,5 +1,5 @@
 /* Быстрые сборы: общие темы и элементы сайта */
-.sk-page { max-width: 1240px; margin: 0 auto; min-width: 0; }
+.sk-page { min-width: 0; }
 .sk-page .ui-page-title, .sk-page strong, .sk-current a { overflow-wrap: anywhere; }
 .sk-page > .ui-page-head { margin-bottom: 0; }
 .sk-muted { color: var(--text-muted); font-size: 13px; line-height: 1.6; }
