@@ -1,4 +1,4 @@
-.notifications-page { max-width: 800px; margin: 0 auto; padding: 20px; }
+.notifications-page { min-width: 0; }
 .notifications-page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
 .notifications-page-header h1 { margin: 0; color: var(--text-strong); font-size: 24px; }
 .notifications-page-actions { display: flex; flex-wrap: wrap; gap: 8px; }
