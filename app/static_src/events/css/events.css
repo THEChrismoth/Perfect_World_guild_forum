@@ -1,5 +1,5 @@
 /* Ивенты: постоянные отряды, даты и явка */
-.ev-page { max-width: 1200px; margin: 0 auto; min-width: 0; }
+.ev-page { min-width: 0; }
 .ev-page h2, .ev-page h3 { margin-top: 0; }
 .ev-page a { overflow-wrap: anywhere; }
 .ev-muted { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
@@ -80,7 +80,7 @@
 .ev-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 16px; padding: 18px 0 0; }
 .ev-presence .ev-pagination { padding: 18px; }
 .ev-grow { flex: 1; min-width: 0; }
-.ev-editor { max-width: 780px; }
+.ev-editor { min-width: 0; }
 .ev-player-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; max-height: 360px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; background: var(--field-bg); }
 .ev-player-choice { display: flex; align-items: center; gap: 8px; padding: 10px 8px; color: var(--text); font-size: 14px; overflow-wrap: anywhere; border-radius: 6px; }
 .ev-player-choice:has(input:checked) { background: rgba(var(--accent-rgb), .12); }
