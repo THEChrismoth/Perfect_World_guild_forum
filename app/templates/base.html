@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="{% static 'css/accents.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/ui.css' %}">
+    {% if user.is_authenticated %}<link rel="stylesheet" href="{% static 'notification/css/delete_confirmation.css' %}">{% endif %}
     {% if demo_mode %}<link rel="stylesheet" href="{% static 'demo/preview.css' %}">{% endif %}
     {% if site_settings.favicon %}
         <link rel="icon" href="{{ site_settings.favicon.url }}">
@@ -70,11 +71,17 @@
                     <div class="notifications-menu" id="notificationsMenu">
                         <div class="notifications-header">
                             <span>Уведомления</span>
-                            {% if unread_notifications_count > 0 %}
+                            {% if notifications %}
+                            <div class="notifications-header-actions">
                                 <form method="post" action="{% url 'notifications:mark_all_as_read_dropdown' %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="mark-all-read">Все прочитаны</button>
+                                    <button type="submit" class="ui-btn ui-btn-secondary ui-btn-sm"{% if not unread_notifications_count %} disabled{% endif %}>Все прочитаны</button>
                                 </form>
+                                <form method="post" action="{% url 'notifications:delete_all' %}" data-notification-delete="all">
+                                    {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button type="submit" class="ui-btn ui-btn-danger ui-btn-sm">Удалить все</button>
+                                </form>
+                            </div>
                             {% endif %}
                         </div>
                         <div class="notifications-list">
@@ -163,6 +170,10 @@
     </main>
 </div>
 
+{% if user.is_authenticated %}
+    {% include 'notifications/delete_confirmation.html' %}
+    <script src="{% static 'notification/js/delete_confirmation.js' %}" defer></script>
+{% endif %}
 {% include 'includes/theme_script.html' %}
 <script>
     (function () {

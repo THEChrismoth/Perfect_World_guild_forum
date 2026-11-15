@@ -109,6 +109,24 @@ class NotificationViewTests(TestCase):
         self.assertEqual(self.client.post(url).status_code, 302)
         self.assertTrue(Notification.objects.filter(pk=self.notification.pk).exists())
 
+    def test_delete_all_returns_to_current_page_and_rejects_external_next(self):
+        url = reverse('notifications:delete_all')
+        self.assertRedirects(self.client.post(url, {'next': '/?tab=test'}), '/?tab=test', fetch_redirect_response=False)
+        self.assertRedirects(self.client.post(url, {'next': 'https://evil.example/'}),
+                             reverse('notifications:notification_list'), fetch_redirect_response=False)
+
+    def test_dropdown_mark_all_only_updates_own_notifications(self):
+        other = User.objects.create_user('other-read-user')
+        foreign = Notification.objects.create(user=other, title='Чужое', message='Текст')
+        url = reverse('notifications:mark_all_as_read_dropdown')
+        self.assertEqual(self.client.get(url).status_code, 405)
+        self.assertRedirects(self.client.post(url, HTTP_REFERER='http://testserver/auction/'),
+                             'http://testserver/auction/', fetch_redirect_response=False)
+        self.notification.refresh_from_db()
+        foreign.refresh_from_db()
+        self.assertTrue(self.notification.is_read)
+        self.assertFalse(foreign.is_read)
+
     def test_delete_uses_site_dialog_instead_of_browser_confirm(self):
         response = self.client.get(reverse('notifications:notification_list'))
         self.assertContains(response, 'id="notification-delete-dialog"')

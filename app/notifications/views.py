@@ -78,4 +78,4 @@ def delete_all_notifications(request):
     """Удаляет все уведомления только текущего пользователя."""
     Notification.objects.filter(user=request.user).delete()
     messages.success(request, 'Все уведомления удалены')
-    return redirect('notifications:notification_list')
+    return safe_redirect(request, request.POST.get('next'))
