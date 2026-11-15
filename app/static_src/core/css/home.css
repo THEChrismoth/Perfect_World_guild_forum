@@ -1,5 +1,5 @@
 /* Общий дашборд гильдии и главная кандидата */
-.hd-page { max-width: 1240px; margin: 0 auto; min-width: 0; }
+.hd-page { min-width: 0; }
 .hd-page .ui-card-title { display: inline-flex; align-items: center; gap: 8px; }
 .hd-page .ui-card-title .ga-icon { width: 18px; height: 18px; color: var(--text-muted); }
 .hd-page .ui-card-head { margin-bottom: 16px; }
