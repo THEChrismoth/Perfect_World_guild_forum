@@ -1,0 +1,125 @@
+"""Права общения, отправка, блокировки и отметки прочтения."""
+import uuid
+from datetime import timedelta
+
+from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.db import transaction
+from django.db.models import F, Q
+from django.utils import timezone
+
+from core.roles import GUILD_GROUP, is_guild_member
+from .crypto import decrypt, encrypt
+from .models import ContactBlock, Conversation, Message
+
+MAX_LENGTH = 4000
+PER_MINUTE = 20
+PER_DAY = 200
+
+
+def allowed_pair(sender, recipient):
+    if (not sender.is_authenticated or not sender.is_active or not recipient.is_active
+            or sender.pk == recipient.pk):
+        return False
+    return (sender.is_staff or recipient.is_staff
+            or (is_guild_member(sender) and is_guild_member(recipient)))
+
+
+def blocked_pair(first, second):
+    return ContactBlock.objects.filter(Q(blocker=first, blocked=second) | Q(blocker=second, blocked=first)).exists()
+
+
+def can_contact(sender, recipient):
+    return allowed_pair(sender, recipient) and not blocked_pair(sender, recipient)
+
+
+def contact_queryset(user):
+    users = User.objects.filter(is_active=True).exclude(pk=user.pk)
+    if not user.is_staff:
+        users = users.filter(Q(is_staff=True) | Q(groups__name=GUILD_GROUP) | Q(is_superuser=True)) if is_guild_member(user) else users.filter(is_staff=True)
+    blocked_ids = ContactBlock.objects.filter(blocker=user).values('blocked_id')
+    blocked_by_ids = ContactBlock.objects.filter(blocked=user).values('blocker_id')
+    return users.exclude(pk__in=blocked_ids).exclude(pk__in=blocked_by_ids).distinct().order_by('username')
+
+
+def own_conversations(user):
+    return Conversation.objects.filter(Q(low_user=user) | Q(high_user=user))
+
+
+def _lock_pair(first_id, second_id):
+    return {user.pk: user for user in User.objects.select_for_update().filter(
+        pk__in=[first_id, second_id]).order_by('pk')}
+
+
+@transaction.atomic
+def send_message(sender, recipient, text, client_id):
+    """Сохраняет шифротекст один раз при повторах запроса и уведомляет без текста переписки."""
+    if not isinstance(text, str) or not text.strip() or len(text) > MAX_LENGTH:
+        raise ValidationError('Введите сообщение от 1 до 4000 символов.')
+    try:
+        client_id = uuid.UUID(str(client_id))
+    except (ValueError, TypeError, AttributeError):
+        raise ValidationError('Обновите форму отправки сообщения.') from None
+    users = _lock_pair(sender.pk, recipient.pk)
+    sender, recipient = users.get(sender.pk), users.get(recipient.pk)
+    if not sender or not recipient or not sender.is_active:
+        raise PermissionDenied
+    previous = Message.objects.filter(sender=sender, client_id=client_id).select_related('conversation').first()
+    if previous:
+        other_id = previous.conversation.high_user_id if previous.conversation.low_user_id == sender.pk else previous.conversation.low_user_id
+        if other_id != recipient.pk or previous.text_for(sender) != text:
+            raise ValidationError('Эта отправка уже использована. Обновите форму сообщения.')
+        return previous, False
+    if not allowed_pair(sender, recipient) or blocked_pair(sender, recipient):
+        raise PermissionDenied('Отправка сообщений этому пользователю недоступна.')
+    now = timezone.now()
+    recent = Message.objects.filter(sender=sender)
+    if (recent.filter(created_at__gte=now - timedelta(minutes=1)).count() >= PER_MINUTE
+            or recent.filter(created_at__gte=now - timedelta(days=1)).count() >= PER_DAY):
+        raise ValidationError('Слишком много сообщений. Попробуйте отправить позже.')
+    low, high = sorted([sender.pk, recipient.pk])
+    dialog, _ = Conversation.objects.get_or_create(low_user_id=low, high_user_id=high)
+    dialog = Conversation.objects.select_for_update().get(pk=dialog.pk)
+    had_unread = dialog.messages.filter(pk__gt=dialog.read_cursor(recipient)).exclude(sender=recipient).exists()
+    token = encrypt(text, dialog.pk, sender.pk, client_id)
+    message = Message.objects.create(conversation=dialog, sender=sender, client_id=client_id,
+                                     ciphertext=token, created_at=now)
+    dialog.last_message, dialog.updated_at = message, now
+    dialog.save(update_fields=['last_message', 'updated_at'])
+    if not had_unread:
+        from notifications.utils import send_notification
+        send_notification(recipient, 'Новое личное сообщение', f'{sender.username} написал вам.',
+                          link=f'/messages/{dialog.pk}/', notification_type='info')
+    return message, True
+
+
+@transaction.atomic
+def set_block(user, other, blocked):
+    if not user.is_authenticated or not user.is_active or user.pk == other.pk:
+        raise PermissionDenied
+    _lock_pair(user.pk, other.pk)
+    if blocked:
+        ContactBlock.objects.get_or_create(blocker=user, blocked=other)
+    else:
+        ContactBlock.objects.filter(blocker=user, blocked=other).delete()
+
+
+@transaction.atomic
+def mark_read(dialog_id, user, up_to):
+    dialog = own_conversations(user).select_for_update().get(pk=dialog_id)
+    if not dialog.messages.filter(pk=up_to).exists():
+        raise ValidationError('Сообщение не найдено в этом диалоге.')
+    field = 'low_read_id' if dialog.low_user_id == user.pk else 'high_read_id'
+    if up_to > getattr(dialog, field):
+        setattr(dialog, field, up_to)
+        dialog.save(update_fields=[field])
+    return dialog
+
+
+def unread_count(user):
+    if not user.is_authenticated or not user.is_active:
+        return 0
+    return Message.objects.filter(
+        Q(conversation__low_user=user, pk__gt=F('conversation__low_read_id'))
+        | Q(conversation__high_user=user, pk__gt=F('conversation__high_read_id'))
+    ).exclude(sender=user).count()
