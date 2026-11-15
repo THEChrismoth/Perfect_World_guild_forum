@@ -18,7 +18,7 @@ def online_summary():
     return {'users': users, 'count': len(users), 'total': User.objects.filter(is_active=True).count()}
 
 
-def build_site_nav(request, unread_notifications=0):
+def build_site_nav(request):
     """Группы меню с отметкой раздела, в котором сейчас находимся. Только для вошедших пользователей."""
     from messaging.context_processors import request_unread
 
@@ -53,8 +53,6 @@ def build_site_nav(request, unread_notifications=0):
         {'title': 'Личное', 'items': [
             _item('Сообщения', 'message', reverse('messaging:inbox'), 'messaging', current,
                   badge=request_unread(request)),
-            _item('Уведомления', 'bell', reverse('notifications:notification_list'), 'notifications', current,
-                  badge=unread_notifications),
         ]},
     ]
     if user.is_staff:

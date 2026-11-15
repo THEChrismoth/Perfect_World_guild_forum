@@ -292,7 +292,7 @@ class SiteNavTests(TestCase):
         self.assertContains(self.client.get('/'), 'Новых уведомлений нет')
         send_notification(user=self.user, title='Привет', message='Тест')
         response = self.client.get('/')
-        self.assertContains(response, '<span class="site-nav-badge">1</span>', html=True)
+        self.assertContains(response, '<span class="notifications-badge">1</span>', html=True)
         self.assertContains(response, 'Уведомления: 1 новых')
 
     def test_theme_menu_on_site_and_login(self):

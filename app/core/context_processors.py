@@ -17,10 +17,9 @@ def site_nav(request):
         return {}
 
     def build():
-        from notifications.utils import get_unread_count
         from .site_nav import build_site_nav
 
-        return build_site_nav(request, get_unread_count(request.user))
+        return build_site_nav(request)
 
     def online():
         from .site_nav import online_summary
