@@ -24,8 +24,14 @@ class EncryptionTests(TestCase):
         self.client_id = uuid.uuid4()
 
     def message(self):
-        return Message.objects.create(conversation=self.dialog, sender=self.first, client_id=self.client_id,
-            ciphertext=encrypt('Приватный текст\nВторая строка', self.dialog.pk, self.first.pk, self.client_id))
+        return Message.objects.create(
+            conversation=self.dialog,
+            sender=self.first,
+            client_id=self.client_id,
+            ciphertext=encrypt(
+                'Приватный текст\nВторая строка', self.dialog.pk, self.first.pk, self.client_id
+            ),
+        )
 
     def test_ciphertext_and_context_and_django_key_independence(self):
         message = self.message()
@@ -37,9 +43,11 @@ class EncryptionTests(TestCase):
         outsider = User.objects.create_superuser('outsider')
         with self.assertRaises(PermissionDenied):
             message.text_for(outsider)
-        for conversation, sender, client in [(99, self.first.pk, self.client_id),
-                                            (self.dialog.pk, self.second.pk, self.client_id),
-                                            (self.dialog.pk, self.first.pk, uuid.uuid4())]:
+        for conversation, sender, client in [
+            (99, self.first.pk, self.client_id),
+            (self.dialog.pk, self.second.pk, self.client_id),
+            (self.dialog.pk, self.first.pk, uuid.uuid4()),
+        ]:
             with self.assertRaises(MessageCryptoError):
                 decrypt(message.ciphertext, conversation, sender, client)
 
@@ -56,8 +64,13 @@ class EncryptionTests(TestCase):
             self.assertEqual(message.text_for(self.first), 'Приватный текст\nВторая строка')
 
     def test_key_creation_keeps_existing_key_and_refuses_to_replace_lost_one(self):
-        with tempfile.TemporaryDirectory() as directory, override_settings(
-                PRIVATE_MESSAGES_KEYS=(), PRIVATE_MESSAGES_KEY_FILE=str(Path(directory) / 'messages.keys')):
+        with (
+            tempfile.TemporaryDirectory() as directory,
+            override_settings(
+                PRIVATE_MESSAGES_KEYS=(),
+                PRIVATE_MESSAGES_KEY_FILE=str(Path(directory) / 'messages.keys'),
+            ),
+        ):
             output = io.StringIO()
             call_command('init_messages_key', stdout=output)
             key = Path(directory, 'messages.keys').read_bytes()

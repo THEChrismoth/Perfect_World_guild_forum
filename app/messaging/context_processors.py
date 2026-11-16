@@ -2,7 +2,7 @@ from .services import unread_count
 
 
 def request_unread(request):
-    """Повторно используем счётчик в шапке и боковом меню одного запроса."""
+    """Получить общий для шапки и бокового меню счётчик в пределах запроса."""
     if not hasattr(request, '_private_messages_unread'):
         request._private_messages_unread = unread_count(request.user)
     return request._private_messages_unread

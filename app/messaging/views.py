@@ -17,10 +17,19 @@ from .crypto import MessageCryptoError, configured
 from .forms import MessageForm
 from .models import ContactBlock
 from .selectors import dialog_rows, dialogs_for, message_data
-from .services import can_contact, contact_queryset, mark_read, own_conversations, send_message, set_block, unread_count
+from .services import (
+    can_contact,
+    contact_queryset,
+    mark_read,
+    own_conversations,
+    send_message,
+    set_block,
+    unread_count,
+)
 
 
 def _number(value, default=0):
+    """Разобрать неотрицательный ID в диапазоне bigint или вернуть значение по умолчанию."""
     try:
         result = int(value)
         if result < 0 or result > 9223372036854775807:
@@ -31,24 +40,36 @@ def _number(value, default=0):
 
 
 def _dialog(request, pk):
-    return get_object_or_404(own_conversations(request.user).select_related(
-        'low_user__profile', 'high_user__profile'), pk=pk)
+    """Получить свой диалог с собеседником или вернуть HTTP 404."""
+    return get_object_or_404(
+        own_conversations(request.user).select_related('low_user__profile', 'high_user__profile'),
+        pk=pk,
+    )
 
 
 def _sidebar(request):
+    """Подготовить страницу из 20 собственных диалогов для боковой панели."""
     page = Paginator(dialogs_for(request.user), 20).get_page(request.GET.get('page'))
-    return {'dialog_page': page, 'dialog_rows': dialog_rows(request.user, page),
-            'current_dialog_id': request.resolver_match.kwargs.get('pk')}
+    return {
+        'dialog_page': page,
+        'dialog_rows': dialog_rows(request.user, page),
+        'current_dialog_id': request.resolver_match.kwargs.get('pk'),
+    }
 
 
 @login_required
 @never_cache
 @require_GET
 def inbox(request):
+    """Показать список диалогов или вернуть обновление боковой панели в JSON."""
     data = _sidebar(request)
     if request.GET.get('partial') == '1':
-        return JsonResponse({'sidebar': render_to_string('messaging/sidebar.html', data, request=request),
-                             'unread': unread_count(request.user)})
+        return JsonResponse(
+            {
+                'sidebar': render_to_string('messaging/sidebar.html', data, request=request),
+                'unread': unread_count(request.user),
+            }
+        )
     return render(request, 'messaging/inbox.html', data)
 
 
@@ -56,6 +77,7 @@ def inbox(request):
 @never_cache
 @require_GET
 def contacts(request):
+    """Показать до 20 доступных собеседников по необязательному поиску ника."""
     query = request.GET.get('q', '').strip()[:50]
     users = contact_queryset(request.user)
     if query:
@@ -65,13 +87,31 @@ def contacts(request):
 
 @sensitive_variables()
 def _send_form(request, recipient, form):
+    """Обработать отправку без раскрытия текста сообщения в сообщениях об ошибке.
+
+    Args:
+        request: Запрос отправителя; Accept определяет HTML или JSON-ответ.
+        recipient: Получатель сообщения.
+        form: Форма с текстом и UUID отправки.
+
+    Returns:
+        Пара из готового HTTP-ответа и нуля либо из None и HTTP-статуса ошибки.
+        Во втором случае вызывающий код повторно отображает связанную форму.
+    """
     status = 400
     if form.is_valid():
         try:
-            message, created = send_message(request.user, recipient, form.cleaned_data['body'], form.cleaned_data['client_id'])
+            message, created = send_message(
+                request.user, recipient, form.cleaned_data['body'], form.cleaned_data['client_id']
+            )
             if request.headers.get('Accept') == 'application/json':
-                return JsonResponse({'message': message_data(message, request.user),
-                                     'client_id': str(uuid.uuid4())}, status=201 if created else 200), 0
+                return JsonResponse(
+                    {
+                        'message': message_data(message, request.user),
+                        'client_id': str(uuid.uuid4()),
+                    },
+                    status=201 if created else 200,
+                ), 0
             return redirect(message.conversation), 0
         except ValidationError as error:
             form.add_error(None, error)
@@ -93,9 +133,16 @@ def _send_form(request, recipient, form):
 @sensitive_post_parameters('body')
 @sensitive_variables()
 def compose(request, user_id):
+    """Открыть создание диалога с доступным собеседником или отправить первое сообщение."""
     recipient = get_object_or_404(contact_queryset(request.user), pk=user_id)
-    existing = own_conversations(request.user).filter(low_user_id=min(request.user.pk, recipient.pk),
-                                                      high_user_id=max(request.user.pk, recipient.pk)).first()
+    existing = (
+        own_conversations(request.user)
+        .filter(
+            low_user_id=min(request.user.pk, recipient.pk),
+            high_user_id=max(request.user.pk, recipient.pk),
+        )
+        .first()
+    )
     if existing and request.method == 'GET':
         return redirect(existing)
     form = MessageForm(request.POST if request.method == 'POST' else None)
@@ -104,11 +151,21 @@ def compose(request, user_id):
         response, status = _send_form(request, recipient, form)
         if response is not None:
             return response
-    return render(request, 'messaging/compose.html', {**_sidebar(request), 'recipient': recipient,
-                  'form': form, 'messaging_configured': configured()}, status=status)
+    return render(
+        request,
+        'messaging/compose.html',
+        {
+            **_sidebar(request),
+            'recipient': recipient,
+            'form': form,
+            'messaging_configured': configured(),
+        },
+        status=status,
+    )
 
 
 def _conversation_page(request, dialog, form=None, status=200):
+    """Отобразить до 50 сообщений диалога с навигацией по более ранней истории."""
     before = _number(request.GET.get('before'))
     items = dialog.messages.order_by('-pk')
     if before:
@@ -117,21 +174,34 @@ def _conversation_page(request, dialog, form=None, status=200):
     more = len(items) > 50
     items = list(reversed(items[:50]))
     other = dialog.other(request.user)
-    return render(request, 'messaging/conversation.html', {
-        **_sidebar(request), 'dialog': dialog, 'recipient': other, 'current_dialog_id': dialog.pk,
-        'message_rows': [message_data(item, request.user, dialog) for item in items],
-        'form': form or MessageForm(), 'messaging_configured': configured(),
-        'can_send': can_contact(request.user, other),
-        'blocked_by_me': ContactBlock.objects.filter(blocker=request.user, blocked=other).exists(),
-        'history': bool(before), 'older_before': items[0].pk if more else None,
-        'last_id': items[-1].pk if items else 0,
-    }, status=status)
+    return render(
+        request,
+        'messaging/conversation.html',
+        {
+            **_sidebar(request),
+            'dialog': dialog,
+            'recipient': other,
+            'current_dialog_id': dialog.pk,
+            'message_rows': [message_data(item, request.user, dialog) for item in items],
+            'form': form or MessageForm(),
+            'messaging_configured': configured(),
+            'can_send': can_contact(request.user, other),
+            'blocked_by_me': ContactBlock.objects.filter(
+                blocker=request.user, blocked=other
+            ).exists(),
+            'history': bool(before),
+            'older_before': items[0].pk if more else None,
+            'last_id': items[-1].pk if items else 0,
+        },
+        status=status,
+    )
 
 
 @login_required
 @never_cache
 @require_GET
 def conversation(request, pk):
+    """Показать собственный диалог без изменения отметки прочтения при GET."""
     return _conversation_page(request, _dialog(request, pk))
 
 
@@ -141,6 +211,7 @@ def conversation(request, pk):
 @sensitive_post_parameters('body')
 @sensitive_variables()
 def send(request, pk):
+    """Отправить сообщение в собственный диалог с сохранением формы при ошибке."""
     dialog = _dialog(request, pk)
     form = MessageForm(request.POST)
     response, status = _send_form(request, dialog.other(request.user), form)
@@ -151,12 +222,15 @@ def send(request, pk):
 @never_cache
 @require_POST
 def block(request, pk):
+    """Применить собственную блокировку собеседника и вернуться в диалог."""
     dialog = _dialog(request, pk)
     action = request.POST.get('action')
     if action not in ('block', 'unblock'):
         return HttpResponseBadRequest('Некорректное действие')
     set_block(request.user, dialog.other(request.user), action == 'block')
-    messages.success(request, 'Пользователь заблокирован' if action == 'block' else 'Блокировка снята')
+    messages.success(
+        request, 'Пользователь заблокирован' if action == 'block' else 'Блокировка снята'
+    )
     return redirect(dialog)
 
 
@@ -164,18 +238,26 @@ def block(request, pk):
 @never_cache
 @require_GET
 def updates(request, pk):
+    """Вернуть до 50 новых сообщений, курсор прочтения и актуальную возможность отправки."""
     dialog = _dialog(request, pk)
     after = _number(request.GET.get('after'))
     items = list(dialog.messages.filter(pk__gt=after).order_by('pk')[:51])
-    return JsonResponse({'messages': [message_data(item, request.user, dialog) for item in items[:50]],
-                         'more': len(items) > 50, 'read_id': dialog.read_cursor(dialog.other(request.user)),
-                         'unread': unread_count(request.user), 'can_send': can_contact(request.user, dialog.other(request.user))})
+    return JsonResponse(
+        {
+            'messages': [message_data(item, request.user, dialog) for item in items[:50]],
+            'more': len(items) > 50,
+            'read_id': dialog.read_cursor(dialog.other(request.user)),
+            'unread': unread_count(request.user),
+            'can_send': can_contact(request.user, dialog.other(request.user)),
+        }
+    )
 
 
 @login_required
 @never_cache
 @require_POST
 def read(request, pk):
+    """Подтвердить прочтение сообщения собственного диалога по POST."""
     dialog = _dialog(request, pk)
     try:
         mark_read(dialog.pk, request.user, _number(request.POST.get('up_to')))
@@ -190,4 +272,5 @@ def read(request, pk):
 @never_cache
 @require_GET
 def badge(request):
+    """Вернуть отдельный счётчик непрочитанных личных сообщений."""
     return JsonResponse({'unread': unread_count(request.user)})

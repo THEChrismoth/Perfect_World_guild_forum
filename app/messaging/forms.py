@@ -4,9 +4,19 @@ from django import forms
 
 
 class MessageForm(forms.Form):
-    body = forms.CharField(label='Сообщение', max_length=4000, strip=False,
-        widget=forms.Textarea(attrs={'class': 'ui-input pm-textarea', 'rows': 3,
-                                     'placeholder': 'Напишите сообщение…', 'maxlength': 4000}))
+    body = forms.CharField(
+        label='Сообщение',
+        max_length=4000,
+        strip=False,
+        widget=forms.Textarea(
+            attrs={
+                'class': 'ui-input pm-textarea',
+                'rows': 3,
+                'placeholder': 'Напишите сообщение…',
+                'maxlength': 4000,
+            }
+        ),
+    )
     client_id = forms.UUIDField(widget=forms.HiddenInput)
 
     def __init__(self, *args, **kwargs):

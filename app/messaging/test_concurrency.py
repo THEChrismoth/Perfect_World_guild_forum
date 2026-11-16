@@ -42,8 +42,12 @@ class MessageConcurrencyTests(TransactionTestCase):
         self.assertEqual(sorted(created for message, created in results), [False, True])
 
     def test_opposite_sends_share_dialog_without_deadlock(self):
-        self.parallel([lambda: send_message(self.first, self.second, 'Первый', uuid.uuid4()),
-                       lambda: send_message(self.second, self.first, 'Второй', uuid.uuid4())])
+        self.parallel(
+            [
+                lambda: send_message(self.first, self.second, 'Первый', uuid.uuid4()),
+                lambda: send_message(self.second, self.first, 'Второй', uuid.uuid4()),
+            ]
+        )
         self.assertEqual(Conversation.objects.count(), 1)
         self.assertEqual(Message.objects.count(), 2)
 

@@ -17,7 +17,9 @@ class MessageViewTests(TestCase):
         self.admin = User.objects.create_superuser('Админ')
         self.candidate = User.objects.create_user('Кандидат')
         Group.objects.get_or_create(name='Член гильдии')[0].user_set.add(self.first, self.second)
-        self.message = send_message(self.first, self.second, '<script>alert(1)</script>', uuid.uuid4())[0]
+        self.message = send_message(
+            self.first, self.second, '<script>alert(1)</script>', uuid.uuid4()
+        )[0]
         self.dialog = self.message.conversation
         self.client.force_login(self.second)
 
@@ -34,7 +36,11 @@ class MessageViewTests(TestCase):
         self.assertEqual(unread_count(self.second), 1)
         self.client.force_login(self.admin)
         for name in ['conversation', 'updates', 'send', 'read', 'block']:
-            response = self.client.get(self.url(name)) if name in ['conversation', 'updates'] else self.client.post(self.url(name))
+            response = (
+                self.client.get(self.url(name))
+                if name in ['conversation', 'updates']
+                else self.client.post(self.url(name))
+            )
             self.assertEqual(response.status_code, 404)
         self.assertNotContains(self.client.get(reverse('messaging:inbox')), '&lt;script&gt;')
 
@@ -49,7 +55,9 @@ class MessageViewTests(TestCase):
         self.assertEqual(len(response.json()['messages']), 1)
         self.assertEqual(self.client.get(self.url('read')).status_code, 405)
         self.assertEqual(self.client.post(self.url('read'), {'up_to': 999999}).status_code, 400)
-        response = self.client.post(self.url('read'), {'up_to': self.message.pk}, HTTP_ACCEPT='application/json')
+        response = self.client.post(
+            self.url('read'), {'up_to': self.message.pk}, HTTP_ACCEPT='application/json'
+        )
         self.assertEqual(response.json()['unread'], 0)
 
     def test_csrf_block_and_draft_survives_failure(self):
@@ -60,20 +68,32 @@ class MessageViewTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertContains(response, 'Черновик', status_code=400)
         self.client.post(self.url('block'), {'action': 'block'})
-        response = self.client.post(self.url('send'), {'body': 'Текст', 'client_id': str(uuid.uuid4())}, HTTP_ACCEPT='application/json')
+        response = self.client.post(
+            self.url('send'),
+            {'body': 'Текст', 'client_id': str(uuid.uuid4())},
+            HTTP_ACCEPT='application/json',
+        )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(Message.objects.count(), 1)
         self.assertEqual(self.client.get(self.url('conversation')).status_code, 200)
 
     def test_candidate_contacts_and_missing_key(self):
         self.client.force_login(self.candidate)
-        self.assertEqual(self.client.get(reverse('messaging:compose', args=[self.first.pk])).status_code, 404)
-        self.assertEqual(self.client.get(reverse('messaging:compose', args=[self.admin.pk])).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse('messaging:compose', args=[self.first.pk])).status_code, 404
+        )
+        self.assertEqual(
+            self.client.get(reverse('messaging:compose', args=[self.admin.pk])).status_code, 200
+        )
         self.client.force_login(self.second)
         with override_settings(PRIVATE_MESSAGES_KEYS=('invalid',)):
             response = self.client.get(self.url('conversation'))
             self.assertContains(response, 'Сообщение недоступно')
-            response = self.client.post(self.url('send'), {'body': 'Секрет', 'client_id': str(uuid.uuid4())}, HTTP_ACCEPT='application/json')
+            response = self.client.post(
+                self.url('send'),
+                {'body': 'Секрет', 'client_id': str(uuid.uuid4())},
+                HTTP_ACCEPT='application/json',
+            )
             self.assertEqual(response.status_code, 503)
             self.assertNotContains(response, 'Секрет', status_code=503)
         self.assertEqual(Message.objects.count(), 1)
@@ -87,7 +107,9 @@ class MessageViewTests(TestCase):
         response = self.client.get(self.url('conversation'))
         self.assertEqual(len(response.context['message_rows']), 50)
         self.assertIsNotNone(response.context['older_before'])
-        older = self.client.get(self.url('conversation'), {'before': response.context['older_before']})
+        older = self.client.get(
+            self.url('conversation'), {'before': response.context['older_before']}
+        )
         self.assertEqual(len(older.context['message_rows']), 3)
         self.assertTrue(older.context['history'])
         updates = self.client.get(self.url('updates')).json()
