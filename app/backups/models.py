@@ -23,24 +23,23 @@ class BackupSettings(models.Model):
 
     # Расписание.
     enabled = models.BooleanField(
-        'Автоматические копии',
-        default=False,
-        help_text='Создавать резервные копии по расписанию'
+        'Автоматические копии', default=False, help_text='Создавать резервные копии по расписанию'
     )
-    frequency = models.CharField('Как часто', max_length=10, choices=FREQUENCY_CHOICES, default='daily')
+    frequency = models.CharField(
+        'Как часто', max_length=10, choices=FREQUENCY_CHOICES, default='daily'
+    )
     weekday = models.PositiveSmallIntegerField(
-        'День недели',
-        choices=WEEKDAY_CHOICES,
-        default=0,
-        help_text='Для копий раз в неделю'
+        'День недели', choices=WEEKDAY_CHOICES, default=0, help_text='Для копий раз в неделю'
     )
-    run_time = models.TimeField('Время', default=datetime.time(4, 0), help_text='По времени сервера (Москва)')
+    run_time = models.TimeField(
+        'Время', default=datetime.time(4, 0), help_text='По времени сервера (Москва)'
+    )
 
     # Что сохранять.
     include_media = models.BooleanField(
         'Сохранять загруженные файлы',
         default=True,
-        help_text='Аватары, картинки постов, скриншоты заявок. Без них копия меньше, но картинки не восстановятся'
+        help_text='Аватары, картинки постов, скриншоты заявок. Без них копия меньше, но картинки не восстановятся',
     )
 
     # Локальное хранение.
@@ -48,38 +47,40 @@ class BackupSettings(models.Model):
         'Хранить копий на сервере',
         default=7,
         validators=[MinValueValidator(1)],
-        help_text='Более старые копии удаляются с сервера автоматически'
+        help_text='Более старые копии удаляются с сервера автоматически',
     )
 
     # Яндекс Диск.
     yandex_enabled = models.BooleanField(
         'Загружать на Яндекс Диск',
         default=False,
-        help_text='Только для зашифрованных копий: задайте BACKUP_ENCRYPTION_PASSWORD в .env'
+        help_text='Только для зашифрованных копий: задайте BACKUP_ENCRYPTION_PASSWORD в .env',
     )
     # Хранится зашифрованным (см. backups/crypto.py). Читать — get_yandex_token().
     yandex_token = models.CharField(
         'OAuth-токен Яндекса',
         max_length=500,
         blank=True,
-        help_text='Как получить токен — в README, раздел «Резервные копии». Оставьте поле пустым, чтобы не менять сохраненный токен'
+        help_text='Как получить токен — в README, раздел «Резервные копии». Оставьте поле пустым, чтобы не менять сохраненный токен',
     )
     yandex_folder = models.CharField(
         'Папка на Диске',
         max_length=255,
         default='app:/backups',
         help_text='app:/backups — папка приложения (Приложения → название приложения → backups). '
-                  'Если у токена полный доступ к Диску, можно указать, например, disk:/Бэкапы гильдии'
+        'Если у токена полный доступ к Диску, можно указать, например, disk:/Бэкапы гильдии',
     )
     keep_yandex = models.PositiveIntegerField(
         'Хранить копий на Яндекс Диске',
         default=30,
         validators=[MinValueValidator(1)],
-        help_text='Более старые копии удаляются с Диска автоматически'
+        help_text='Более старые копии удаляются с Диска автоматически',
     )
 
     # Служебное: когда в последний раз сработало расписание.
-    last_scheduled_run = models.DateTimeField('Последний запуск по расписанию', null=True, blank=True, editable=False)
+    last_scheduled_run = models.DateTimeField(
+        'Последний запуск по расписанию', null=True, blank=True, editable=False
+    )
 
     class Meta:
         verbose_name = 'Настройки резервных копий'
@@ -107,13 +108,14 @@ class BackupSettings(models.Model):
         return obj
 
     def get_yandex_token(self):
-        """Расшифрованный токен или пустая строка."""
+        """Вернуть расшифрованный токен или пустую строку."""
         from .crypto import decrypt_secret
+
         return decrypt_secret(self.yandex_token) or ''
 
     @property
     def yandex_token_unreadable(self):
-        """Токен сохранен, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY."""
+        """Проверить, сохранён ли токен, который не удаётся расшифровать."""
         return bool(self.yandex_token) and not self.get_yandex_token()
 
     @property
@@ -150,11 +152,7 @@ class Backup(models.Model):
     status = models.CharField('Статус', max_length=10, choices=STATUS_CHOICES, default='pending')
     trigger = models.CharField('Запуск', max_length=10, choices=TRIGGER_CHOICES, default='manual')
     requested_by = models.ForeignKey(
-        'auth.User',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        verbose_name='Запустил'
+        'auth.User', on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Запустил'
     )
 
     file_name = models.CharField('Файл', max_length=255, blank=True)
@@ -163,7 +161,9 @@ class Backup(models.Model):
     encrypted = models.BooleanField('Зашифрована', default=False)
     local_deleted = models.BooleanField('Удалено с сервера', default=False)
 
-    yandex_status = models.CharField('Яндекс Диск', max_length=10, choices=YANDEX_STATUS_CHOICES, default='off')
+    yandex_status = models.CharField(
+        'Яндекс Диск', max_length=10, choices=YANDEX_STATUS_CHOICES, default='off'
+    )
     yandex_path = models.CharField('Путь на Диске', max_length=500, blank=True)
 
     error = models.TextField('Ошибка', blank=True)
@@ -185,6 +185,7 @@ class Backup(models.Model):
     @property
     def local_path(self):
         from .services import backup_dir
+
         if not self.file_name:
             return None
         return backup_dir() / self.file_name

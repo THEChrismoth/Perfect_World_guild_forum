@@ -15,7 +15,9 @@ class Command(BaseCommand):
         if backup.status == 'failed':
             raise CommandError(backup.error)
 
-        self.stdout.write(self.style.SUCCESS(f'Готово: {backup.local_path} ({filesizeformat(backup.size or 0)})'))
+        self.stdout.write(
+            self.style.SUCCESS(f'Готово: {backup.local_path} ({filesizeformat(backup.size or 0)})')
+        )
         if backup.yandex_status == 'uploaded':
             self.stdout.write(self.style.SUCCESS(f'Загружено на Яндекс Диск: {backup.yandex_path}'))
         if backup.error:

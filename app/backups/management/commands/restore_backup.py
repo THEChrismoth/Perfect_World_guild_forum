@@ -5,19 +5,34 @@ from django.core.management.base import BaseCommand, CommandError
 from django.template.defaultfilters import filesizeformat
 
 from backups.models import BackupSettings
-from backups.services import BackupError, backup_dir, list_archives, restore_backup, sync_journal_with_files
+from backups.services import (
+    BackupError,
+    backup_dir,
+    list_archives,
+    restore_backup,
+    sync_journal_with_files,
+)
 from backups.yandex import YandexDisk, YandexDiskError
 
 
 class Command(BaseCommand):
-    help = ('Восстанавливает сайт из резервной копии. ВНИМАНИЕ: текущие данные будут заменены. '
-            'Без аргументов показывает список копий на сервере')
+    help = (
+        'Восстанавливает сайт из резервной копии. ВНИМАНИЕ: текущие данные будут заменены. '
+        'Без аргументов показывает список копий на сервере'
+    )
 
     def add_arguments(self, parser):
-        parser.add_argument('file', nargs='?', help='Имя файла копии (из папки копий на сервере) или путь к файлу')
-        parser.add_argument('--from-yandex', action='store_true',
-                            help='Скачать копию с этим именем из папки на Яндекс Диске')
-        parser.add_argument('--no-media', action='store_true', help='Не восстанавливать загруженные файлы')
+        parser.add_argument(
+            'file', nargs='?', help='Имя файла копии (из папки копий на сервере) или путь к файлу'
+        )
+        parser.add_argument(
+            '--from-yandex',
+            action='store_true',
+            help='Скачать копию с этим именем из папки на Яндекс Диске',
+        )
+        parser.add_argument(
+            '--no-media', action='store_true', help='Не восстанавливать загруженные файлы'
+        )
         parser.add_argument('--yes', action='store_true', help='Не спрашивать подтверждение')
 
     def handle(self, *args, **options):
@@ -27,9 +42,11 @@ class Command(BaseCommand):
 
         name = options['file']
         if not options['yes']:
-            self.stdout.write(self.style.WARNING(
-                f'Все текущие данные сайта будут заменены данными из копии {name}.'
-            ))
+            self.stdout.write(
+                self.style.WARNING(
+                    f'Все текущие данные сайта будут заменены данными из копии {name}.'
+                )
+            )
             if input('Продолжить? Введите "да": ').strip().lower() not in ('да', 'yes', 'y'):
                 self.stdout.write('Отменено')
                 return
@@ -43,7 +60,9 @@ class Command(BaseCommand):
                     path = backup_dir() / name
 
             try:
-                manifest = restore_backup(path, restore_media=not options['no_media'], log=self.stdout.write)
+                manifest = restore_backup(
+                    path, restore_media=not options['no_media'], log=self.stdout.write
+                )
             except BackupError as error:
                 raise CommandError(str(error)) from None
 
@@ -67,8 +86,10 @@ class Command(BaseCommand):
         backup_settings = BackupSettings.load()
         token = backup_settings.get_yandex_token()
         if not token:
-            raise CommandError('Токен Яндекс Диска не настроен в админ-панели (или не расшифровывается после смены '
-                               'DJANGO_SECRET_KEY). На новом сервере введите токен в настройках резервных копий')
+            raise CommandError(
+                'Токен Яндекс Диска не настроен в админ-панели (или не расшифровывается после смены '
+                'DJANGO_SECRET_KEY). На новом сервере введите токен в настройках резервных копий'
+            )
         remote = backup_settings.yandex_folder.rstrip('/') + '/' + name
         local = target_dir / name
         self.stdout.write(f'Скачиваю {remote}...')

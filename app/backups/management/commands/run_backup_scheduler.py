@@ -13,8 +13,10 @@ CHECK_INTERVAL = 30  # Секунд
 
 
 class Command(BaseCommand):
-    help = ('Планировщик: завершает лоты аукциона по окончании торгов, создает резервные копии по расписанию '
-            'из админ-панели и выполняет копии, запрошенные кнопкой «Сделать копию сейчас». Работает постоянно')
+    help = (
+        'Планировщик: завершает лоты аукциона по окончании торгов, создает резервные копии по расписанию '
+        'из админ-панели и выполняет копии, запрошенные кнопкой «Сделать копию сейчас». Работает постоянно'
+    )
 
     def handle(self, *args, **options):
         self.running = True
@@ -73,7 +75,9 @@ class Command(BaseCommand):
                 break
             self.stdout.write(f'Создаю резервную копию #{backup.pk}...')
             run_backup(backup)
-            self.stdout.write(f'Копия #{backup.pk}: {backup.get_status_display()} {backup.file_name}')
+            self.stdout.write(
+                f'Копия #{backup.pk}: {backup.get_status_display()} {backup.file_name}'
+            )
 
     def _stop(self, signum, frame):
         self.running = False

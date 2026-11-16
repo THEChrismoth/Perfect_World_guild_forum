@@ -10,6 +10,7 @@
 backup-ГГГГММДД-ЧЧММСС.tar.gz.gpg. Незашифрованный архив при этом не попадает в папку копий
 даже временно. На Яндекс Диск загружаются только зашифрованные копии.
 """
+
 import datetime
 import json
 import os
@@ -24,7 +25,13 @@ from django.conf import settings
 from django.db import connection
 from django.utils import timezone
 
-from .crypto import ENCRYPTED_SUFFIX, EncryptionError, decrypt_file, encrypt_file, encryption_enabled
+from .crypto import (
+    ENCRYPTED_SUFFIX,
+    EncryptionError,
+    decrypt_file,
+    encrypt_file,
+    encryption_enabled,
+)
 from .models import Backup, BackupSettings
 from .yandex import YandexDisk, YandexDiskError
 
@@ -35,12 +42,16 @@ PARTIAL_SUFFIX = '.part'
 
 
 def is_archive_name(name):
-    return name.startswith(ARCHIVE_PREFIX) and name.endswith((ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX))
+    return name.startswith(ARCHIVE_PREFIX) and name.endswith(
+        (ARCHIVE_SUFFIX, ENCRYPTED_ARCHIVE_SUFFIX)
+    )
 
 
 def list_archives():
-    """Файлы копий на сервере, новые первыми."""
-    return sorted((p for p in backup_dir().iterdir() if p.is_file() and is_archive_name(p.name)), reverse=True)
+    """Перечислить файлы локальных копий от новых к старым."""
+    return sorted(
+        (p for p in backup_dir().iterdir() if p.is_file() and is_archive_name(p.name)), reverse=True
+    )
 
 
 class BackupError(Exception):
@@ -55,8 +66,9 @@ def backup_dir():
 
 # ---------- Расписание ----------
 
+
 def last_due_time(backup_settings, now=None):
-    """Последний момент, когда по расписанию должна была создаться копия."""
+    """Вычислить последний плановый момент создания резервной копии."""
     now = timezone.localtime(now or timezone.now())
     due = now.replace(
         hour=backup_settings.run_time.hour,
@@ -84,6 +96,7 @@ def is_backup_due(backup_settings, now=None):
 
 # ---------- Создание ----------
 
+
 def _dump_database(target_dir):
     db = settings.DATABASES['default']
     engine = db['ENGINE']
@@ -104,7 +117,9 @@ def _dump_database(target_dir):
         try:
             result = subprocess.run(command, env=env, capture_output=True, text=True, timeout=3600)
         except FileNotFoundError:
-            raise BackupError('Не найдена программа pg_dump. Установите клиент PostgreSQL') from None
+            raise BackupError(
+                'Не найдена программа pg_dump. Установите клиент PostgreSQL'
+            ) from None
         if result.returncode != 0:
             raise BackupError(f'pg_dump завершился с ошибкой: {result.stderr.strip()}')
         return 'postgresql', path.name
@@ -127,7 +142,7 @@ def _dump_database(target_dir):
 
 
 def _build_archive(backup, include_media):
-    """Создает архив копии. Возвращает (путь к файлу, зашифрован ли он)."""
+    """Создать архив копии. Возвращает (путь к файлу, зашифрован ли он)."""
     encrypt = encryption_enabled()
     timestamp = timezone.localtime().strftime('%Y%m%d-%H%M%S')
     suffix = ENCRYPTED_ARCHIVE_SUFFIX if encrypt else ARCHIVE_SUFFIX
@@ -146,7 +161,9 @@ def _build_archive(backup, include_media):
             'includes_media': include_media,
             'backup_id': backup.pk,
         }
-        (tmp_dir / 'manifest.json').write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8')
+        (tmp_dir / 'manifest.json').write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding='utf-8'
+        )
 
         # Незашифрованный архив собираем во временной папке, а не в папке копий.
         plain_path = tmp_dir / 'archive.tar.gz'
@@ -173,7 +190,15 @@ def _build_archive(backup, include_media):
 
 
 def run_backup(backup):
-    """Выполняет резервное копирование для записи журнала. Ошибки записываются в журнал."""
+    """Создать локальную копию, выполнить облачную загрузку и ротацию по настройкам.
+
+    Args:
+        backup: Сохранённая запись журнала, в которой фиксируются этапы и ошибки.
+
+    Returns:
+        Запись журнала с итоговым статусом. Ошибка создания архива даёт failed;
+        сбой облака или ротации при готовой локальной копии даёт warning.
+    """
     backup_settings = BackupSettings.load()
     backup.status = 'running'
     backup.started_at = timezone.now()
@@ -196,8 +221,10 @@ def run_backup(backup):
     if backup_settings.yandex_configured and not encrypted:
         # Данные пользователей не отправляем в чужое облако открытым текстом.
         backup.yandex_status = 'failed'
-        errors.append('Яндекс Диск: копия не загружена, потому что не зашифрована. '
-                      'Задайте BACKUP_ENCRYPTION_PASSWORD в .env и перезапустите контейнеры')
+        errors.append(
+            'Яндекс Диск: копия не загружена, потому что не зашифрована. '
+            'Задайте BACKUP_ENCRYPTION_PASSWORD в .env и перезапустите контейнеры'
+        )
     elif backup_settings.yandex_configured:
         try:
             remote_path = _upload_to_yandex(backup_settings, archive_path)
@@ -258,9 +285,12 @@ def _notify_admins(backup):
 
 # ---------- Хранение ----------
 
+
 def rotate_local(keep):
-    """Оставляет на сервере только keep последних успешных копий."""
-    backups = Backup.objects.filter(local_deleted=False).exclude(file_name='').order_by('-created_at')
+    """Оставить на сервере только keep последних успешных копий."""
+    backups = (
+        Backup.objects.filter(local_deleted=False).exclude(file_name='').order_by('-created_at')
+    )
     kept = 0
     for backup in backups:
         if backup.status in Backup.COMPLETED_STATUSES and kept < keep:
@@ -288,18 +318,22 @@ def _upload_to_yandex(backup_settings, archive_path):
 
 
 def rotate_yandex(backup_settings):
-    """Оставляет на Яндекс Диске только keep_yandex последних копий сайта."""
+    """Оставить на Яндекс Диске только keep_yandex последних копий сайта."""
     disk = YandexDisk(backup_settings.get_yandex_token())
-    files = [item for item in disk.list_files(backup_settings.yandex_folder) if is_archive_name(item['name'])]
+    files = [
+        item
+        for item in disk.list_files(backup_settings.yandex_folder)
+        if is_archive_name(item['name'])
+    ]
     # Имя содержит дату, поэтому сортировка по имени — это сортировка по времени.
     files.sort(key=lambda item: item['name'], reverse=True)
-    for item in files[backup_settings.keep_yandex:]:
+    for item in files[backup_settings.keep_yandex :]:
         disk.delete(item['path'])
         Backup.objects.filter(file_name=item['name']).update(yandex_status='deleted')
 
 
 def recover_interrupted():
-    """Копии, которые выполнялись при остановке сервера, помечаем как прерванные."""
+    """Пометить прерванные копии и удалить недописанные временные архивы."""
     for backup in Backup.objects.filter(status='running'):
         backup.status = 'failed'
         backup.error = 'Копирование прервано: сервер был остановлен или перезапущен'
@@ -310,7 +344,7 @@ def recover_interrupted():
 
 
 def sync_journal_with_files():
-    """Сверяет журнал копий с файлами на сервере после восстановления.
+    """Сверить журнал копий с файлами на сервере после восстановления.
 
     После восстановления журнал копий тоже становится таким, каким был в момент копии:
     копия, из которой восстанавливались, записана в нем как «выполняется», а более новых нет.
@@ -337,8 +371,26 @@ def sync_journal_with_files():
 
 # ---------- Восстановление ----------
 
+
 def restore_backup(archive_path, restore_media=True, log=print):
-    """Восстанавливает базу (и загруженные файлы) из архива. Текущие данные заменяются."""
+    """Восстановить базу и выбранные загруженные файлы из архива копии.
+
+    Текущие данные базы заменяются. При восстановлении media содержимое её каталога
+    очищается перед копированием. Соединение Django с базой закрывается.
+
+    Args:
+        archive_path: Путь локального архива сайта, в том числе зашифрованного GPG.
+        restore_media: Восстановить media, если файлы включены в архив.
+        log: Функция вывода сообщений о ходе восстановления.
+
+    Returns:
+        Словарь манифеста восстановленной копии.
+
+    Raises:
+        BackupError: Архив отсутствует, повреждён, не расшифрован, не содержит
+            манифест, имеет несовместимый тип базы или pg_restore вернул ошибку.
+        OSError: Файл копии или каталог восстановления недоступен.
+    """
     archive_path = Path(archive_path)
     if not archive_path.exists():
         raise BackupError(f'Файл {archive_path} не найден')
@@ -373,13 +425,22 @@ def restore_backup(archive_path, restore_media=True, log=print):
 
         if engine == 'postgresql':
             if db['ENGINE'] != 'django.db.backends.postgresql':
-                raise BackupError('Копия сделана из PostgreSQL, а сайт сейчас работает на другой базе')
+                raise BackupError(
+                    'Копия сделана из PostgreSQL, а сайт сейчас работает на другой базе'
+                )
             log('Восстанавливаю базу данных PostgreSQL...')
             env = os.environ.copy()
             if db.get('PASSWORD'):
                 env['PGPASSWORD'] = str(db['PASSWORD'])
-            command = ['pg_restore', '--clean', '--if-exists', '--no-owner', '--no-privileges',
-                       '--single-transaction', f'--dbname={db["NAME"]}']
+            command = [
+                'pg_restore',
+                '--clean',
+                '--if-exists',
+                '--no-owner',
+                '--no-privileges',
+                '--single-transaction',
+                f'--dbname={db["NAME"]}',
+            ]
             if db.get('HOST'):
                 command.append(f'--host={db["HOST"]}')
             if db.get('PORT'):
@@ -393,8 +454,10 @@ def restore_backup(archive_path, restore_media=True, log=print):
                 raise BackupError(f'pg_restore завершился с ошибкой: {result.stderr.strip()}')
         elif engine == 'sqlite':
             if db['ENGINE'] != 'django.db.backends.sqlite3':
-                raise BackupError('Копия сделана из SQLite, а сайт сейчас работает на PostgreSQL. '
-                                  'Перенесите данные через dumpdata/loaddata (см. docs/DEVELOPMENT.md)')
+                raise BackupError(
+                    'Копия сделана из SQLite, а сайт сейчас работает на PostgreSQL. '
+                    'Перенесите данные через dumpdata/loaddata (см. docs/DEVELOPMENT.md)'
+                )
             log('Восстанавливаю базу данных SQLite...')
             connection.close()
             source = sqlite3.connect(db_file)

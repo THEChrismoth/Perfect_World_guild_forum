@@ -9,6 +9,7 @@
 
 Токен Яндекс Диска хранится в базе зашифрованным — см. core/secrets.py.
 """
+
 import os
 import shutil
 import subprocess
@@ -28,6 +29,7 @@ class EncryptionError(Exception):
 
 # ---------- Архивы (GPG) ----------
 
+
 def encryption_password():
     return settings.BACKUP_ENCRYPTION_PASSWORD or ''
 
@@ -45,33 +47,78 @@ def _run_gpg(args, password):
     with tempfile.TemporaryDirectory() as gnupg_home:
         env = os.environ.copy()
         env['GNUPGHOME'] = gnupg_home
-        command = [gpg_binary(), '--batch', '--yes', '--no-tty', '--quiet',
-                   '--pinentry-mode', 'loopback', '--passphrase-fd', '0', *args]
+        command = [
+            gpg_binary(),
+            '--batch',
+            '--yes',
+            '--no-tty',
+            '--quiet',
+            '--pinentry-mode',
+            'loopback',
+            '--passphrase-fd',
+            '0',
+            *args,
+        ]
         try:
-            result = subprocess.run(command, input=password, env=env, capture_output=True, text=True, timeout=3600)
+            result = subprocess.run(
+                command, input=password, env=env, capture_output=True, text=True, timeout=3600
+            )
         except FileNotFoundError:
             raise EncryptionError('Не найдена программа gpg. Установите GnuPG') from None
     return result
 
 
 def encrypt_file(source, target, password=None):
+    """Зашифровать файл резервной копии через GPG с AES-256.
+
+    Args:
+        source: Путь к исходному архиву.
+        target: Путь выходного зашифрованного файла.
+        password: Пароль; пустое значение заменяется настройкой окружения.
+
+    Raises:
+        EncryptionError: Пароль не задан, GPG недоступен или шифрование завершилось ошибкой.
+        subprocess.TimeoutExpired: GPG не завершился за отведённое время.
+    """
     password = password or encryption_password()
     if not password:
         raise EncryptionError('Не задан пароль шифрования BACKUP_ENCRYPTION_PASSWORD')
-    result = _run_gpg([
-        '--symmetric',
-        '--cipher-algo', 'AES256',
-        '--s2k-mode', '3', '--s2k-digest-algo', 'SHA512', '--s2k-count', '65011712',
-        # Архив уже сжат gzip — повторно не сжимаем.
-        '--compress-algo', 'none',
-        '--output', str(target),
-        str(source),
-    ], password)
+    result = _run_gpg(
+        [
+            '--symmetric',
+            '--cipher-algo',
+            'AES256',
+            '--s2k-mode',
+            '3',
+            '--s2k-digest-algo',
+            'SHA512',
+            '--s2k-count',
+            '65011712',
+            # Архив уже сжат gzip — повторно не сжимаем.
+            '--compress-algo',
+            'none',
+            '--output',
+            str(target),
+            str(source),
+        ],
+        password,
+    )
     if result.returncode != 0:
         raise EncryptionError(f'Не удалось зашифровать копию: {result.stderr.strip()}')
 
 
 def decrypt_file(source, target, password=None):
+    """Расшифровать копию GPG в отдельный файл.
+
+    Args:
+        source: Путь к зашифрованной копии.
+        target: Путь для записи расшифрованного архива.
+        password: Пароль копии; по умолчанию настройка окружения.
+
+    Raises:
+        EncryptionError: Пароль отсутствует, неверен или GPG вернул ошибку.
+        subprocess.TimeoutExpired: GPG не завершился за отведённое время.
+    """
     password = password or encryption_password()
     if not password:
         raise EncryptionError(

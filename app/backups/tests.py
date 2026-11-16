@@ -32,7 +32,7 @@ def fake_decrypt(source, target, password=None):
     data = Path(source).read_bytes()
     if not data.startswith(b'FAKE-GPG'):
         raise crypto.EncryptionError('Неверный пароль шифрования')
-    Path(target).write_bytes(data[len(b'FAKE-GPG'):])
+    Path(target).write_bytes(data[len(b'FAKE-GPG') :])
 
 
 def gpg_works():
@@ -63,7 +63,9 @@ class TempDirsMixin:
         self.media_root = self.tmp / 'media'
         (self.media_root / 'avatars').mkdir(parents=True)
         (self.media_root / 'avatars' / 'a.png').write_bytes(b'png')
-        overrides = override_settings(BACKUP_DIR=str(self.backup_dir), MEDIA_ROOT=str(self.media_root))
+        overrides = override_settings(
+            BACKUP_DIR=str(self.backup_dir), MEDIA_ROOT=str(self.media_root)
+        )
         overrides.enable()
         self.addCleanup(overrides.disable)
         self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
@@ -90,12 +92,18 @@ class ScheduleTests(TestCase):
 
     def test_weekly(self):
         # 19.10.2026 — понедельник.
-        s = self.make_settings(frequency='weekly', weekday=2, last_scheduled_run=moscow(2026, 10, 14, 4, 1))
+        s = self.make_settings(
+            frequency='weekly', weekday=2, last_scheduled_run=moscow(2026, 10, 14, 4, 1)
+        )
         self.assertFalse(services.is_backup_due(s, moscow(2026, 10, 20, 12, 0)))  # Вторник
-        self.assertTrue(services.is_backup_due(s, moscow(2026, 10, 21, 4, 0)))   # Среда
+        self.assertTrue(services.is_backup_due(s, moscow(2026, 10, 21, 4, 0)))  # Среда
 
     def test_disabled_or_just_enabled(self):
-        self.assertFalse(services.is_backup_due(self.make_settings(enabled=False, last_scheduled_run=moscow(2020, 1, 1, 0, 0))))
+        self.assertFalse(
+            services.is_backup_due(
+                self.make_settings(enabled=False, last_scheduled_run=moscow(2020, 1, 1, 0, 0))
+            )
+        )
         self.assertFalse(services.is_backup_due(self.make_settings(last_scheduled_run=None)))
 
 
@@ -147,8 +155,9 @@ class CreateBackupTests(TempDirsMixin, TransactionTestCase):
         backups = []
         for i in range(4):
             # Разные имена файлов, как будто копии сделаны в разное время.
-            with mock.patch('backups.services.timezone.localtime',
-                            return_value=moscow(2026, 10, 19, 4, 0, i)):
+            with mock.patch(
+                'backups.services.timezone.localtime', return_value=moscow(2026, 10, 19, 4, 0, i)
+            ):
                 backups.append(services.run_backup(Backup.objects.create()))
 
         files = sorted(p.name for p in self.backup_dir.glob('*.tar.gz'))
@@ -159,12 +168,16 @@ class CreateBackupTests(TempDirsMixin, TransactionTestCase):
 
     def test_failure_is_logged_and_admins_notified(self):
         User.objects.create_superuser('admin', password='pass')
-        with mock.patch('backups.services._dump_database', side_effect=services.BackupError('диск переполнен')):
+        with mock.patch(
+            'backups.services._dump_database', side_effect=services.BackupError('диск переполнен')
+        ):
             backup = services.run_backup(Backup.objects.create())
 
         self.assertEqual(backup.status, 'failed')
         self.assertIn('диск переполнен', backup.error)
-        self.assertTrue(Notification.objects.filter(user__username='admin', notification_type='error').exists())
+        self.assertTrue(
+            Notification.objects.filter(user__username='admin', notification_type='error').exists()
+        )
 
     def test_deleting_log_entry_deletes_file(self):
         backup = services.run_backup(Backup.objects.create())
@@ -206,8 +219,10 @@ class YandexUploadTests(TempDirsMixin, TransactionTestCase):
         s.save()
 
     def test_unencrypted_copy_not_uploaded(self):
-        with override_settings(BACKUP_ENCRYPTION_PASSWORD=''), \
-                mock.patch.object(YandexDisk, 'upload') as upload:
+        with (
+            override_settings(BACKUP_ENCRYPTION_PASSWORD=''),
+            mock.patch.object(YandexDisk, 'upload') as upload,
+        ):
             backup = services.run_backup(Backup.objects.create())
 
         upload.assert_not_called()
@@ -218,14 +233,20 @@ class YandexUploadTests(TempDirsMixin, TransactionTestCase):
 
     def test_uploaded_and_old_copies_removed(self):
         remote_files = [
-            {'name': f'backup-2026101{i}-040000.tar.gz', 'path': f'app:/backups/backup-2026101{i}-040000.tar.gz', 'type': 'file'}
+            {
+                'name': f'backup-2026101{i}-040000.tar.gz',
+                'path': f'app:/backups/backup-2026101{i}-040000.tar.gz',
+                'type': 'file',
+            }
             for i in range(4)
         ] + [{'name': 'notes.txt', 'path': 'app:/backups/notes.txt', 'type': 'file'}]
 
-        with mock.patch.object(YandexDisk, 'ensure_folder') as ensure_folder, \
-                mock.patch.object(YandexDisk, 'upload') as upload, \
-                mock.patch.object(YandexDisk, 'list_files', return_value=remote_files), \
-                mock.patch.object(YandexDisk, 'delete') as delete:
+        with (
+            mock.patch.object(YandexDisk, 'ensure_folder') as ensure_folder,
+            mock.patch.object(YandexDisk, 'upload') as upload,
+            mock.patch.object(YandexDisk, 'list_files', return_value=remote_files),
+            mock.patch.object(YandexDisk, 'delete') as delete,
+        ):
             backup = services.run_backup(Backup.objects.create())
 
         self.assertEqual(backup.status, 'success', backup.error)
@@ -239,10 +260,18 @@ class YandexUploadTests(TempDirsMixin, TransactionTestCase):
         self.assertTrue(Path(uploaded_path).read_bytes().startswith(b'FAKE-GPG'))
         # Остаются две самые новые копии, чужие файлы не трогаем.
         deleted = sorted(call.args[0] for call in delete.call_args_list)
-        self.assertEqual(deleted, ['app:/backups/backup-20261010-040000.tar.gz', 'app:/backups/backup-20261011-040000.tar.gz'])
+        self.assertEqual(
+            deleted,
+            [
+                'app:/backups/backup-20261010-040000.tar.gz',
+                'app:/backups/backup-20261011-040000.tar.gz',
+            ],
+        )
 
     def test_upload_error_keeps_local_copy(self):
-        with mock.patch.object(YandexDisk, 'ensure_folder', side_effect=YandexDiskError('Токен недействителен')):
+        with mock.patch.object(
+            YandexDisk, 'ensure_folder', side_effect=YandexDiskError('Токен недействителен')
+        ):
             backup = services.run_backup(Backup.objects.create())
 
         self.assertEqual(backup.status, 'warning')
@@ -276,9 +305,13 @@ class EncryptedBackupTests(TempDirsMixin, TransactionTestCase):
         (self.media_root / 'avatars' / 'a.png').unlink()
 
         # Саму базу не трогаем: подменяем и SQLite, и pg_restore (в Docker тесты идут на PostgreSQL).
-        with mock.patch('backups.services.connection'), \
-                mock.patch('backups.services.sqlite3.connect') as connect, \
-                mock.patch('backups.services.subprocess.run', return_value=mock.Mock(returncode=0)) as run:
+        with (
+            mock.patch('backups.services.connection'),
+            mock.patch('backups.services.sqlite3.connect') as connect,
+            mock.patch(
+                'backups.services.subprocess.run', return_value=mock.Mock(returncode=0)
+            ) as run,
+        ):
             services.restore_backup(backup.local_path, log=lambda *_: None)
 
         self.assertTrue(connect.called or run.called)
@@ -312,14 +345,23 @@ class SecretFieldTests(TestCase):
             s = BackupSettings.load()
             self.assertEqual(s.get_yandex_token(), '')
             self.assertTrue(s.yandex_token_unreadable)
-            self.assertFalse(BackupSettings(yandex_enabled=True, yandex_token=s.yandex_token).yandex_configured)
+            self.assertFalse(
+                BackupSettings(yandex_enabled=True, yandex_token=s.yandex_token).yandex_configured
+            )
 
 
-@unittest.skipUnless(gpg_works(), 'gpg недоступен — проверяется в Docker: docker compose exec web python manage.py test backups')
+@unittest.skipUnless(
+    gpg_works(),
+    'gpg недоступен — проверяется в Docker: docker compose exec web python manage.py test backups',
+)
 class RealGpgTests(TestCase):
     def test_round_trip_and_wrong_password(self):
         with tempfile.TemporaryDirectory() as tmp:
-            source, target, back = Path(tmp) / 'a.tar.gz', Path(tmp) / 'a.tar.gz.gpg', Path(tmp) / 'b'
+            source, target, back = (
+                Path(tmp) / 'a.tar.gz',
+                Path(tmp) / 'a.tar.gz.gpg',
+                Path(tmp) / 'b',
+            )
             source.write_bytes(b'secret data' * 1000)
 
             crypto.encrypt_file(source, target, password='right')
@@ -334,7 +376,9 @@ class RealGpgTests(TestCase):
 
 class YandexClientTests(TestCase):
     def test_unauthorized_message(self):
-        error = urllib.error.HTTPError('https://x', 401, 'Unauthorized', {}, io.BytesIO(b'{"description": "Unauthorized"}'))
+        error = urllib.error.HTTPError(
+            'https://x', 401, 'Unauthorized', {}, io.BytesIO(b'{"description": "Unauthorized"}')
+        )
         with mock.patch('backups.yandex.urllib.request.urlopen', side_effect=error):
             with self.assertRaisesRegex(YandexDiskError, 'Токен Яндекса недействителен'):
                 YandexDisk('bad').check()
@@ -357,12 +401,16 @@ class RestoreTests(TempDirsMixin, TestCase):
         with sqlite3.connect(work / 'database.sqlite3') as conn:
             conn.execute('CREATE TABLE marker (value TEXT)')
             conn.execute("INSERT INTO marker VALUES ('from backup')")
-        (work / 'manifest.json').write_text(json.dumps({
-            'created_at': '2026-10-19T04:00:00+03:00',
-            'database_engine': 'sqlite',
-            'database_file': 'database.sqlite3',
-            'includes_media': True,
-        }))
+        (work / 'manifest.json').write_text(
+            json.dumps(
+                {
+                    'created_at': '2026-10-19T04:00:00+03:00',
+                    'database_engine': 'sqlite',
+                    'database_file': 'database.sqlite3',
+                    'includes_media': True,
+                }
+            )
+        )
         archive_path = self.tmp / 'backup-test.tar.gz'
         with tarfile.open(archive_path, 'w:gz') as archive:
             for name in ('manifest.json', 'database.sqlite3', 'media'):
@@ -374,9 +422,13 @@ class RestoreTests(TempDirsMixin, TestCase):
         sqlite3.connect(target_db).close()
 
         # Подменяем базу, чтобы не трогать тестовую базу Django (в Docker это PostgreSQL).
-        with mock.patch.dict(settings.DATABASES['default'],
-                             {'ENGINE': 'django.db.backends.sqlite3', 'NAME': str(target_db)}), \
-                mock.patch('backups.services.connection'):
+        with (
+            mock.patch.dict(
+                settings.DATABASES['default'],
+                {'ENGINE': 'django.db.backends.sqlite3', 'NAME': str(target_db)},
+            ),
+            mock.patch('backups.services.connection'),
+        ):
             services.restore_backup(self.make_archive(), log=lambda *_: None)
 
         with sqlite3.connect(target_db) as conn:
@@ -414,7 +466,9 @@ class BackupAdminTests(TempDirsMixin, TransactionTestCase):
 
     def test_scheduler_runs_queued_backup(self):
         Backup.objects.create(trigger='manual')
-        command = __import__('backups.management.commands.run_backup_scheduler', fromlist=['Command']).Command()
+        command = __import__(
+            'backups.management.commands.run_backup_scheduler', fromlist=['Command']
+        ).Command()
         command.running = True
 
         command.tick()
@@ -436,15 +490,26 @@ class BackupAdminTests(TempDirsMixin, TransactionTestCase):
     def test_pages_render(self):
         self.client.force_login(self.admin)
         services.run_backup(Backup.objects.create())
-        settings_url = reverse('admin:backups_backupsettings_change', args=[BackupSettings.load().pk])
+        settings_url = reverse(
+            'admin:backups_backupsettings_change', args=[BackupSettings.load().pk]
+        )
 
-        self.assertEqual(self.client.get(reverse('admin:backups_backup_changelist')).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse('admin:backups_backup_changelist')).status_code, 200
+        )
         self.assertEqual(self.client.get(settings_url).status_code, 200)
 
     SETTINGS_FORM = {
-        'enabled': 'on', 'frequency': 'daily', 'weekday': '0', 'run_time': '04:00',
-        'include_media': 'on', 'keep_local': '7',
-        'yandex_enabled': 'on', 'yandex_token': '', 'yandex_folder': 'app:/backups', 'keep_yandex': '30',
+        'enabled': 'on',
+        'frequency': 'daily',
+        'weekday': '0',
+        'run_time': '04:00',
+        'include_media': 'on',
+        'keep_local': '7',
+        'yandex_enabled': 'on',
+        'yandex_token': '',
+        'yandex_folder': 'app:/backups',
+        'keep_yandex': '30',
     }
 
     @ENCRYPTED

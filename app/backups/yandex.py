@@ -1,7 +1,9 @@
-"""Минимальный клиент REST API Яндекс Диска: https://yandex.ru/dev/disk-api/doc/ru/
+"""Минимальный клиент REST API Яндекс Диска.
 
 Загрузка файла — два шага: запросить у API адрес для загрузки, затем отправить файл PUT-запросом.
+Документация API: https://yandex.ru/dev/disk-api/doc/ru/
 """
+
 import json
 import os
 import urllib.error
@@ -25,10 +27,14 @@ class YandexDisk:
         url = f'{API_URL}{endpoint}'
         if params:
             url += '?' + urllib.parse.urlencode(params)
-        request = urllib.request.Request(url, method=method, headers={
-            'Authorization': f'OAuth {self.token}',
-            'Accept': 'application/json',
-        })
+        request = urllib.request.Request(
+            url,
+            method=method,
+            headers={
+                'Authorization': f'OAuth {self.token}',
+                'Accept': 'application/json',
+            },
+        )
         try:
             with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
                 body = response.read()
@@ -47,12 +53,12 @@ class YandexDisk:
         return status, _parse(body)
 
     def check(self):
-        """Проверяет токен. Возвращает сведения о Диске (место, владелец)."""
+        """Проверить токен. Возвращает сведения о Диске (место, владелец)."""
         _, data = self._request('GET', '/')
         return data
 
     def ensure_folder(self, path):
-        """Создает папку и все родительские папки, если их нет."""
+        """Создать папку и все родительские папки, если их нет."""
         prefix, _, rest = path.partition(':/')
         current = f'{prefix}:/'
         for part in [p for p in rest.split('/') if p]:
@@ -61,17 +67,34 @@ class YandexDisk:
             self._request('PUT', '/resources', {'path': current}, ok_statuses=(201, 409))
 
     def upload(self, local_path, remote_path):
-        _, data = self._request('GET', '/resources/upload', {'path': remote_path, 'overwrite': 'true'})
+        """Загрузить локальный файл по адресу, выданному API Диска.
+
+        Args:
+            local_path: Путь существующего локального файла.
+            remote_path: Путь назначения на Диске; существующий файл перезаписывается.
+
+        Raises:
+            YandexDiskError: API не выдал ссылку, сеть недоступна или загрузка отклонена.
+            OSError: Локальный файл недоступен для чтения.
+        """
+        _, data = self._request(
+            'GET', '/resources/upload', {'path': remote_path, 'overwrite': 'true'}
+        )
         href = data.get('href')
         if not href:
             raise YandexDiskError('Яндекс Диск не вернул адрес для загрузки')
 
         size = os.path.getsize(local_path)
         with open(local_path, 'rb') as file:
-            request = urllib.request.Request(href, data=file, method='PUT', headers={
-                'Content-Length': str(size),
-                'Content-Type': 'application/octet-stream',
-            })
+            request = urllib.request.Request(
+                href,
+                data=file,
+                method='PUT',
+                headers={
+                    'Content-Length': str(size),
+                    'Content-Type': 'application/octet-stream',
+                },
+            )
             try:
                 with urllib.request.urlopen(request, timeout=UPLOAD_TIMEOUT) as response:
                     status = response.status
@@ -84,30 +107,66 @@ class YandexDisk:
             raise YandexDiskError(f'Не удалось загрузить файл (код {status})')
 
     def list_files(self, folder):
-        """Файлы в папке: список словарей с ключами name, path, created."""
-        _, data = self._request('GET', '/resources', {
-            'path': folder,
-            'limit': 1000,
-            'fields': '_embedded.items.name,_embedded.items.path,_embedded.items.type,_embedded.items.created',
-        })
+        """Получить файлы папки из одной страницы ответа API.
+
+        Args:
+            folder: Путь папки на Диске.
+
+        Returns:
+            Список словарей с полями name, path, type и created; запрос ограничен
+            1000 элементами и не обходит следующие страницы.
+
+        Raises:
+            YandexDiskError: API отклонил запрос или сеть недоступна.
+        """
+        _, data = self._request(
+            'GET',
+            '/resources',
+            {
+                'path': folder,
+                'limit': 1000,
+                'fields': '_embedded.items.name,_embedded.items.path,_embedded.items.type,_embedded.items.created',
+            },
+        )
         items = (data.get('_embedded') or {}).get('items') or []
         return [item for item in items if item.get('type') == 'file']
 
     def delete(self, path):
+        """Удалить файл без корзины, считая отсутствие файла успешным результатом."""
         # 404 — файла уже нет, это не ошибка.
-        self._request('DELETE', '/resources', {'path': path, 'permanently': 'true'}, ok_statuses=(202, 204, 404))
+        self._request(
+            'DELETE',
+            '/resources',
+            {'path': path, 'permanently': 'true'},
+            ok_statuses=(202, 204, 404),
+        )
 
     def download(self, remote_path, local_path):
+        """Скачать файл Диска в локальный файл порциями по одному мегабайту.
+
+        Args:
+            remote_path: Путь исходного файла на Диске.
+            local_path: Путь назначения; существующий файл перезаписывается.
+
+        Raises:
+            YandexDiskError: API не выдал ссылку или сетевой запрос завершился ошибкой.
+            OSError: Локальный файл недоступен для записи.
+        """
         _, data = self._request('GET', '/resources/download', {'path': remote_path})
         href = data.get('href')
         if not href:
             raise YandexDiskError('Яндекс Диск не вернул адрес для скачивания')
         try:
-            with urllib.request.urlopen(href, timeout=UPLOAD_TIMEOUT) as response, open(local_path, 'wb') as file:
+            with (
+                urllib.request.urlopen(href, timeout=UPLOAD_TIMEOUT) as response,
+                open(local_path, 'wb') as file,
+            ):
                 while chunk := response.read(1024 * 1024):
                     file.write(chunk)
         except urllib.error.URLError as error:
-            raise YandexDiskError(f'Не удалось скачать файл: {getattr(error, "reason", error)}') from None
+            raise YandexDiskError(
+                f'Не удалось скачать файл: {getattr(error, "reason", error)}'
+            ) from None
 
 
 def _parse(body):

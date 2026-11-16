@@ -28,7 +28,9 @@ class BackupSettingsForm(forms.ModelForm):
     yandex_token = forms.CharField(
         label='OAuth-токен Яндекса',
         required=False,
-        widget=forms.PasswordInput(render_value=False, attrs={'autocomplete': 'new-password', 'size': 60}),
+        widget=forms.PasswordInput(
+            render_value=False, attrs={'autocomplete': 'new-password', 'size': 60}
+        ),
         help_text=format_html(
             'Как получить: создайте приложение на <a href="{}" target="_blank" rel="noopener">oauth.yandex.ru</a> '
             '(платформа «Веб-сервисы», Redirect URI <code>https://oauth.yandex.ru/verification_code</code>, права '
@@ -55,11 +57,18 @@ class BackupSettingsForm(forms.ModelForm):
             cleaned_data['yandex_token'] = ''
         if cleaned_data.get('yandex_enabled'):
             if not encryption_enabled():
-                self.add_error('yandex_enabled', 'Загрузка на Яндекс Диск доступна только для зашифрованных копий. '
-                                                 'Задайте BACKUP_ENCRYPTION_PASSWORD в .env и перезапустите контейнеры')
+                self.add_error(
+                    'yandex_enabled',
+                    'Загрузка на Яндекс Диск доступна только для зашифрованных копий. '
+                    'Задайте BACKUP_ENCRYPTION_PASSWORD в .env и перезапустите контейнеры',
+                )
             token = cleaned_data.get('yandex_token')
-            if not token or (token == self.instance.yandex_token and self.instance.yandex_token_unreadable):
-                self.add_error('yandex_token', 'Укажите токен, чтобы загружать копии на Яндекс Диск')
+            if not token or (
+                token == self.instance.yandex_token and self.instance.yandex_token_unreadable
+            ):
+                self.add_error(
+                    'yandex_token', 'Укажите токен, чтобы загружать копии на Яндекс Диск'
+                )
         folder = cleaned_data.get('yandex_folder', '')
         if folder and not (folder.startswith('app:/') or folder.startswith('disk:/')):
             self.add_error('yandex_folder', 'Путь должен начинаться с app:/ или disk:/')
@@ -72,20 +81,36 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     change_form_template = 'admin/backups/backupsettings/change_form.html'
     readonly_fields = ('encryption_status', 'token_status', 'last_scheduled_run')
     fieldsets = (
-        ('Расписание', {
-            'fields': ('enabled', 'frequency', 'weekday', 'run_time', 'last_scheduled_run'),
-            'description': 'Копии по расписанию создает контейнер scheduler. Сделать копию вручную можно в «Журнале резервных копий».',
-        }),
-        ('Шифрование', {
-            'fields': ('encryption_status',),
-            'description': 'Пароль шифрования задается в .env (BACKUP_ENCRYPTION_PASSWORD) и не хранится в базе. '
-                           'Сохраните его в надежном месте: без него зашифрованные копии восстановить невозможно.',
-        }),
+        (
+            'Расписание',
+            {
+                'fields': ('enabled', 'frequency', 'weekday', 'run_time', 'last_scheduled_run'),
+                'description': 'Копии по расписанию создает контейнер scheduler. Сделать копию вручную можно в «Журнале резервных копий».',
+            },
+        ),
+        (
+            'Шифрование',
+            {
+                'fields': ('encryption_status',),
+                'description': 'Пароль шифрования задается в .env (BACKUP_ENCRYPTION_PASSWORD) и не хранится в базе. '
+                'Сохраните его в надежном месте: без него зашифрованные копии восстановить невозможно.',
+            },
+        ),
         ('Что сохранять', {'fields': ('include_media',)}),
         ('Хранение на сервере', {'fields': ('keep_local',)}),
-        ('Яндекс Диск', {
-            'fields': ('yandex_enabled', 'token_status', 'yandex_token', 'clear_yandex_token', 'yandex_folder', 'keep_yandex'),
-        }),
+        (
+            'Яндекс Диск',
+            {
+                'fields': (
+                    'yandex_enabled',
+                    'token_status',
+                    'yandex_token',
+                    'clear_yandex_token',
+                    'yandex_folder',
+                    'keep_yandex',
+                ),
+            },
+        ),
     )
 
     def has_add_permission(self, request):
@@ -101,13 +126,19 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
 
     def get_urls(self):
         return [
-            path('check-yandex/', self.admin_site.admin_view(self.check_yandex_view), name='backups_check_yandex'),
+            path(
+                'check-yandex/',
+                self.admin_site.admin_view(self.check_yandex_view),
+                name='backups_check_yandex',
+            ),
         ] + super().get_urls()
 
     @admin.display(description='Шифрование копий')
     def encryption_status(self, obj):
         if encryption_enabled():
-            return format_html('<strong style="color:#28a745">{}</strong>', '🔒 Включено — новые копии шифруются')
+            return format_html(
+                '<strong style="color:#28a745">{}</strong>', '🔒 Включено — новые копии шифруются'
+            )
         return format_html(
             '<strong style="color:#dc3545">{}</strong><br>{}',
             '⚠️ Выключено — копии сохраняются незашифрованными, загрузка на Яндекс Диск недоступна',
@@ -117,8 +148,10 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     @admin.display(description='Токен')
     def token_status(self, obj):
         if obj.yandex_token_unreadable:
-            return format_html('<strong style="color:#dc3545">{}</strong>',
-                               'не расшифровывается (сменился DJANGO_SECRET_KEY) — введите токен заново')
+            return format_html(
+                '<strong style="color:#dc3545">{}</strong>',
+                'не расшифровывается (сменился DJANGO_SECRET_KEY) — введите токен заново',
+            )
         token = obj.get_yandex_token()
         if token:
             return f'сохранен в зашифрованном виде (…{token[-4:]})'
@@ -148,10 +181,12 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
                 if info:
                     free = (info.get('total_space') or 0) - (info.get('used_space') or 0)
                     owner = (info.get('user') or {}).get('login', '')
-                    details = f'{f" Аккаунт {owner}," if owner else ""} свободно {filesizeformat(free)}.'
+                    details = (
+                        f'{f" Аккаунт {owner}," if owner else ""} свободно {filesizeformat(free)}.'
+                    )
                 messages.success(
                     request,
-                    f'Подключение работает: папка {backup_settings.yandex_folder} готова.{details}'
+                    f'Подключение работает: папка {backup_settings.yandex_folder} готова.{details}',
                 )
         return redirect(reverse('admin:backups_backupsettings_change', args=[backup_settings.pk]))
 
@@ -159,12 +194,33 @@ class BackupSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
 @admin.register(Backup)
 class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     change_list_template = 'admin/backups/backup/change_list.html'
-    list_display = ('created_at', 'status_display', 'trigger', 'size_display', 'encrypted', 'yandex_status', 'download_link')
+    list_display = (
+        'created_at',
+        'status_display',
+        'trigger',
+        'size_display',
+        'encrypted',
+        'yandex_status',
+        'download_link',
+    )
     list_filter = ('status', 'trigger', 'encrypted', 'yandex_status')
     readonly_fields = (
-        'created_at', 'started_at', 'finished_at', 'duration_display', 'status', 'trigger', 'requested_by',
-        'file_name', 'size_display', 'includes_media', 'encrypted', 'local_deleted', 'download_link',
-        'yandex_status', 'yandex_path', 'error',
+        'created_at',
+        'started_at',
+        'finished_at',
+        'duration_display',
+        'status',
+        'trigger',
+        'requested_by',
+        'file_name',
+        'size_display',
+        'includes_media',
+        'encrypted',
+        'local_deleted',
+        'download_link',
+        'yandex_status',
+        'yandex_path',
+        'error',
     )
     fields = readonly_fields
 
@@ -181,13 +237,21 @@ class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     def get_urls(self):
         return [
             path('run/', self.admin_site.admin_view(self.run_view), name='backups_backup_run'),
-            path('<int:backup_id>/download/', self.admin_site.admin_view(self.download_view), name='backups_backup_download'),
+            path(
+                '<int:backup_id>/download/',
+                self.admin_site.admin_view(self.download_view),
+                name='backups_backup_download',
+            ),
         ] + super().get_urls()
 
     @admin.display(description='Статус', ordering='status')
     def status_display(self, obj):
         colors = {'success': '#28a745', 'warning': '#e0a800', 'failed': '#dc3545'}
-        return format_html('<strong style="color:{}">{}</strong>', colors.get(obj.status, '#6c757d'), obj.get_status_display())
+        return format_html(
+            '<strong style="color:{}">{}</strong>',
+            colors.get(obj.status, '#6c757d'),
+            obj.get_status_display(),
+        )
 
     @admin.display(description='Размер', ordering='size')
     def size_display(self, obj):
@@ -201,7 +265,10 @@ class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     @admin.display(description='Файл на сервере')
     def download_link(self, obj):
         if obj.local_available:
-            return format_html('<a href="{}">⬇️ Скачать</a>', reverse('admin:backups_backup_download', args=[obj.pk]))
+            return format_html(
+                '<a href="{}">⬇️ Скачать</a>',
+                reverse('admin:backups_backup_download', args=[obj.pk]),
+            )
         if obj.local_deleted:
             return 'удален (старая копия)'
         return '—'
@@ -215,7 +282,7 @@ class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
             Backup.objects.create(trigger='manual', requested_by=request.user)
             messages.success(
                 request,
-                'Копия поставлена в очередь и будет создана в течение минуты. Обновите страницу, чтобы увидеть результат'
+                'Копия поставлена в очередь и будет создана в течение минуты. Обновите страницу, чтобы увидеть результат',
             )
         return redirect(reverse('admin:backups_backup_changelist'))
 
@@ -225,4 +292,6 @@ class BackupAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         backup = get_object_or_404(Backup, pk=backup_id)
         if not backup.local_available:
             raise Http404('Файл копии не найден на сервере')
-        return FileResponse(open(backup.local_path, 'rb'), as_attachment=True, filename=backup.file_name)
+        return FileResponse(
+            open(backup.local_path, 'rb'), as_attachment=True, filename=backup.file_name
+        )
