@@ -9,24 +9,32 @@ from .utils import mark_all_as_read
 
 
 def safe_redirect(request, url, fallback='notifications:notification_list'):
-    """Редирект только на адреса нашего сайта (защита от open redirect)."""
-    if url and url_has_allowed_host_and_scheme(url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+    """Перенаправить только на разрешённый адрес сайта или запасной маршрут."""
+    if url and url_has_allowed_host_and_scheme(
+        url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
         return redirect(url)
     return redirect(fallback)
 
 
 @login_required
 def notification_list(request):
-    """Страница всех уведомлений."""
-    notifications = prepare_notifications(Notification.objects.filter(user=request.user), request.user)
-    return render(request, 'notifications/notification_list.html', {
-        'notifications': notifications,
-    })
+    """Показать полный список уведомлений пользователя."""
+    notifications = prepare_notifications(
+        Notification.objects.filter(user=request.user), request.user
+    )
+    return render(
+        request,
+        'notifications/notification_list.html',
+        {
+            'notifications': notifications,
+        },
+    )
 
 
 @login_required
 def notification_detail(request, notification_id):
-    """Детальный просмотр уведомления."""
+    """Отметить уведомление прочитанным и перейти по его безопасной ссылке."""
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.mark_as_read()
 
@@ -35,7 +43,7 @@ def notification_detail(request, notification_id):
 
 @login_required
 def mark_as_read(request, notification_id):
-    """Помечает уведомление как прочитанное."""
+    """Пометить уведомление как прочитанное."""
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.mark_as_read()
 
@@ -45,7 +53,7 @@ def mark_as_read(request, notification_id):
 @login_required
 @require_POST
 def mark_all_as_read_view(request):
-    """Помечает все уведомления как прочитанные."""
+    """Пометить все уведомления как прочитанные."""
     mark_all_as_read(request.user)
     messages.success(request, 'Все уведомления отмечены как прочитанные')
 
@@ -56,7 +64,7 @@ def mark_all_as_read_view(request):
 @login_required
 @require_POST
 def mark_all_as_read_from_dropdown(request):
-    """Помечает все уведомления как прочитанные (из выпадающего списка)."""
+    """Пометить все уведомления как прочитанные (из выпадающего списка)."""
     mark_all_as_read(request.user)
     # Возвращаемся на ту же страницу, где был открыт dropdown.
     return safe_redirect(request, request.META.get('HTTP_REFERER'), fallback='/')
@@ -65,7 +73,7 @@ def mark_all_as_read_from_dropdown(request):
 @login_required
 @require_POST
 def delete_notification(request, notification_id):
-    """Удаляет уведомление."""
+    """Удалить уведомление."""
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     notification.delete()
     messages.success(request, 'Уведомление удалено')
@@ -75,7 +83,7 @@ def delete_notification(request, notification_id):
 @login_required
 @require_POST
 def delete_all_notifications(request):
-    """Удаляет все уведомления только текущего пользователя."""
+    """Удалить все уведомления только текущего пользователя."""
     Notification.objects.filter(user=request.user).delete()
     messages.success(request, 'Все уведомления удалены')
     return safe_redirect(request, request.POST.get('next'))

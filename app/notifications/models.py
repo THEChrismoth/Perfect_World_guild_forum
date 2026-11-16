@@ -17,10 +17,14 @@ class Notification(models.Model):
         ('system', '⚙️ Система'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name='Получатель')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='notifications', verbose_name='Получатель'
+    )
     title = models.CharField('Заголовок', max_length=200)
     message = models.TextField('Сообщение')
-    notification_type = models.CharField('Тип', max_length=20, choices=NOTIFICATION_TYPES, default='info')
+    notification_type = models.CharField(
+        'Тип', max_length=20, choices=NOTIFICATION_TYPES, default='info'
+    )
     link = models.CharField('Ссылка', max_length=500, blank=True, null=True)
     is_read = models.BooleanField('Прочитано', default=False)
     created_at = models.DateTimeField('Создано', auto_now_add=True)
@@ -34,12 +38,12 @@ class Notification(models.Model):
         return f'{self.get_notification_type_display()}: {self.title} - {self.user.username}'
 
     def mark_as_read(self):
-        """Помечает как прочитанное."""
+        """Пометить как прочитанное."""
         self.is_read = True
         self.save()
 
     def get_icon(self):
-        """Возвращает иконку для типа уведомления."""
+        """Вернуть иконку для типа уведомления."""
         icons = {
             'info': 'ℹ️',
             'success': '✅',

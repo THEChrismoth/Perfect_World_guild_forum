@@ -11,7 +11,7 @@ VOTE_BUTTON = '🗳️ Проголосовать'
 
 
 def build_message_html(message, link=None, button=DEFAULT_BUTTON):
-    """Готовит HTML уведомления.
+    """Подготовить HTML уведомления.
 
     Текст экранируется (в нем бывают имена, причины отказа, названия лотов), переносы строк
     превращаются в <br>, при наличии ссылки добавляется кнопка с текстом button.
@@ -20,21 +20,28 @@ def build_message_html(message, link=None, button=DEFAULT_BUTTON):
 
     # Добавляем кнопку, если есть ссылка (без текстовой ссылки).
     if link:
-        message_html += format_html('<br><br><a href="{}" class="btn-vote-notify">{}</a>', link, button)
+        message_html += format_html(
+            '<br><br><a href="{}" class="btn-vote-notify">{}</a>', link, button
+        )
 
     return mark_safe(message_html)
 
 
-def send_notification(user, title, message, notification_type='info', link=None, button=DEFAULT_BUTTON):
-    """Отправляет уведомление одному пользователю.
+def send_notification(
+    user, title, message, notification_type='info', link=None, button=DEFAULT_BUTTON
+):
+    """Отправить уведомление одному пользователю.
 
-    Аргументы:
-        user: пользователь (объект User, username или id).
-        title: заголовок.
-        message: текст сообщения.
-        notification_type: тип уведомления.
-        link: ссылка (необязательно).
-        button: текст кнопки со ссылкой; «Проголосовать» — только для приглашений на ивент (VOTE_BUTTON).
+    Args:
+        user: Получатель — объект User, username или ID.
+        title: Заголовок уведомления.
+        message: Открытый текст для экранирования перед сохранением HTML.
+        notification_type: Код типа уведомления.
+        link: Необязательная ссылка перехода.
+        button: Текст кнопки; VOTE_BUTTON предназначен для приглашений на ивент.
+
+    Returns:
+        Созданное уведомление либо None, если получатель по имени или ID не найден.
     """
     # Получаем пользователя если передан username или id.
     if isinstance(user, str):
@@ -53,27 +60,29 @@ def send_notification(user, title, message, notification_type='info', link=None,
         title=title,
         message=build_message_html(message, link, button),
         notification_type=notification_type,
-        link=link
+        link=link,
     )
     return notification
 
 
 def send_notification_to_group(group_name, title, message, notification_type='info', link=None):
-    """Отправляет уведомление всем пользователям группы."""
+    """Отправить уведомление всем пользователям группы."""
     try:
         group = Group.objects.get(name=group_name)
         users = group.user_set.all()
         notifications = []
         message_html = build_message_html(message, link)
-        
+
         for user in users:
-            notifications.append(Notification(
-                user=user,
-                title=title,
-                message=message_html,
-                notification_type=notification_type,
-                link=link
-            ))
+            notifications.append(
+                Notification(
+                    user=user,
+                    title=title,
+                    message=message_html,
+                    notification_type=notification_type,
+                    link=link,
+                )
+            )
         Notification.objects.bulk_create(notifications)
         return len(notifications)
     except Group.DoesNotExist:
@@ -81,25 +90,27 @@ def send_notification_to_group(group_name, title, message, notification_type='in
 
 
 def send_notification_to_all(title, message, notification_type='info', link=None):
-    """Отправляет уведомление всем пользователям."""
+    """Отправить уведомление всем пользователям."""
     users = User.objects.all()
     notifications = []
     message_html = build_message_html(message, link)
-    
+
     for user in users:
-        notifications.append(Notification(
-            user=user,
-            title=title,
-            message=message_html,
-            notification_type=notification_type,
-            link=link
-        ))
+        notifications.append(
+            Notification(
+                user=user,
+                title=title,
+                message=message_html,
+                notification_type=notification_type,
+                link=link,
+            )
+        )
     Notification.objects.bulk_create(notifications)
     return len(notifications)
 
 
 def send_notification_to_admins(title, message, notification_type='info', link=None, perm=None):
-    """Отправляет уведомление всем администраторам.
+    """Отправить уведомление всем администраторам.
 
     perm — право вида 'reception.change_application': тогда уведомление получат и модераторы
     с этим правом (суперпользователи — в любом случае).
@@ -107,24 +118,26 @@ def send_notification_to_admins(title, message, notification_type='info', link=N
     admins = User.objects.with_perm(perm) if perm else User.objects.filter(is_superuser=True)
     notifications = []
     message_html = build_message_html(message, link)
-    
+
     for admin in admins:
-        notifications.append(Notification(
-            user=admin,
-            title=title,
-            message=message_html,
-            notification_type=notification_type,
-            link=link
-        ))
+        notifications.append(
+            Notification(
+                user=admin,
+                title=title,
+                message=message_html,
+                notification_type=notification_type,
+                link=link,
+            )
+        )
     Notification.objects.bulk_create(notifications)
     return len(notifications)
 
 
 def get_unread_count(user):
-    """Возвращает количество непрочитанных уведомлений."""
+    """Вернуть количество непрочитанных уведомлений."""
     return Notification.objects.filter(user=user, is_read=False).count()
 
 
 def mark_all_as_read(user):
-    """Помечает все уведомления пользователя как прочитанные."""
+    """Пометить все уведомления пользователя как прочитанные."""
     return Notification.objects.filter(user=user, is_read=False).update(is_read=True)

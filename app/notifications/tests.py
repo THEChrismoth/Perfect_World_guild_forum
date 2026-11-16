@@ -10,7 +10,12 @@ class NotificationHtmlTests(TestCase):
     def test_message_is_escaped(self):
         user = User.objects.create_user('alice')
 
-        notification = send_notification(user, 'Тест', 'Причина: <script>alert(1)</script>\nвторая строка', link='/events/vote/1/')
+        notification = send_notification(
+            user,
+            'Тест',
+            'Причина: <script>alert(1)</script>\nвторая строка',
+            link='/events/vote/1/',
+        )
 
         self.assertNotIn('<script>', notification.message)
         self.assertIn('&lt;script&gt;', notification.message)
@@ -33,10 +38,16 @@ class NotificationHtmlTests(TestCase):
         # Приглашение на ивент — «Проголосовать».
         user.groups.add(Group.objects.create(name='Член гильдии'))
         event_type = EventType.objects.create(name='МТВ')
-        invitation = EventNotification.objects.create(event_type=event_type, event_date=timezone.localdate(),
-                                                      subject='МТВ сегодня', message='Сбор в 20:00')
+        invitation = EventNotification.objects.create(
+            event_type=event_type,
+            event_date=timezone.localdate(),
+            subject='МТВ сегодня',
+            message='Сбор в 20:00',
+        )
         send_event_notification(invitation.id)
-        self.assertIn('Проголосовать', Notification.objects.get(user=user, title='МТВ сегодня').message)
+        self.assertIn(
+            'Проголосовать', Notification.objects.get(user=user, title='МТВ сегодня').message
+        )
 
     def test_migration_fixes_old_buttons(self):
         from importlib import import_module
@@ -46,10 +57,18 @@ class NotificationHtmlTests(TestCase):
         migration = import_module('notifications.migrations.0003_fix_button_labels')
         user = User.objects.create_user('alice')
         old_html = 'Текст<br><br><a href="{}" class="btn-vote-notify">🗳️ Проголосовать</a>'
-        teamspeak = Notification.objects.create(user=user, title='TS', link='/profiles/alice/',
-                                                message=old_html.format('/profiles/alice/'))
-        vote = Notification.objects.create(user=user, title='Ивент', link='/events/vote/1/',
-                                           message=old_html.format('/events/vote/1/'))
+        teamspeak = Notification.objects.create(
+            user=user,
+            title='TS',
+            link='/profiles/alice/',
+            message=old_html.format('/profiles/alice/'),
+        )
+        vote = Notification.objects.create(
+            user=user,
+            title='Ивент',
+            link='/events/vote/1/',
+            message=old_html.format('/events/vote/1/'),
+        )
 
         migration.fix_button_labels(apps, None)
 
@@ -63,7 +82,9 @@ class NotificationHtmlTests(TestCase):
 class NotificationViewTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('alice', password='pass')
-        self.notification = Notification.objects.create(user=self.user, title='Тест', message='Текст')
+        self.notification = Notification.objects.create(
+            user=self.user, title='Тест', message='Текст'
+        )
         self.client.force_login(self.user)
 
     def test_external_next_is_ignored(self):
@@ -90,10 +111,14 @@ class NotificationViewTests(TestCase):
     def test_delete_all_only_removes_own_read_and_unread_notifications(self):
         other = User.objects.create_user('other-notification-user')
         foreign = Notification.objects.create(user=other, title='Чужое', message='Текст')
-        Notification.objects.create(user=self.user, title='Прочитанное', message='Текст', is_read=True)
+        Notification.objects.create(
+            user=self.user, title='Прочитанное', message='Текст', is_read=True
+        )
         url = reverse('notifications:delete_all')
         self.assertEqual(self.client.get(url).status_code, 405)
-        self.assertContains(self.client.get(reverse('notifications:notification_list')), 'Удалить все')
+        self.assertContains(
+            self.client.get(reverse('notifications:notification_list')), 'Удалить все'
+        )
         self.assertRedirects(self.client.post(url), reverse('notifications:notification_list'))
         self.assertFalse(Notification.objects.filter(user=self.user).exists())
         self.assertTrue(Notification.objects.filter(pk=foreign.pk).exists())
@@ -101,6 +126,7 @@ class NotificationViewTests(TestCase):
 
     def test_delete_all_requires_login_and_csrf(self):
         from django.test import Client
+
         url = reverse('notifications:delete_all')
         secure_client = Client(enforce_csrf_checks=True)
         secure_client.force_login(self.user)
@@ -111,17 +137,27 @@ class NotificationViewTests(TestCase):
 
     def test_delete_all_returns_to_current_page_and_rejects_external_next(self):
         url = reverse('notifications:delete_all')
-        self.assertRedirects(self.client.post(url, {'next': '/?tab=test'}), '/?tab=test', fetch_redirect_response=False)
-        self.assertRedirects(self.client.post(url, {'next': 'https://evil.example/'}),
-                             reverse('notifications:notification_list'), fetch_redirect_response=False)
+        self.assertRedirects(
+            self.client.post(url, {'next': '/?tab=test'}),
+            '/?tab=test',
+            fetch_redirect_response=False,
+        )
+        self.assertRedirects(
+            self.client.post(url, {'next': 'https://evil.example/'}),
+            reverse('notifications:notification_list'),
+            fetch_redirect_response=False,
+        )
 
     def test_dropdown_mark_all_only_updates_own_notifications(self):
         other = User.objects.create_user('other-read-user')
         foreign = Notification.objects.create(user=other, title='Чужое', message='Текст')
         url = reverse('notifications:mark_all_as_read_dropdown')
         self.assertEqual(self.client.get(url).status_code, 405)
-        self.assertRedirects(self.client.post(url, HTTP_REFERER='http://testserver/auction/'),
-                             'http://testserver/auction/', fetch_redirect_response=False)
+        self.assertRedirects(
+            self.client.post(url, HTTP_REFERER='http://testserver/auction/'),
+            'http://testserver/auction/',
+            fetch_redirect_response=False,
+        )
         self.notification.refresh_from_db()
         foreign.refresh_from_db()
         self.assertTrue(self.notification.is_read)
@@ -133,6 +169,7 @@ class NotificationViewTests(TestCase):
         self.assertContains(response, 'data-notification-delete="one"')
         self.assertContains(response, 'data-notification-delete="all"')
         self.assertNotContains(response, 'onsubmit="return confirm(')
+
 
 @override_settings(SECURE_SSL_REDIRECT=False)
 class NotificationCardTests(TestCase):
@@ -157,15 +194,27 @@ class NotificationCardTests(TestCase):
         user = User.objects.create_user('card-user')
         event_type = EventType.objects.create(name='MTB')
         event = EventNotification.objects.create(
-            event_type=event_type, event_date=timezone.localdate() + timedelta(days=1), sent_at=timezone.now(),
-            start_time=time(20), subject='Event', message='Details')
-        EventAttendance.objects.create(notification=event, user=user, status='maybe', comment='Saved comment')
-        send_notification(user, 'Event', 'Details', link=reverse('events:vote_view', args=[event.pk]))
+            event_type=event_type,
+            event_date=timezone.localdate() + timedelta(days=1),
+            sent_at=timezone.now(),
+            start_time=time(20),
+            subject='Event',
+            message='Details',
+        )
+        EventAttendance.objects.create(
+            notification=event, user=user, status='maybe', comment='Saved comment'
+        )
+        send_notification(
+            user, 'Event', 'Details', link=reverse('events:vote_view', args=[event.pk])
+        )
         self.client.force_login(user)
         response = self.client.get(reverse('notifications:notification_list'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '20:00')
         self.assertContains(response, 'notice-tag')
         self.assertContains(response, 'name="comment" value="Saved comment"')
-        self.assertContains(response, 'name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer is-selected"')
+        self.assertContains(
+            response,
+            'name="status" value="maybe" class="ui-btn ui-btn-secondary ui-btn-sm notice-answer is-selected"',
+        )
         self.assertContains(response, 'name="status"', count=6)
