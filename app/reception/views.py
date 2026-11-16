@@ -35,13 +35,15 @@ def application_form(request):
         return redirect('/')
 
     if not request.user.profile.player_class:
-        messages.error(request, 'Перед подачей заявки заполните профиль: выберите класс персонажа и укажите характеристики. '
-                                'Личные данные и характеристики попадут в заявку автоматически.')
+        messages.error(
+            request,
+            'Перед подачей заявки заполните профиль: выберите класс персонажа и укажите характеристики. '
+            'Личные данные и характеристики попадут в заявку автоматически.',
+        )
         return redirect('profile_edit')
 
     existing = Application.objects.filter(
-        user=request.user,
-        status__in=['pending', 'voting', 'approved']
+        user=request.user, status__in=['pending', 'voting', 'approved']
     ).first()
 
     if existing:
@@ -59,6 +61,7 @@ def application_form(request):
 
             # Уведомление администраторам и модераторам, которые рассматривают заявки.
             from notifications.utils import send_notification_to_admins
+
             send_notification_to_admins(
                 title='📝 Новая заявка',
                 message=f'Пользователь {request.user.username} подал новую заявку на вступление в гильдию.',
@@ -70,7 +73,9 @@ def application_form(request):
     else:
         form = ApplicationForm(user=request.user)
 
-    return render(request, 'reception/application_form.html', {'form': form, 'profile': request.user.profile})
+    return render(
+        request, 'reception/application_form.html', {'form': form, 'profile': request.user.profile}
+    )
 
 
 def application_success(request):
@@ -78,7 +83,7 @@ def application_success(request):
 
 
 def _with_counts(applications):
-    """Счётчики голосов и комментариев одним запросом вместе с заявками."""
+    """Добавить счётчики голосов и комментариев в запрос списка заявок."""
     return applications.select_related('user__profile').annotate(
         votes_for=Count('votes', filter=Q(votes__vote='for'), distinct=True),
         votes_against=Count('votes', filter=Q(votes__vote='against'), distinct=True),
@@ -89,7 +94,7 @@ def _with_counts(applications):
 
 
 def _add_stats(applications):
-    """Проценты в app.stats и число записей в обсуждении — для карточек списка."""
+    """Добавить проценты голосов и размер обсуждения для карточек заявок."""
     for app in applications:
         app.stats = vote_stats(app.votes_for, app.votes_against, app.votes_abstain)
         app.discussion_count = app.comments_num + app.votes_with_text
@@ -99,18 +104,24 @@ def _add_stats(applications):
 @login_required
 def application_list(request):
     if not check_guild_member(request.user):
-        raise PermissionDenied("Только члены гильдии могут просматривать заявки")
+        raise PermissionDenied('Только члены гильдии могут просматривать заявки')
 
     tab = request.GET.get('tab') if request.GET.get('tab') in TABS else 'open'
     sort = request.GET.get('sort') if request.GET.get('sort') in SORTS else 'new'
-    per_page = int(request.GET['per_page']) if request.GET.get('per_page') in map(str, PER_PAGE) else PER_PAGE[0]
+    per_page = (
+        int(request.GET['per_page'])
+        if request.GET.get('per_page') in map(str, PER_PAGE)
+        else PER_PAGE[0]
+    )
     query = request.GET.get('q', '').strip()
 
     # Члены гильдии видят только заявки, дошедшие до голосования: отклонённые на проверке никто не обсуждал.
     applications = Application.objects.filter(status__in=TABS[tab][1], approved_at__isnull=False)
     if query:
         applications = applications.filter(
-            Q(user__username__icontains=query) | Q(user__email__icontains=query) | Q(player_class__icontains=query)
+            Q(user__username__icontains=query)
+            | Q(user__email__icontains=query)
+            | Q(player_class__icontains=query)
             | Q(development_plans__icontains=query)
         )
     applications = _with_counts(applications).order_by(SORTS[sort][1], '-id')
@@ -124,40 +135,56 @@ def application_list(request):
     tab_params = params.copy()
     tab_params.pop('tab', None)
 
-    return render(request, 'reception/application_list.html', {
-        'page': page,
-        'tabs': [(key, label) for key, (label, _) in TABS.items()],
-        'tab': tab,
-        'sorts': [(key, label) for key, (label, _) in SORTS.items()],
-        'sort': sort,
-        'per_page_choices': PER_PAGE,
-        'per_page': per_page,
-        'query': query,
-        'page_query': params.urlencode(),
-        'tab_query': tab_params.urlencode(),
-    })
+    return render(
+        request,
+        'reception/application_list.html',
+        {
+            'page': page,
+            'tabs': [(key, label) for key, (label, _) in TABS.items()],
+            'tab': tab,
+            'sorts': [(key, label) for key, (label, _) in SORTS.items()],
+            'sort': sort,
+            'per_page_choices': PER_PAGE,
+            'per_page': per_page,
+            'query': query,
+            'page_query': params.urlencode(),
+            'tab_query': tab_params.urlencode(),
+        },
+    )
 
 
 @login_required
 def my_applications(request):
-    applications = _add_stats(list(_with_counts(Application.objects.filter(user=request.user)).order_by('-created_at')))
+    applications = _add_stats(
+        list(_with_counts(Application.objects.filter(user=request.user)).order_by('-created_at'))
+    )
 
-    return render(request, 'reception/my_applications.html', {
-        'applications': applications,
-        'has_active': any(app.status in ('pending', 'voting', 'approved') for app in applications),
-    })
+    return render(
+        request,
+        'reception/my_applications.html',
+        {
+            'applications': applications,
+            'has_active': any(
+                app.status in ('pending', 'voting', 'approved') for app in applications
+            ),
+        },
+    )
 
 
 def _access(request, application):
-    """Кто что может в заявке: смотреть, видеть обсуждение, голосовать, комментировать."""
+    """Определить права просмотра заявки, обсуждения, голосования и комментирования."""
     user = request.user
     is_member = check_guild_member(user)
     is_admin = user.is_superuser or user.is_staff
     is_owner = user == application.user
-    in_history = application.approved_at is not None and application.status in ('voting', 'approved', 'rejected')
+    in_history = application.approved_at is not None and application.status in (
+        'voting',
+        'approved',
+        'rejected',
+    )
     can_discuss = (is_member or is_admin) and not is_owner and (is_admin or in_history)
     if not (is_owner or can_discuss):
-        raise PermissionDenied("Нет доступа к этой заявке")
+        raise PermissionDenied('Нет доступа к этой заявке')
     is_voting = application.status == 'voting'
     return {
         'is_owner': is_owner,
@@ -176,11 +203,17 @@ def _render_detail(request, application):
         'stats': application.get_vote_stats(),
         'my_vote': my_vote,
         # На сайте в ленте только тексты: комментарии и комментарии к голосам, кто как голосовал — в админ-панели.
-        'items': [item for item in discussion_items(application) if item['text']] if access['can_discuss'] else [],
+        'items': [item for item in discussion_items(application) if item['text']]
+        if access['can_discuss']
+        else [],
         **access,
     }
     # Во всплывающем окне — только содержимое, без каркаса сайта.
-    template = 'reception/includes/discussion.html' if request.GET.get('modal') else 'reception/application_detail.html'
+    template = (
+        'reception/includes/discussion.html'
+        if request.GET.get('modal')
+        else 'reception/application_detail.html'
+    )
     return render(request, template, context)
 
 
@@ -204,12 +237,16 @@ def _after_post(request, application):
 def application_vote(request, id):
     application = get_object_or_404(Application, id=id)
     vote = request.POST.get('vote')
-    if not _access(request, application)['can_vote'] or vote not in dict(ApplicationVote.VOTE_CHOICES):
-        raise PermissionDenied("Голосовать по этой заявке нельзя")
+    if not _access(request, application)['can_vote'] or vote not in dict(
+        ApplicationVote.VOTE_CHOICES
+    ):
+        raise PermissionDenied('Голосовать по этой заявке нельзя')
 
-    _, created = ApplicationVote.objects.get_or_create(application=application, voter=request.user,
-                                                       defaults={'vote': vote,
-                                                                 'comment': request.POST.get('comment', '').strip()[:2000]})
+    _, created = ApplicationVote.objects.get_or_create(
+        application=application,
+        voter=request.user,
+        defaults={'vote': vote, 'comment': request.POST.get('comment', '').strip()[:2000]},
+    )
     if created:
         messages.success(request, 'Ваш голос учтён!')
         # Уведомление автору заявки о голосе (если не воздержался).
@@ -218,9 +255,9 @@ def application_vote(request, id):
                 user=application.user,
                 title='🗳️ Новый голос в вашей заявке',
                 message=f'Пользователь {request.user.username} проголосовал {"ЗА" if vote == "for" else "ПРОТИВ"} '
-                        f'по вашей заявке.',
+                f'по вашей заявке.',
                 notification_type='application',
-                link=reverse('reception:application_detail', args=[application.id])
+                link=reverse('reception:application_detail', args=[application.id]),
             )
     return _after_post(request, application)
 
@@ -230,9 +267,11 @@ def application_vote(request, id):
 def application_comment(request, id):
     application = get_object_or_404(Application, id=id)
     if not _access(request, application)['can_comment']:
-        raise PermissionDenied("Комментировать эту заявку нельзя")
+        raise PermissionDenied('Комментировать эту заявку нельзя')
 
     text = request.POST.get('text', '').strip()
     if text:
-        ApplicationComment.objects.create(application=application, author=request.user, text=text[:2000])
+        ApplicationComment.objects.create(
+            application=application, author=request.user, text=text[:2000]
+        )
     return _after_post(request, application)

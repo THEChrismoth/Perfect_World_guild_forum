@@ -1,6 +1,7 @@
 from django import forms
 from .models import Application
 
+
 class ApplicationForm(forms.ModelForm):
     """Форма подачи заявки.
 
@@ -11,10 +12,9 @@ class ApplicationForm(forms.ModelForm):
         model = Application
         fields = ['development_plans', 'screenshot_pa', 'screenshot_pz']
         widgets = {
-            'development_plans': forms.Textarea(attrs={
-                'rows': 4,
-                'placeholder': 'Опишите свои планы на развитие...'
-            }),
+            'development_plans': forms.Textarea(
+                attrs={'rows': 4, 'placeholder': 'Опишите свои планы на развитие...'}
+            ),
             'screenshot_pa': forms.FileInput(attrs={'accept': 'image/*'}),
             'screenshot_pz': forms.FileInput(attrs={'accept': 'image/*'}),
         }
@@ -42,4 +42,3 @@ class ApplicationForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
-

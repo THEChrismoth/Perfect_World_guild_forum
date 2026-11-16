@@ -20,16 +20,20 @@ class Application(models.Model):
         ('abstain', 'Воздержался'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='applications', verbose_name='Кандидат')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='applications', verbose_name='Кандидат'
+    )
     player_class = models.CharField('Класс персонажа', max_length=20)
 
     development_plans = models.TextField('Планы на развитие персонажа на 2 месяца')
 
     # Скриншоты окна характеристик из игры — по ним администратор сверяет статы сетов из анкеты.
-    screenshot_pa = models.ImageField('Скриншот сета ПА', upload_to='applications/screenshots/%Y/%m/%d/',
-                                      blank=True, null=True)
-    screenshot_pz = models.ImageField('Скриншот сета ПЗ', upload_to='applications/screenshots/%Y/%m/%d/',
-                                      blank=True, null=True)
+    screenshot_pa = models.ImageField(
+        'Скриншот сета ПА', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True
+    )
+    screenshot_pz = models.ImageField(
+        'Скриншот сета ПЗ', upload_to='applications/screenshots/%Y/%m/%d/', blank=True, null=True
+    )
 
     status = models.CharField('Статус', max_length=20, choices=STATUS_CHOICES, default='pending')
     admin_comment = models.TextField('Комментарий администратора', blank=True)
@@ -44,7 +48,7 @@ class Application(models.Model):
         null=True,
         blank=True,
         related_name='reviewed_applications',
-        verbose_name='Проверил'
+        verbose_name='Проверил',
     )
 
     class Meta:
@@ -74,7 +78,7 @@ class Application(models.Model):
 
 
 def vote_stats(votes_for, votes_against, votes_abstain):
-    """Голоса и проценты «за» и «против» (воздержавшиеся в процент не входят)."""
+    """Посчитать голоса и проценты без воздержавшихся в знаменателе процентов."""
     decided = votes_for + votes_against
     percent_for = round(votes_for * 100 / decided) if decided else 0
     return {
@@ -94,8 +98,12 @@ class ApplicationVote(models.Model):
         ('abstain', 'Воздержался'),
     ]
 
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='votes', verbose_name='Заявка')
-    voter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_votes', verbose_name='Голосующий')
+    application = models.ForeignKey(
+        Application, on_delete=models.CASCADE, related_name='votes', verbose_name='Заявка'
+    )
+    voter = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='application_votes', verbose_name='Голосующий'
+    )
     vote = models.CharField('Голос', max_length=10, choices=VOTE_CHOICES)
     comment = models.TextField('Комментарий', blank=True)
     created_at = models.DateTimeField('Дата голосования', auto_now_add=True)
@@ -112,8 +120,12 @@ class ApplicationVote(models.Model):
 class ApplicationComment(models.Model):
     """Комментарий в обсуждении заявки — отдельно от голоса, писать можно сколько угодно."""
 
-    application = models.ForeignKey(Application, on_delete=models.CASCADE, related_name='comments', verbose_name='Заявка')
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='application_comments', verbose_name='Автор')
+    application = models.ForeignKey(
+        Application, on_delete=models.CASCADE, related_name='comments', verbose_name='Заявка'
+    )
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='application_comments', verbose_name='Автор'
+    )
     text = models.TextField('Комментарий')
     created_at = models.DateTimeField('Дата', auto_now_add=True)
 

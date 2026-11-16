@@ -1,4 +1,5 @@
 """Решения по заявке: допустить до голосования, одобрить, отклонить. Кандидат получает уведомление о каждом."""
+
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.utils import timezone
@@ -15,10 +16,17 @@ DECISIONS = {
 
 
 def can_decide(application, decision):
+    """Проверить допустимость решения для текущего статуса заявки."""
     return application.status in DECISIONS.get(decision, ())
 
 
 def send_to_voting(application, admin_user):
+    """Допустить заявку до голосования и уведомить кандидата.
+
+    Args:
+        application: Заявка, для которой вызывающий код проверил допустимость решения.
+        admin_user: Пользователь, принявший решение.
+    """
     application.status = 'voting'
     application.approved_at = timezone.now()
     application.reviewed_by = admin_user
@@ -33,6 +41,13 @@ def send_to_voting(application, admin_user):
 
 
 def approve(application, admin_user, add_to_guild=False):
+    """Одобрить заявку и при необходимости включить кандидата в гильдию.
+
+    Args:
+        application: Заявка после проверки прав и допустимости перехода вызывающим кодом.
+        admin_user: Пользователь, принявший решение.
+        add_to_guild: Добавить кандидата в группу гильдии при True.
+    """
     application.status = 'approved'
     application.reviewed_by = admin_user
     application.save()
@@ -42,14 +57,22 @@ def approve(application, admin_user, add_to_guild=False):
     send_notification(
         user=application.user,
         title='🎉 Заявка одобрена!',
-        message='Поздравляем! Ваша заявка одобрена — добро пожаловать в гильдию!' if add_to_guild else
-                'Поздравляем! Ваша заявка одобрена. Свяжитесь с администратором для вступления в гильдию.',
+        message='Поздравляем! Ваша заявка одобрена — добро пожаловать в гильдию!'
+        if add_to_guild
+        else 'Поздравляем! Ваша заявка одобрена. Свяжитесь с администратором для вступления в гильдию.',
         notification_type='success',
         link=reverse('reception:my_applications'),
     )
 
 
 def reject(application, admin_user, reason):
+    """Отклонить заявку, сохранить причину и уведомить кандидата.
+
+    Args:
+        application: Заявка после проверки допустимости решения вызывающим кодом.
+        admin_user: Пользователь, принявший решение.
+        reason: Причина отказа, показываемая кандидату.
+    """
     application.status = 'rejected'
     application.admin_comment = reason
     application.reviewed_by = admin_user
@@ -64,14 +87,31 @@ def reject(application, admin_user, reason):
 
 
 def discussion_items(application):
-    """Голоса и комментарии одной лентой, новые сверху: голос — с комментарием или без, комментарий — отдельно."""
+    """Объединить голоса и комментарии заявки в ленту от новых к старым.
+
+    Args:
+        application: Заявка с голосами и отдельными комментариями.
+
+    Returns:
+        Список словарей с видом записи, подписью, автором, текстом и временем.
+    """
     items = [
-        {'kind': vote.vote, 'label': vote.get_vote_display(), 'author': vote.voter,
-         'text': vote.comment, 'created_at': vote.created_at}
+        {
+            'kind': vote.vote,
+            'label': vote.get_vote_display(),
+            'author': vote.voter,
+            'text': vote.comment,
+            'created_at': vote.created_at,
+        }
         for vote in application.votes.select_related('voter')
     ] + [
-        {'kind': 'comment', 'label': 'Комментарий', 'author': comment.author,
-         'text': comment.text, 'created_at': comment.created_at}
+        {
+            'kind': 'comment',
+            'label': 'Комментарий',
+            'author': comment.author,
+            'text': comment.text,
+            'created_at': comment.created_at,
+        }
         for comment in application.comments.select_related('author')
     ]
     return sorted(items, key=lambda item: item['created_at'], reverse=True)

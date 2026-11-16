@@ -1,4 +1,3 @@
-
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -22,15 +21,21 @@ class ApplicationAdminTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
         self.candidate = User.objects.create_user('candidate')
-        self.application = Application.objects.create(user=self.candidate, player_class='Маг', development_plans='Расти')
+        self.application = Application.objects.create(
+            user=self.candidate, player_class='Маг', development_plans='Расти'
+        )
         self.client.force_login(self.admin)
 
     def decide(self, decision, **data):
-        return self.client.post(reverse('admin:reception_application_decision', args=[self.application.pk]),
-                                {'decision': decision, **data})
+        return self.client.post(
+            reverse('admin:reception_application_decision', args=[self.application.pk]),
+            {'decision': decision, **data},
+        )
 
     def test_no_add_and_no_votes_section(self):
-        self.assertEqual(self.client.get(reverse('admin:reception_application_add')).status_code, 403)
+        self.assertEqual(
+            self.client.get(reverse('admin:reception_application_add')).status_code, 403
+        )
         with self.assertRaises(Exception):
             reverse('admin:reception_applicationvote_changelist')
 
@@ -46,11 +51,15 @@ class ApplicationAdminTests(TestCase):
             self.application.save()
             url = self.application.screenshot_pa.url
 
-            admin_page = self.client.get(reverse('admin:reception_application_change', args=[self.application.pk]))
+            admin_page = self.client.get(
+                reverse('admin:reception_application_change', args=[self.application.pk])
+            )
             member = User.objects.create_user('member')
             member.groups.add(Group.objects.create(name='Член гильдии'))
             self.client.force_login(member)
-            site_page = self.client.get(reverse('reception:application_detail', args=[self.application.pk]))
+            site_page = self.client.get(
+                reverse('reception:application_detail', args=[self.application.pk])
+            )
 
         self.assertContains(admin_page, url)
         self.assertEqual(site_page.status_code, 200)
@@ -58,10 +67,16 @@ class ApplicationAdminTests(TestCase):
 
     def test_card_shows_application_and_escaped_comments(self):
         voter = User.objects.create_user('voter')
-        ApplicationVote.objects.create(application=self.application, voter=voter, vote='for',
-                                       comment='<script>alert(1)</script>')
+        ApplicationVote.objects.create(
+            application=self.application,
+            voter=voter,
+            vote='for',
+            comment='<script>alert(1)</script>',
+        )
 
-        response = self.client.get(reverse('admin:reception_application_change', args=[self.application.pk]))
+        response = self.client.get(
+            reverse('admin:reception_application_change', args=[self.application.pk])
+        )
 
         self.assertContains(response, 'Расти')
         self.assertContains(response, 'Вынести на голосование')
@@ -95,7 +110,10 @@ class ApplicationAdminTests(TestCase):
 
         self.decide('reject', reason='Нет скриншотов')
         self.application.refresh_from_db()
-        self.assertEqual((self.application.status, self.application.admin_comment), ('rejected', 'Нет скриншотов'))
+        self.assertEqual(
+            (self.application.status, self.application.admin_comment),
+            ('rejected', 'Нет скриншотов'),
+        )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -122,22 +140,39 @@ class VotingPageTests(TestCase):
         self.member = User.objects.create_user('member', password='pass')
         self.member.groups.add(Group.objects.create(name='Член гильдии'))
         self.candidate = User.objects.create_user('candidate', password='pass')
-        self.voting = Application.objects.create(user=self.candidate, player_class='Маг', development_plans='Расти',
-                                                 status='voting', approved_at=timezone.now())
+        self.voting = Application.objects.create(
+            user=self.candidate,
+            player_class='Маг',
+            development_plans='Расти',
+            status='voting',
+            approved_at=timezone.now(),
+        )
         self.client.force_login(self.member)
 
     def test_tabs_show_history(self):
         from django.utils import timezone
+
         other = User.objects.create_user('old')
-        Application.objects.create(user=other, player_class='Жрец', development_plans='-', status='rejected',
-                                   approved_at=timezone.now())
+        Application.objects.create(
+            user=other,
+            player_class='Жрец',
+            development_plans='-',
+            status='rejected',
+            approved_at=timezone.now(),
+        )
         # Отклонена на проверке, до голосования не дошла — в истории её нет.
-        Application.objects.create(user=User.objects.create_user('early'), player_class='Жрец',
-                                   development_plans='-', status='rejected')
+        Application.objects.create(
+            user=User.objects.create_user('early'),
+            player_class='Жрец',
+            development_plans='-',
+            status='rejected',
+        )
 
         open_page = self.client.get(reverse('reception:application_list'))
         rejected = self.client.get(reverse('reception:application_list'), {'tab': 'rejected'})
-        everything = self.client.get(reverse('reception:application_list'), {'tab': 'all', 'q': 'old'})
+        everything = self.client.get(
+            reverse('reception:application_list'), {'tab': 'all', 'q': 'old'}
+        )
 
         self.assertEqual([a.user.username for a in open_page.context['page']], ['candidate'])
         self.assertEqual([a.user.username for a in rejected.context['page']], ['old'])
@@ -145,18 +180,25 @@ class VotingPageTests(TestCase):
 
     def test_percent_from_for_and_against(self):
         for i, vote in enumerate(['for', 'for', 'for', 'against', 'abstain']):
-            ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user(f'v{i}'), vote=vote)
+            ApplicationVote.objects.create(
+                application=self.voting, voter=User.objects.create_user(f'v{i}'), vote=vote
+            )
 
         stats = self.client.get(reverse('reception:application_list')).context['page'][0].stats
 
-        self.assertEqual((stats['percent_for'], stats['percent_against'], stats['total']), (75, 25, 5))
+        self.assertEqual(
+            (stats['percent_for'], stats['percent_against'], stats['total']), (75, 25, 5)
+        )
 
     def test_vote_once_and_comment_separately(self):
         vote_url = reverse('reception:application_vote', args=[self.voting.id])
         self.client.post(vote_url, {'vote': 'for', 'comment': ''})
         self.client.post(vote_url, {'vote': 'against'})
-        response = self.client.post(reverse('reception:application_comment', args=[self.voting.id]),
-                                    {'text': 'Знаю его, норм'}, HTTP_X_REQUESTED_WITH='fetch')
+        response = self.client.post(
+            reverse('reception:application_comment', args=[self.voting.id]),
+            {'text': 'Знаю его, норм'},
+            HTTP_X_REQUESTED_WITH='fetch',
+        )
 
         self.assertEqual(list(self.voting.votes.values_list('vote', flat=True)), ['for'])
         self.assertEqual(self.voting.comments.get().text, 'Знаю его, норм')
@@ -165,34 +207,53 @@ class VotingPageTests(TestCase):
         self.assertNotContains(response, '<html')
 
     def test_site_feed_shows_only_texts(self):
-        ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user('Molchun'), vote='for')
-        ApplicationVote.objects.create(application=self.voting, voter=User.objects.create_user('Govorun'),
-                                       vote='against', comment='Мало урона')
+        ApplicationVote.objects.create(
+            application=self.voting, voter=User.objects.create_user('Molchun'), vote='for'
+        )
+        ApplicationVote.objects.create(
+            application=self.voting,
+            voter=User.objects.create_user('Govorun'),
+            vote='against',
+            comment='Мало урона',
+        )
 
-        items = self.client.get(reverse('reception:application_detail', args=[self.voting.id]),
-                                {'modal': 1}).context['items']
+        items = self.client.get(
+            reverse('reception:application_detail', args=[self.voting.id]), {'modal': 1}
+        ).context['items']
 
-        self.assertEqual([(item['author'].username, item['text']) for item in items], [('Govorun', 'Мало урона')])
+        self.assertEqual(
+            [(item['author'].username, item['text']) for item in items], [('Govorun', 'Мало урона')]
+        )
 
     def test_comment_saved_with_vote(self):
-        self.client.post(reverse('reception:application_vote', args=[self.voting.id]),
-                         {'vote': 'against', 'comment': 'Был в ЧС'})
+        self.client.post(
+            reverse('reception:application_vote', args=[self.voting.id]),
+            {'vote': 'against', 'comment': 'Был в ЧС'},
+        )
 
         vote = self.voting.votes.get()
         self.assertEqual((vote.vote, vote.comment), ('against', 'Был в ЧС'))
 
     def test_candidate_sees_own_application_without_names(self):
         voter = User.objects.create_user('ZloyGolos')
-        ApplicationVote.objects.create(application=self.voting, voter=voter, vote='against', comment='Нет')
+        ApplicationVote.objects.create(
+            application=self.voting, voter=voter, vote='against', comment='Нет'
+        )
         self.client.force_login(self.candidate)
 
         # Содержимое заявки без каркаса: в списке «Онлайн» в меню имя голосовавшего есть всегда.
-        response = self.client.get(reverse('reception:application_detail', args=[self.voting.id]), {'modal': 1})
+        response = self.client.get(
+            reverse('reception:application_detail', args=[self.voting.id]), {'modal': 1}
+        )
 
         self.assertContains(response, 'Против · 1')
         self.assertNotContains(response, 'ZloyGolos')
-        self.assertEqual(self.client.post(reverse('reception:application_comment', args=[self.voting.id]),
-                                          {'text': 'Я'}).status_code, 403)
+        self.assertEqual(
+            self.client.post(
+                reverse('reception:application_comment', args=[self.voting.id]), {'text': 'Я'}
+            ).status_code,
+            403,
+        )
 
 
 class ApplicationFormTests(TestCase):
@@ -220,9 +281,13 @@ class ApplicationFormTests(TestCase):
         self.assertNotContains(page, 'Физ. / маг. атака')
         self.assertContains(page, 'Изменить в профиле')
 
-        response = self.client.post(reverse('reception:application_form'), {
-            'development_plans': 'Качаться', 'screenshot_pa': screenshot(),
-        })
+        response = self.client.post(
+            reverse('reception:application_form'),
+            {
+                'development_plans': 'Качаться',
+                'screenshot_pa': screenshot(),
+            },
+        )
 
         self.assertRedirects(response, reverse('reception:application_success'))
         application = Application.objects.get(user=self.user)
@@ -246,9 +311,17 @@ class ApplicationFormTests(TestCase):
 
         # Сет ПЗ заполнен — его скриншот тоже нужен.
         self.user.gear_sets.filter(kind='pz').update(hp=50000)
-        response = self.client.post(url, {'development_plans': 'Качаться', 'screenshot_pa': screenshot()})
+        response = self.client.post(
+            url, {'development_plans': 'Качаться', 'screenshot_pa': screenshot()}
+        )
         self.assertContains(response, 'скриншот окна характеристик в сете ПЗ')
 
-        response = self.client.post(url, {'development_plans': 'Качаться', 'screenshot_pa': screenshot(),
-                                          'screenshot_pz': screenshot()})
+        response = self.client.post(
+            url,
+            {
+                'development_plans': 'Качаться',
+                'screenshot_pa': screenshot(),
+                'screenshot_pz': screenshot(),
+            },
+        )
         self.assertRedirects(response, reverse('reception:application_success'))

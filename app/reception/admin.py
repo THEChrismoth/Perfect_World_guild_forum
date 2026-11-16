@@ -15,8 +15,11 @@ from .models import Application
 
 @admin.register(Application)
 class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
-    """Заявки создают кандидаты на сайте. Здесь их только смотрят и принимают решение:
-    вынести на голосование, одобрить или отклонить — кнопками на странице заявки."""
+    """Просмотр заявок и принятие решений через кнопки на странице заявки.
+
+    Кандидаты создают заявки на сайте; администратор допускает их до голосования,
+    одобряет или отклоняет без создания заявок из админ-панели.
+    """
 
     list_display = ('user', 'player_class', 'status', 'created_at', 'votes_summary')
     list_filter = ('status', 'created_at')
@@ -29,8 +32,11 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     @admin.display(description='Голоса')
     def votes_summary(self, obj):
         stats = obj.get_vote_stats()
-        return format_html('<span class="ga-text-ok">За {}</span> · <span class="ga-text-bad">против {}</span>',
-                           stats['for'], stats['against'])
+        return format_html(
+            '<span class="ga-text-ok">За {}</span> · <span class="ga-text-bad">против {}</span>',
+            stats['for'],
+            stats['against'],
+        )
 
     @admin.action(description='Вынести на голосование')
     def send_to_voting_action(self, request, queryset):
@@ -40,18 +46,24 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         self.message_user(request, f'Вынесено на голосование: {len(applications)}')
 
     def changelist_view(self, request, extra_context=None):
-        return super().changelist_view(request, {'title': 'Заявки в гильдию', **(extra_context or {})})
+        return super().changelist_view(
+            request, {'title': 'Заявки в гильдию', **(extra_context or {})}
+        )
 
     def get_urls(self):
         return [
-            path('<int:object_id>/decision/', self.admin_site.admin_view(require_POST(self.decision_view)),
-                 name='reception_application_decision'),
+            path(
+                '<int:object_id>/decision/',
+                self.admin_site.admin_view(require_POST(self.decision_view)),
+                name='reception_application_decision',
+            ),
         ] + super().get_urls()
 
     def change_view(self, request, object_id, form_url='', extra_context=None):
-        """Вместо формы — заявка целиком, голоса с комментариями и кнопки решения."""
-        application = get_object_or_404(Application.objects.select_related('user__profile', 'reviewed_by'),
-                                        pk=object_id)
+        """Показать заявку целиком с обсуждением и кнопками решения вместо формы редактирования."""
+        application = get_object_or_404(
+            Application.objects.select_related('user__profile', 'reviewed_by'), pk=object_id
+        )
         if not self.has_view_or_change_permission(request, application):
             raise PermissionDenied
         context = {
@@ -77,23 +89,34 @@ class ApplicationAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         if not self.has_change_permission(request, application):
             raise PermissionDenied
         decision = request.POST.get('decision')
-        back = HttpResponseRedirect(reverse('admin:reception_application_change', args=[application.pk]))
+        back = HttpResponseRedirect(
+            reverse('admin:reception_application_change', args=[application.pk])
+        )
 
         if not services.can_decide(application, decision):
-            self.message_user(request, 'Это решение для заявки в таком статусе недоступно', level=messages.ERROR)
+            self.message_user(
+                request, 'Это решение для заявки в таком статусе недоступно', level=messages.ERROR
+            )
             return back
 
         if decision == 'voting':
             services.send_to_voting(application, request.user)
-            self.message_user(request, 'Заявка вынесена на голосование, кандидат получил уведомление')
+            self.message_user(
+                request, 'Заявка вынесена на голосование, кандидат получил уведомление'
+            )
         elif decision == 'approve':
-            services.approve(application, request.user, add_to_guild=bool(request.POST.get('add_to_guild')))
+            services.approve(
+                application, request.user, add_to_guild=bool(request.POST.get('add_to_guild'))
+            )
             self.message_user(request, 'Заявка одобрена, кандидат получил уведомление')
         else:
             reason = request.POST.get('reason', '').strip()
             if not reason:
-                self.message_user(request, 'Напишите причину отказа — кандидат увидит её в уведомлении',
-                                  level=messages.ERROR)
+                self.message_user(
+                    request,
+                    'Напишите причину отказа — кандидат увидит её в уведомлении',
+                    level=messages.ERROR,
+                )
                 return back
             services.reject(application, request.user, reason)
             self.message_user(request, 'Заявка отклонена, кандидат получил уведомление с причиной')
