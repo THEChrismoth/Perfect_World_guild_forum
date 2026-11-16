@@ -33,10 +33,14 @@ class AuctionTestCase(TestCase):
 
     def bid(self, user, amount):
         self.client.force_login(user)
-        return self.client.post(reverse('auction:lot_detail', args=[self.lot.slug]), {'bid_amount': amount})
+        return self.client.post(
+            reverse('auction:lot_detail', args=[self.lot.slug]), {'bid_amount': amount}
+        )
 
     def expire_lot(self):
-        AuctionLot.objects.filter(pk=self.lot.pk).update(end_date=timezone.now() - timedelta(seconds=1))
+        AuctionLot.objects.filter(pk=self.lot.pk).update(
+            end_date=timezone.now() - timedelta(seconds=1)
+        )
         self.lot.refresh_from_db()
 
     def finish_lot(self, **kwargs):
@@ -52,7 +56,11 @@ class BidTests(AuctionTestCase):
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.current_price, 15)
         self.assertEqual(self.alice.profile.get_available_points(), 85)
-        self.assertTrue(PointsTransaction.objects.filter(user=self.alice, transaction_type='freeze', amount=15).exists())
+        self.assertTrue(
+            PointsTransaction.objects.filter(
+                user=self.alice, transaction_type='freeze', amount=15
+            ).exists()
+        )
 
     def test_bid_below_minimum_rejected(self):
         self.bid(self.alice, 14)
@@ -145,7 +153,9 @@ class AuctionEndTests(AuctionTestCase):
         self.assertEqual(self.bob.profile.spent_points, 20)
         self.alice.profile.refresh_from_db()
         self.assertEqual(self.alice.profile.activity_points, 100)
-        self.assertTrue(Notification.objects.filter(user=self.bob, notification_type='auction_win').exists())
+        self.assertTrue(
+            Notification.objects.filter(user=self.bob, notification_type='auction_win').exists()
+        )
 
     def test_end_is_processed_once(self):
         self.bid(self.alice, 15)
@@ -210,7 +220,9 @@ class AuctionAccessTests(AuctionTestCase):
         outsider = User.objects.create_user('outsider', password='pass')
         self.client.force_login(outsider)
         self.assertEqual(self.client.get(reverse('auction:auction_index')).status_code, 403)
-        self.assertEqual(self.client.get(reverse('auction:lot_detail', args=[self.lot.slug])).status_code, 403)
+        self.assertEqual(
+            self.client.get(reverse('auction:lot_detail', args=[self.lot.slug])).status_code, 403
+        )
 
 
 class LotAdminTests(AuctionTestCase):
@@ -220,20 +232,36 @@ class LotAdminTests(AuctionTestCase):
         self.client.force_login(self.admin)
 
     def test_create_lot_with_single_datetime_fields(self):
-        response = self.client.post(reverse('admin:auction_auctionlot_add'), {
-            'name': 'Опал', 'description': '', 'initial_price': 10, 'min_step': 5,
-            'start_date': '2026-11-03T12:00', 'end_date': '2099-11-06T12:00',
-        })
+        response = self.client.post(
+            reverse('admin:auction_auctionlot_add'),
+            {
+                'name': 'Опал',
+                'description': '',
+                'initial_price': 10,
+                'min_step': 5,
+                'start_date': '2026-11-03T12:00',
+                'end_date': '2099-11-06T12:00',
+            },
+        )
 
         self.assertEqual(response.status_code, 302)
         lot = AuctionLot.objects.get(name='Опал')
-        self.assertEqual(timezone.localtime(lot.end_date).strftime('%Y-%m-%d %H:%M'), '2099-11-06 12:00')
+        self.assertEqual(
+            timezone.localtime(lot.end_date).strftime('%Y-%m-%d %H:%M'), '2099-11-06 12:00'
+        )
 
     def test_end_date_required(self):
-        response = self.client.post(reverse('admin:auction_auctionlot_add'), {
-            'name': 'Опал', 'description': '', 'initial_price': 10, 'min_step': 5,
-            'start_date': '2026-11-03T12:00', 'end_date': '',
-        })
+        response = self.client.post(
+            reverse('admin:auction_auctionlot_add'),
+            {
+                'name': 'Опал',
+                'description': '',
+                'initial_price': 10,
+                'min_step': 5,
+                'start_date': '2026-11-03T12:00',
+                'end_date': '',
+            },
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertFalse(AuctionLot.objects.filter(name='Опал').exists())
@@ -253,9 +281,16 @@ class LotAdminTests(AuctionTestCase):
         from django.core.files.uploadedfile import SimpleUploadedFile
 
         image = SimpleUploadedFile('lot.png', b'\x89PNG\r\n\x1a\n', content_type='image/png')
-        response = self.client.post(reverse('admin:auction_lot_preview'), {
-            'name': 'Пряжа времени', 'initial_price': '25', 'min_step': '5', 'end_date': '', 'image': image,
-        })
+        response = self.client.post(
+            reverse('admin:auction_lot_preview'),
+            {
+                'name': 'Пряжа времени',
+                'initial_price': '25',
+                'min_step': '5',
+                'end_date': '',
+                'image': image,
+            },
+        )
 
         self.assertContains(response, 'Пряжа времени')
         self.assertContains(response, 'data:image/png;base64,')
@@ -271,10 +306,14 @@ class BiddingFlowTests(AuctionTestCase):
         notification = Notification.objects.get(user=self.alice, title='⚠️ Вашу ставку перебили')
         self.assertIn('15 ⭐', notification.message)
         self.assertIn('20 ⭐', notification.message)
-        self.assertFalse(Notification.objects.filter(user=self.bob, title='⚠️ Вашу ставку перебили').exists())
+        self.assertFalse(
+            Notification.objects.filter(user=self.bob, title='⚠️ Вашу ставку перебили').exists()
+        )
 
     def test_late_bid_extends_auction(self):
-        AuctionLot.objects.filter(pk=self.lot.pk).update(end_date=timezone.now() + timedelta(minutes=2))
+        AuctionLot.objects.filter(pk=self.lot.pk).update(
+            end_date=timezone.now() + timedelta(minutes=2)
+        )
 
         self.bid(self.alice, 15)
 
@@ -288,7 +327,8 @@ class BiddingFlowTests(AuctionTestCase):
 
         # Торги уже продлевали почти до предела: следующая ставка дотягивает только до него.
         AuctionLot.objects.filter(pk=self.lot.pk).update(
-            original_end_date=planned_end - timedelta(minutes=28), end_date=planned_end)
+            original_end_date=planned_end - timedelta(minutes=28), end_date=planned_end
+        )
         self.bid(self.alice, 15)
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.end_date, planned_end + timedelta(minutes=2))
@@ -303,10 +343,18 @@ class BiddingFlowTests(AuctionTestCase):
         AuctionLot.objects.filter(pk=self.lot.pk).update(original_end_date=timezone.now())
         self.client.force_login(admin)
 
-        self.client.post(reverse('admin:auction_auctionlot_change', args=[self.lot.pk]), {
-            'name': self.lot.name, 'description': '', 'initial_price': 10, 'min_step': 5,
-            'start_date': '2026-11-01T12:00', 'end_date': '2099-01-01T12:00', 'status': 'active',
-        })
+        self.client.post(
+            reverse('admin:auction_auctionlot_change', args=[self.lot.pk]),
+            {
+                'name': self.lot.name,
+                'description': '',
+                'initial_price': 10,
+                'min_step': 5,
+                'start_date': '2026-11-01T12:00',
+                'end_date': '2099-01-01T12:00',
+                'status': 'active',
+            },
+        )
 
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.end_date.year, 2099)
@@ -350,7 +398,9 @@ class AutoFinishTests(AuctionTestCase):
         self.assertEqual(finish_expired_lots(), (0, 1))
         finish_expired_lots()
 
-        self.assertEqual(Notification.objects.filter(user=admin, title=PAYMENT_PROBLEM_TITLE).count(), 1)
+        self.assertEqual(
+            Notification.objects.filter(user=admin, title=PAYMENT_PROBLEM_TITLE).count(), 1
+        )
         self.lot.refresh_from_db()
         self.assertEqual(self.lot.status, 'active')
 

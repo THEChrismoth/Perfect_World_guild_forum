@@ -21,16 +21,18 @@ PREVIEW_IMAGE_LIMIT = 5 * 1024 * 1024
 class AuctionLotForm(forms.ModelForm):
     # Дата и время одним полем с календарём браузера и быстрыми кнопками.
     start_date = datetime_local_field(
-        label='Начало торгов', initial=timezone.now,
+        label='Начало торгов',
+        initial=timezone.now,
         widget=DateTimeLocalInput(quick=[('now', 'Сейчас')]),
     )
     end_date = datetime_local_field(
         label='Окончание торгов',
         help_text='Когда время выйдет, лот завершится сам: лидер платит, остальным очки возвращаются. '
-                  'Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут. '
-                  'Кнопки «+N дн.» считают от начала торгов',
-        widget=DateTimeLocalInput(quick=[('+1', '+1 дн.'), ('+3', '+3 дн.'), ('+7', '+7 дн.')],
-                                  from_field='start_date'),
+        'Ставка в последние 5 минут продлевает торги на 5 минут, всего не больше чем на 30 минут. '
+        'Кнопки «+N дн.» считают от начала торгов',
+        widget=DateTimeLocalInput(
+            quick=[('+1', '+1 дн.'), ('+3', '+3 дн.'), ('+7', '+7 дн.')], from_field='start_date'
+        ),
     )
 
     class Meta:
@@ -57,7 +59,7 @@ class AuctionBidInline(admin.TabularInline):
     fields = ('bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
     can_delete = False
     ordering = ('-bid_amount',)
-    
+
     def has_add_permission(self, request, obj=None):
         return False
 
@@ -65,30 +67,47 @@ class AuctionBidInline(admin.TabularInline):
 @admin.register(AuctionLot)
 class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     form = AuctionLotForm
-    list_display = ('image_thumb', 'name', 'initial_price', 'current_price', 'status', 'end_date', 'total_bids')
+    list_display = (
+        'image_thumb',
+        'name',
+        'initial_price',
+        'current_price',
+        'status',
+        'end_date',
+        'total_bids',
+    )
     list_display_links = ('image_thumb', 'name')
     list_filter = ('status', 'created_at', 'ended_at')
     search_fields = ('name', 'slug', 'description')
     readonly_fields = ('current_price', 'ended_at', 'ended_by')
 
     main_fieldsets = (
-        ('Лот', {
-            'fields': ('name', 'description', 'image'),
-            'description': 'Как лот будет выглядеть на сайте, покажет кнопка «Предпросмотр» внизу страницы — '
-                           'без сохранения.',
-        }),
-        ('Ставки', {
-            'fields': ('initial_price', 'min_step', 'start_date', 'end_date'),
-            'description': 'Цены — в очках активности. Перебитый игрок сразу получает уведомление, а по окончании '
-                           'торгов лот завершается сам. Кнопка «Завершить аукцион» вверху страницы — чтобы закончить '
-                           'раньше или выбрать другого победителя, например если у лидера не хватает очков.',
-        }),
+        (
+            'Лот',
+            {
+                'fields': ('name', 'description', 'image'),
+                'description': 'Как лот будет выглядеть на сайте, покажет кнопка «Предпросмотр» внизу страницы — '
+                'без сохранения.',
+            },
+        ),
+        (
+            'Ставки',
+            {
+                'fields': ('initial_price', 'min_step', 'start_date', 'end_date'),
+                'description': 'Цены — в очках активности. Перебитый игрок сразу получает уведомление, а по окончании '
+                'торгов лот завершается сам. Кнопка «Завершить аукцион» вверху страницы — чтобы закончить '
+                'раньше или выбрать другого победителя, например если у лидера не хватает очков.',
+            },
+        ),
     )
-    status_fieldset = ('Состояние торгов', {
-        'fields': ('status', 'current_price', 'ended_by', 'ended_at'),
-        'description': 'Завершайте и отменяйте лот кнопками вверху страницы: тогда очки списываются и возвращаются '
-                       'участникам автоматически. Ручная смена статуса очки не трогает.',
-    })
+    status_fieldset = (
+        'Состояние торгов',
+        {
+            'fields': ('status', 'current_price', 'ended_by', 'ended_at'),
+            'description': 'Завершайте и отменяйте лот кнопками вверху страницы: тогда очки списываются и возвращаются '
+            'участникам автоматически. Ручная смена статуса очки не трогает.',
+        },
+    )
 
     def get_fieldsets(self, request, obj=None):
         # Новый лот всегда начинается активным — состояние торгов показываем только у созданных.
@@ -98,7 +117,9 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     def image_thumb(self, obj):
         url = obj.get_image_url()
         if not url:
-            return format_html('<span class="ga-lot-thumb ga-lot-thumb-empty">{}</span>', ga_icon('gavel'))
+            return format_html(
+                '<span class="ga-lot-thumb ga-lot-thumb-empty">{}</span>', ga_icon('gavel')
+            )
         return format_html('<img class="ga-lot-thumb" src="{}" alt="">', url)
 
     actions = ['force_end_auction', 'cancel_selected_auctions']
@@ -112,16 +133,17 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     def get_inlines(self, request, obj):
         # Таблица ставок нужна только у лота, по которому уже торгуются.
         return [AuctionBidInline] if obj and obj.bids.exists() else []
-    
+
     def total_bids(self, obj):
         return obj.total_bids_count
+
     total_bids.short_description = 'Всего ставок'
-    
+
     def force_end_auction(self, request, queryset):
-        """Массовое завершение аукционов."""
+        """Завершить выбранные аукционы массовым действием."""
         ended_count = 0
         errors = []
-        
+
         for lot in queryset:
             success, message = lot.process_auction_end(ended_by_user=request.user)
             if success:
@@ -129,19 +151,21 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                 self.message_user(request, f'✅ {message}', level=messages.SUCCESS)
             else:
                 errors.append(f'{lot.name}: {message}')
-        
+
         if ended_count > 0:
-            self.message_user(request, f'Успешно завершено аукционов: {ended_count}', level=messages.SUCCESS)
+            self.message_user(
+                request, f'Успешно завершено аукционов: {ended_count}', level=messages.SUCCESS
+            )
         if errors:
             self.message_user(request, f'Ошибки: {" | ".join(errors)}', level=messages.WARNING)
-    
+
     force_end_auction.short_description = 'Завершить выбранные аукционы'
-    
+
     def cancel_selected_auctions(self, request, queryset):
-        """Отмена выбранных аукционов."""
+        """Отменить выбранные аукционы массовым действием."""
         cancelled_count = 0
         errors = []
-        
+
         for lot in queryset:
             success, message = lot.cancel_auction(cancelled_by_user=request.user)
             if success:
@@ -149,14 +173,16 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                 self.message_user(request, f'✅ {message}', level=messages.SUCCESS)
             else:
                 errors.append(f'{lot.name}: {message}')
-        
+
         if cancelled_count > 0:
-            self.message_user(request, f'Успешно отменено аукционов: {cancelled_count}', level=messages.SUCCESS)
+            self.message_user(
+                request, f'Успешно отменено аукционов: {cancelled_count}', level=messages.SUCCESS
+            )
         if errors:
             self.message_user(request, f'Ошибки: {" | ".join(errors)}', level=messages.WARNING)
-    
+
     cancel_selected_auctions.short_description = 'Отменить выбранные аукционы (с возвратом очков)'
-    
+
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
@@ -170,12 +196,16 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                 self.admin_site.admin_view(self.cancel_auction_view),
                 name='auction_cancel_auction',
             ),
-            path('preview/', self.admin_site.admin_view(require_POST(self.preview_view)), name='auction_lot_preview'),
+            path(
+                'preview/',
+                self.admin_site.admin_view(require_POST(self.preview_view)),
+                name='auction_lot_preview',
+            ),
         ]
         return custom_urls + urls
-    
+
     def preview_view(self, request):
-        """Карточка лота как на сайте — из того, что сейчас введено в форме, без сохранения."""
+        """Показать карточку лота по введённым данным формы без сохранения."""
         data = request.POST
 
         def number(name, default):
@@ -200,49 +230,66 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
         image_url = ''
         bids_count = 0
         upload = request.FILES.get('image')
-        if upload and upload.size <= PREVIEW_IMAGE_LIMIT and (upload.content_type or '').startswith('image/'):
-            image_url = f'data:{upload.content_type};base64,{base64.b64encode(upload.read()).decode()}'
-        saved = AuctionLot.objects.filter(pk=data['object_id']).first() if data.get('object_id') else None
+        if (
+            upload
+            and upload.size <= PREVIEW_IMAGE_LIMIT
+            and (upload.content_type or '').startswith('image/')
+        ):
+            image_url = (
+                f'data:{upload.content_type};base64,{base64.b64encode(upload.read()).decode()}'
+            )
+        saved = (
+            AuctionLot.objects.filter(pk=data['object_id']).first()
+            if data.get('object_id')
+            else None
+        )
         if saved:
             lot.current_price = max(saved.current_price, lot.initial_price)
             bids_count = saved.total_bids_count
             if not image_url and not data.get('image-clear'):
                 image_url = saved.get_image_url()
 
-        return TemplateResponse(request, 'admin/auction/lot_preview.html', {
-            'lot': lot,
-            'image_url': image_url,
-            'bids_count': bids_count,
-            'theme': 'dark' if data.get('theme') == 'dark' else 'light',
-            'accent': data.get('accent', 'indigo'),
-        })
+        return TemplateResponse(
+            request,
+            'admin/auction/lot_preview.html',
+            {
+                'lot': lot,
+                'image_url': image_url,
+                'bids_count': bids_count,
+                'theme': 'dark' if data.get('theme') == 'dark' else 'light',
+                'accent': data.get('accent', 'indigo'),
+            },
+        )
 
     def end_auction_view(self, request, lot_id):
-        """Индивидуальное завершение аукциона с выбором победителя."""
+        """Завершить выбранный аукцион с возможностью назначить победителя."""
         lot = self.get_object(request, lot_id)
-        
+
         if not lot:
             self.message_user(request, 'Лот не найден', level=messages.ERROR)
             return HttpResponseRedirect(reverse('admin:auction_auctionlot_changelist'))
-        
+
         if lot.status != 'active':
-            self.message_user(request, 'Этот аукцион уже завершен или отменен', level=messages.ERROR)
+            self.message_user(
+                request, 'Этот аукцион уже завершен или отменен', level=messages.ERROR
+            )
             return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
-        
+
         # Получаем все замороженные ставки.
         frozen_bids = lot.bids.filter(is_frozen=True).order_by('-bid_amount')
-        
+
         if request.method == 'POST':
             winner_id = request.POST.get('winner_id')
-            
+
             if winner_id and winner_id != '':
                 success, message = lot.process_auction_end(
-                    ended_by_user=request.user,
-                    force_winner_id=int(winner_id)
+                    ended_by_user=request.user, force_winner_id=int(winner_id)
                 )
                 if success:
                     self.message_user(request, message, level=messages.SUCCESS)
-                    return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
+                    return HttpResponseRedirect(
+                        reverse('admin:auction_auctionlot_change', args=[lot_id])
+                    )
                 else:
                     self.message_user(request, message, level=messages.ERROR)
             elif winner_id == '':
@@ -250,12 +297,14 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
                 success, message = lot.process_auction_end(ended_by_user=request.user)
                 if success:
                     self.message_user(request, message, level=messages.SUCCESS)
-                    return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
+                    return HttpResponseRedirect(
+                        reverse('admin:auction_auctionlot_change', args=[lot_id])
+                    )
                 else:
                     self.message_user(request, message, level=messages.ERROR)
             else:
                 self.message_user(request, 'Пожалуйста, выберите победителя', level=messages.ERROR)
-        
+
         context = {
             # Шапка, меню и название сайта как на остальных страницах админки.
             **self.admin_site.each_context(request),
@@ -267,27 +316,31 @@ class AuctionLotAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
             'original': lot,
         }
         return TemplateResponse(request, 'admin/auction/end_auction_confirmation.html', context)
-    
+
     def cancel_auction_view(self, request, lot_id):
-        """Отмена аукциона."""
+        """Отменить выбранный аукцион."""
         lot = self.get_object(request, lot_id)
-        
+
         if not lot:
             self.message_user(request, 'Лот не найден', level=messages.ERROR)
             return HttpResponseRedirect(reverse('admin:auction_auctionlot_changelist'))
-        
+
         if lot.status != 'active':
-            self.message_user(request, 'Этот аукцион уже завершен или отменен', level=messages.ERROR)
+            self.message_user(
+                request, 'Этот аукцион уже завершен или отменен', level=messages.ERROR
+            )
             return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
-        
+
         if request.method == 'POST':
             success, message = lot.cancel_auction(cancelled_by_user=request.user)
             if success:
                 self.message_user(request, message, level=messages.SUCCESS)
-                return HttpResponseRedirect(reverse('admin:auction_auctionlot_change', args=[lot_id]))
+                return HttpResponseRedirect(
+                    reverse('admin:auction_auctionlot_change', args=[lot_id])
+                )
             else:
                 self.message_user(request, message, level=messages.ERROR)
-        
+
         context = {
             # Шапка, меню и название сайта как на остальных страницах админки.
             **self.admin_site.each_context(request),
@@ -306,11 +359,19 @@ class AuctionBidAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_display = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
     list_filter = ('is_winner', 'is_frozen', 'status', 'created_at')
     search_fields = ('bidder__username', 'lot__name')
-    readonly_fields = ('lot', 'bidder', 'bid_amount', 'created_at', 'is_winner', 'is_frozen', 'status')
-    
+    readonly_fields = (
+        'lot',
+        'bidder',
+        'bid_amount',
+        'created_at',
+        'is_winner',
+        'is_frozen',
+        'status',
+    )
+
     def has_add_permission(self, request):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False
 
@@ -321,9 +382,9 @@ class PointsTransactionAdmin(NoRelatedPopupsMixin, admin.ModelAdmin):
     list_filter = ('transaction_type', 'created_at')
     search_fields = ('user__username', 'description')
     readonly_fields = ('user', 'lot', 'amount', 'transaction_type', 'description', 'created_at')
-    
+
     def has_add_permission(self, request):
         return False
-    
+
     def has_change_permission(self, request, obj=None):
         return False

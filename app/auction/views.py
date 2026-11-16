@@ -13,25 +13,38 @@ from notifications.utils import send_notification
 from profiles.models import Profile
 from .models import ANTI_SNIPE, ANTI_SNIPE_LIMIT, AuctionLot, AuctionBid, PointsTransaction
 
+
 def check_auction_access(user):
-    """Аукцион открыт только членам гильдии (и суперпользователю)."""
+    """Проверить доступ к аукциону для членов гильдии и суперпользователя."""
     return is_guild_member(user)
 
+
 def _points(user):
-    """Баланс, доступные и замороженные в ставках очки игрока."""
+    """Собрать баланс, доступные и замороженные в ставках очки игрока."""
     profile = user.profile
     available = profile.get_available_points()
-    return {'balance': profile.activity_points, 'available': available, 'frozen': profile.activity_points - available}
+    return {
+        'balance': profile.activity_points,
+        'available': available,
+        'frozen': profile.activity_points - available,
+    }
 
 
 def auction_index(request):
-    """Главная страница аукциона: идущие торги карточками, завершённые — списком."""
+    """Показать активные лоты карточками, а завершённые — списком."""
     if not check_auction_access(request.user):
-        raise PermissionDenied("У вас нет доступа к аукциону")
+        raise PermissionDenied('У вас нет доступа к аукциону')
 
-    active_lots = AuctionLot.objects.filter(status='active').annotate(bids_num=Count('bids')).order_by('end_date')
-    ended_lots = (AuctionLot.objects.filter(status='ended').order_by('-ended_at')
-                  .prefetch_related('bids__bidder')[:10])
+    active_lots = (
+        AuctionLot.objects.filter(status='active')
+        .annotate(bids_num=Count('bids'))
+        .order_by('end_date')
+    )
+    ended_lots = (
+        AuctionLot.objects.filter(status='ended')
+        .order_by('-ended_at')
+        .prefetch_related('bids__bidder')[:10]
+    )
     for lot in ended_lots:
         lot.winner = next((bid for bid in lot.bids.all() if bid.is_winner), None)
 
@@ -42,14 +55,17 @@ def auction_index(request):
         'ended_lots': ended_lots,
         'points': _points(request.user),
         # Лоты, где игрок сейчас лидер, — на карточке метка «Вы лидер».
-        'leading_ids': set(AuctionBid.objects.filter(bidder=request.user, is_frozen=True)
-                           .values_list('lot_id', flat=True)),
+        'leading_ids': set(
+            AuctionBid.objects.filter(bidder=request.user, is_frozen=True).values_list(
+                'lot_id', flat=True
+            )
+        ),
     }
     return render(request, 'auction/auction_index.html', context)
 
 
 def place_bid(request, lot_id, bid_amount):
-    """Делает ставку на лот.
+    """Сделать ставку на лот.
 
     Вся операция атомарна: лот и профиль блокируются, чтобы параллельные ставки
     не прошли проверки одновременно.
@@ -72,13 +88,19 @@ def place_bid(request, lot_id, bid_amount):
 
         # Проверяем, не делал ли пользователь уже ставку-лидера (замороженную).
         if lot.bids.filter(bidder=request.user, is_frozen=True).exists():
-            messages.error(request, 'Вы уже являетесь лидером на этом аукционе! Ваша ставка активна и очки заморожены.')
+            messages.error(
+                request,
+                'Вы уже являетесь лидером на этом аукционе! Ваша ставка активна и очки заморожены.',
+            )
             return
 
         # Проверяем доступные очки с учетом заморозки.
         available_points = profile.get_available_points()
         if available_points < bid_amount:
-            messages.error(request, f'Недостаточно доступных очков. Доступно: {available_points} ⭐ (Всего: {profile.activity_points} ⭐)')
+            messages.error(
+                request,
+                f'Недостаточно доступных очков. Доступно: {available_points} ⭐ (Всего: {profile.activity_points} ⭐)',
+            )
             return
 
         # Ставка в последние минуты продлевает торги, чтобы перебитый успел ответить,
@@ -108,16 +130,18 @@ def place_bid(request, lot_id, bid_amount):
                 lot=lot,
                 amount=current_leader.bid_amount,
                 transaction_type='unfreeze',
-                description=f'Разморозка очков - ставка перебита в аукционе: {lot.name}'
+                description=f'Разморозка очков - ставка перебита в аукционе: {lot.name}',
             )
 
             # Перебитый узнаёт сразу — особенно важно, когда игрок торгуется за несколько лотов.
-            extended_text = f' Торги продлены до {timezone.localtime(lot.end_date):%H:%M}.' if extended else ''
+            extended_text = (
+                f' Торги продлены до {timezone.localtime(lot.end_date):%H:%M}.' if extended else ''
+            )
             send_notification(
                 user=current_leader.bidder,
                 title='⚠️ Вашу ставку перебили',
                 message=f'Ставку {current_leader.bid_amount} ⭐ на лот «{lot.name}» перебили: теперь {bid_amount} ⭐. '
-                        f'Очки снова доступны — можно сделать новую ставку.{extended_text}',
+                f'Очки снова доступны — можно сделать новую ставку.{extended_text}',
                 notification_type='auction',
                 link=reverse('auction:lot_detail', args=[lot.slug]),
             )
@@ -129,7 +153,7 @@ def place_bid(request, lot_id, bid_amount):
             bid_amount=bid_amount,
             status='frozen',
             is_frozen=True,
-            is_winner=False
+            is_winner=False,
         )
 
         # Обновляем текущую цену лота (и время окончания, если торги продлены).
@@ -142,19 +166,24 @@ def place_bid(request, lot_id, bid_amount):
             lot=lot,
             amount=bid_amount,
             transaction_type='freeze',
-            description=f'Заморозка очков по ставке на лот: {lot.name}'
+            description=f'Заморозка очков по ставке на лот: {lot.name}',
         )
 
-    messages.success(request, f'Ставка {bid_amount} ⭐ успешно сделана! Вы теперь лидер. Очки заморожены.')
+    messages.success(
+        request, f'Ставка {bid_amount} ⭐ успешно сделана! Вы теперь лидер. Очки заморожены.'
+    )
     if extended:
-        messages.info(request, f'Ставка в последние минуты — торги продлены до {timezone.localtime(lot.end_date):%H:%M}.')
+        messages.info(
+            request,
+            f'Ставка в последние минуты — торги продлены до {timezone.localtime(lot.end_date):%H:%M}.',
+        )
 
 
 @login_required
 def lot_detail(request, slug):
-    """Детальная страница лота."""
+    """Показать подробности лота."""
     if not check_auction_access(request.user):
-        raise PermissionDenied("У вас нет доступа к аукциону")
+        raise PermissionDenied('У вас нет доступа к аукциону')
 
     lot = get_object_or_404(AuctionLot, slug=slug)
 
@@ -179,7 +208,9 @@ def lot_detail(request, slug):
         return redirect('auction:lot_detail', slug=lot.slug)
 
     bids = lot.bids.select_related('bidder').order_by('-bid_amount', 'created_at')
-    user_frozen_bid = next((bid for bid in bids if bid.bidder_id == request.user.id and bid.is_frozen), None)
+    user_frozen_bid = next(
+        (bid for bid in bids if bid.bidder_id == request.user.id and bid.is_frozen), None
+    )
     points = _points(request.user)
     min_bid = lot.current_price + lot.min_step
 
@@ -194,34 +225,41 @@ def lot_detail(request, slug):
         'points': points,
         'min_bid': min_bid,
         # Быстрые суммы: минимальная, +2 и +5 шагов — если хватает очков.
-        'quick_bids': [amount for amount in (min_bid, min_bid + lot.min_step * 2, min_bid + lot.min_step * 5)
-                       if amount <= points['available']],
+        'quick_bids': [
+            amount
+            for amount in (min_bid, min_bid + lot.min_step * 2, min_bid + lot.min_step * 5)
+            if amount <= points['available']
+        ],
     }
     return render(request, 'auction/lot_detail.html', context)
 
 
 @login_required
 def lot_state(request, slug):
-    """Состояние торгов для страницы лота: она опрашивает его и подхватывает продление и новые ставки."""
+    """Вернуть состояние торгов для обновления цены, ставок и времени на странице лота."""
     if not check_auction_access(request.user):
-        raise PermissionDenied("У вас нет доступа к аукциону")
+        raise PermissionDenied('У вас нет доступа к аукциону')
     lot = get_object_or_404(AuctionLot, slug=slug)
-    return JsonResponse({
-        'status': lot.status,
-        'end': int(lot.end_date.timestamp() * 1000) if lot.end_date else None,
-        'price': lot.current_price,
-        'bids': lot.bids.count(),
-    })
+    return JsonResponse(
+        {
+            'status': lot.status,
+            'end': int(lot.end_date.timestamp() * 1000) if lot.end_date else None,
+            'price': lot.current_price,
+            'bids': lot.bids.count(),
+        }
+    )
 
 
 @login_required
 def my_bids(request):
-    """Мои лоты: по каждому лоту — моя лучшая ставка и чем всё кончилось (или идёт)."""
+    """Показать лучшую ставку пользователя и итог по каждому его лоту."""
     if not check_auction_access(request.user):
-        raise PermissionDenied("У вас нет доступа к аукциону")
+        raise PermissionDenied('У вас нет доступа к аукциону')
 
     by_lot = {}
-    for bid in AuctionBid.objects.filter(bidder=request.user).select_related('lot').order_by('-bid_amount'):
+    for bid in (
+        AuctionBid.objects.filter(bidder=request.user).select_related('lot').order_by('-bid_amount')
+    ):
         by_lot.setdefault(bid.lot_id, bid)  # первая — самая крупная ставка игрока на этом лоте
     for bid in AuctionBid.objects.filter(bidder=request.user, is_frozen=True):
         by_lot[bid.lot_id] = bid
@@ -233,7 +271,9 @@ def my_bids(request):
             bid.state = 'leading' if bid.is_frozen else 'outbid'
             active.append(bid)
         else:
-            bid.state = 'won' if bid.is_winner else ('cancelled' if lot.status == 'cancelled' else 'lost')
+            bid.state = (
+                'won' if bid.is_winner else ('cancelled' if lot.status == 'cancelled' else 'lost')
+            )
             finished.append(bid)
 
     context = {
