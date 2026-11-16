@@ -32,7 +32,13 @@ def make_member(username, uid=None, verified=False):
         user.profile.ts3_id = uid
         user.profile.save()
     if verified:
-        TsLink.objects.create(user=user, uid=uid, status='verified', token=TsLink.new_token(), verified_at=timezone.now())
+        TsLink.objects.create(
+            user=user,
+            uid=uid,
+            status='verified',
+            token=TsLink.new_token(),
+            verified_at=timezone.now(),
+        )
     return user
 
 
@@ -44,9 +50,16 @@ def bot_online():
 class BotApiTests(TestCase):
     def test_token_required(self):
         self.assertEqual(self.client.get(reverse('tsbot_api:state')).status_code, 403)
-        self.assertEqual(self.client.get(reverse('tsbot_api:state'), HTTP_AUTHORIZATION='Bearer wrong').status_code, 403)
+        self.assertEqual(
+            self.client.get(
+                reverse('tsbot_api:state'), HTTP_AUTHORIZATION='Bearer wrong'
+            ).status_code,
+            403,
+        )
         with override_settings(TSBOT_API_TOKEN=''):
-            self.assertEqual(self.client.get(reverse('tsbot_api:state'), **bot_headers()).status_code, 403)
+            self.assertEqual(
+                self.client.get(reverse('tsbot_api:state'), **bot_headers()).status_code, 403
+            )
 
     def test_state_hands_out_tasks_once(self):
         task = TsTask.enqueue('grant_guild', uid=UID_A)
@@ -59,11 +72,15 @@ class BotApiTests(TestCase):
         task.refresh_from_db()
         self.assertEqual(task.status, 'running')
         # Второй опрос не выдаёт ту же задачу повторно.
-        self.assertEqual(self.client.get(reverse('tsbot_api:state'), **bot_headers()).json()['tasks'], [])
+        self.assertEqual(
+            self.client.get(reverse('tsbot_api:state'), **bot_headers()).json()['tasks'], []
+        )
 
     def test_stale_running_task_requeued(self):
         task = TsTask.enqueue('grant_guild', uid=UID_A)
-        TsTask.objects.filter(pk=task.pk).update(status='running', started_at=timezone.now() - datetime.timedelta(minutes=30))
+        TsTask.objects.filter(pk=task.pk).update(
+            status='running', started_at=timezone.now() - datetime.timedelta(minutes=30)
+        )
 
         data = self.client.get(reverse('tsbot_api:state'), **bot_headers()).json()
 
@@ -73,8 +90,12 @@ class BotApiTests(TestCase):
         task = TsTask.enqueue('grant_guild', uid=UID_A)
         url = reverse('tsbot_api:task_result', args=[task.pk])
 
-        response = self.client.post(url, json.dumps({'ok': False, 'error': 'клиент не найден'}),
-                                    content_type='application/json', **bot_headers())
+        response = self.client.post(
+            url,
+            json.dumps({'ok': False, 'error': 'клиент не найден'}),
+            content_type='application/json',
+            **bot_headers(),
+        )
 
         self.assertEqual(response.status_code, 200)
         task.refresh_from_db()
@@ -82,7 +103,9 @@ class BotApiTests(TestCase):
         self.assertEqual(task.error, 'клиент не найден')
 
     def test_license_download(self):
-        TeamSpeakSettings.objects.update_or_create(pk=1, defaults={'license_data': b'LICENSE-BYTES', 'license_name': 'licensekey.dat'})
+        TeamSpeakSettings.objects.update_or_create(
+            pk=1, defaults={'license_data': b'LICENSE-BYTES', 'license_name': 'licensekey.dat'}
+        )
 
         response = self.client.get(reverse('tsbot_api:license'), **bot_headers())
 
@@ -109,7 +132,9 @@ class LinkFlowTests(TestCase):
         # Чужой аккаунт не может подтвердить ссылку.
         stranger = make_member('Чужой')
         self.client.force_login(stranger)
-        self.assertEqual(self.client.get(reverse('teamspeak:confirm', args=[link.token])).status_code, 404)
+        self.assertEqual(
+            self.client.get(reverse('teamspeak:confirm', args=[link.token])).status_code, 404
+        )
 
         self.client.force_login(self.user)
         self.client.get(reverse('teamspeak:confirm', args=[link.token]))
@@ -128,7 +153,9 @@ class LinkFlowTests(TestCase):
         self.assertFalse(TsTask.objects.exists())
 
     def test_bot_offline_rejected(self):
-        TeamSpeakSettings.objects.filter(pk=1).update(bot_last_seen=timezone.now() - datetime.timedelta(hours=1))
+        TeamSpeakSettings.objects.filter(pk=1).update(
+            bot_last_seen=timezone.now() - datetime.timedelta(hours=1)
+        )
 
         self.client.post(reverse('teamspeak:request_access'))
 
@@ -190,18 +217,28 @@ class RoomTests(TestCase):
         room = TsRoom.objects.get(owner=self.user)
         self.assertEqual(room.name, 'Комната Аквилона')
         task = TsTask.objects.get(type='create_room')
-        self.assertEqual(task.payload, {'room_id': room.pk, 'name': 'Комната Аквилона', 'owner_uid': UID_A})
+        self.assertEqual(
+            task.payload, {'room_id': room.pk, 'name': 'Комната Аквилона', 'owner_uid': UID_A}
+        )
 
-        self.client.post(reverse('tsbot_api:task_result', args=[task.pk]),
-                         json.dumps({'ok': True, 'data': {'cid': 42}}), content_type='application/json', **bot_headers())
+        self.client.post(
+            reverse('tsbot_api:task_result', args=[task.pk]),
+            json.dumps({'ok': True, 'data': {'cid': 42}}),
+            content_type='application/json',
+            **bot_headers(),
+        )
         room.refresh_from_db()
         self.assertEqual((room.status, room.channel_id), ('active', 42))
 
         self.client.post(reverse('teamspeak:room_delete', args=[room.pk]))
         delete_task = TsTask.objects.get(type='delete_room')
         self.assertEqual(delete_task.payload['cid'], 42)
-        self.client.post(reverse('tsbot_api:task_result', args=[delete_task.pk]),
-                         json.dumps({'ok': True}), content_type='application/json', **bot_headers())
+        self.client.post(
+            reverse('tsbot_api:task_result', args=[delete_task.pk]),
+            json.dumps({'ok': True}),
+            content_type='application/json',
+            **bot_headers(),
+        )
         self.assertFalse(TsRoom.objects.exists())
 
     def test_room_limit(self):
@@ -266,17 +303,32 @@ class AttendanceTests(TestCase):
             user.profile.save()
 
         self.event_type = EventType.objects.create(
-            name='МТВ', ts_channels='Гильдия / МТВ / ГВГ', points_present=10, points_absent=5, min_presence_minutes=2,
+            name='МТВ',
+            ts_channels='Гильдия / МТВ / ГВГ',
+            points_present=10,
+            points_absent=5,
+            min_presence_minutes=2,
         )
-        self.start = timezone.now().replace(second=0, microsecond=0) - datetime.timedelta(minutes=30)
+        self.start = timezone.now().replace(second=0, microsecond=0) - datetime.timedelta(
+            minutes=30
+        )
         local = timezone.localtime(self.start)
         self.notification = EventNotification.objects.create(
-            event_type=self.event_type, event_date=local.date(), start_time=local.time(), duration_minutes=60,
-            subject='МТВ', message='Сбор', sent_at=self.start - datetime.timedelta(days=1),
+            event_type=self.event_type,
+            event_date=local.date(),
+            start_time=local.time(),
+            duration_minutes=60,
+            subject='МТВ',
+            message='Сбор',
+            sent_at=self.start - datetime.timedelta(days=1),
         )
         self.notification.sent_to_users.set([self.present, self.promised, self.silent])
-        EventAttendance.objects.create(notification=self.notification, user=self.promised, status='yes')
-        EventAttendance.objects.create(notification=self.notification, user=self.present, status='yes')
+        EventAttendance.objects.create(
+            notification=self.notification, user=self.promised, status='yes'
+        )
+        EventAttendance.objects.create(
+            notification=self.notification, user=self.present, status='yes'
+        )
 
     def report(self, minutes_after_start, path):
         now = self.start + datetime.timedelta(minutes=minutes_after_start)
@@ -292,7 +344,9 @@ class AttendanceTests(TestCase):
     def test_minutes_counted_once_per_minute(self):
         path = ['Гильдия', 'МТВ / ГВГ', 'Пати 2']
         self.report(5, path)
-        attendance.record_presence([{'uid': UID_A, 'path': path}], self.start + datetime.timedelta(minutes=5, seconds=30))
+        attendance.record_presence(
+            [{'uid': UID_A, 'path': path}], self.start + datetime.timedelta(minutes=5, seconds=30)
+        )
         self.report(6, path)
         self.report(7, ['Гостиная'])  # Вышел из каналов ивента — не считается
 
@@ -310,25 +364,42 @@ class AttendanceTests(TestCase):
 
         self.assertEqual(self.finish(), 1)
 
-        points = {u.username: User.objects.get(pk=u.pk).profile.activity_points
-                  for u in (self.present, self.promised, self.silent)}
+        points = {
+            u.username: User.objects.get(pk=u.pk).profile.activity_points
+            for u in (self.present, self.promised, self.silent)
+        }
         self.assertEqual(points, {'Пришёл': 30, 'Обещал': 15, 'Молчал': 20})
-        self.assertTrue(PointsTransaction.objects.filter(user=self.present, transaction_type='credit', amount=10).exists())
-        self.assertTrue(PointsTransaction.objects.filter(user=self.promised, transaction_type='debit', amount=5).exists())
+        self.assertTrue(
+            PointsTransaction.objects.filter(
+                user=self.present, transaction_type='credit', amount=10
+            ).exists()
+        )
+        self.assertTrue(
+            PointsTransaction.objects.filter(
+                user=self.promised, transaction_type='debit', amount=5
+            ).exists()
+        )
         # Повторно не начисляется.
         self.assertEqual(self.finish(), 0)
         self.assertEqual(User.objects.get(pk=self.present.pk).profile.activity_points, 30)
 
     def test_scope_all_invited(self):
-        EventAttendance.objects.create(notification=self.notification, user=self.silent, status='no')
+        EventAttendance.objects.create(
+            notification=self.notification, user=self.silent, status='no'
+        )
         self.event_type.penalty_scope = 'all'
         self.event_type.save()
         self.finish()
-        all_points = {u.username: User.objects.get(pk=u.pk).profile.activity_points for u in (self.promised, self.silent)}
+        all_points = {
+            u.username: User.objects.get(pk=u.pk).profile.activity_points
+            for u in (self.promised, self.silent)
+        }
         self.assertEqual(all_points, {'Обещал': 15, 'Молчал': 15})
 
     def test_scope_not_declined_skips_declined(self):
-        EventAttendance.objects.create(notification=self.notification, user=self.silent, status='no')
+        EventAttendance.objects.create(
+            notification=self.notification, user=self.silent, status='no'
+        )
         self.event_type.penalty_scope = 'not_declined'
         self.event_type.save()
         self.finish()
@@ -346,14 +417,23 @@ class AttendanceTests(TestCase):
         self.notification.save(update_fields=['sent_at'])
         self.assertEqual(self.report(1, ['Гильдия', 'МТВ / ГВГ']), 0)
         self.assertEqual(self.finish(), 0)
-        self.assertFalse(attendance.finalize(self.notification.pk, self.start + datetime.timedelta(minutes=61)))
-        self.assertFalse(PointsTransaction.objects.filter(user__in=[self.present, self.promised, self.silent]).exists())
+        self.assertFalse(
+            attendance.finalize(self.notification.pk, self.start + datetime.timedelta(minutes=61))
+        )
+        self.assertFalse(
+            PointsTransaction.objects.filter(
+                user__in=[self.present, self.promised, self.silent]
+            ).exists()
+        )
 
     def test_presence_api(self):
         with override_settings(TSBOT_API_TOKEN=TOKEN):
-            response = self.client.post(reverse('tsbot_api:presence'),
-                                        json.dumps({'clients': [{'uid': UID_A, 'path': ['Гильдия', 'МТВ / ГВГ']}]}),
-                                        content_type='application/json', **bot_headers())
+            response = self.client.post(
+                reverse('tsbot_api:presence'),
+                json.dumps({'clients': [{'uid': UID_A, 'path': ['Гильдия', 'МТВ / ГВГ']}]}),
+                content_type='application/json',
+                **bot_headers(),
+            )
         self.assertEqual(response.json()['marks'], 1)
 
 
@@ -362,12 +442,19 @@ class LicenseAdminTests(TestCase):
     def test_upload_creates_install_task(self):
         admin = User.objects.create_superuser('admin', password='pass')
         self.client.force_login(admin)
-        url = reverse('admin:teamspeak_teamspeaksettings_change', args=[TeamSpeakSettings.load().pk])
+        url = reverse(
+            'admin:teamspeak_teamspeaksettings_change', args=[TeamSpeakSettings.load().pk]
+        )
 
-        self.client.post(url, {
-            'server_address': 'myguild.ru', 'rooms_per_member': '1', 'max_clients': '64',
-            'license_upload': SimpleUploadedFile('licensekey.dat', b'KEY-DATA'),
-        })
+        self.client.post(
+            url,
+            {
+                'server_address': 'myguild.ru',
+                'rooms_per_member': '1',
+                'max_clients': '64',
+                'license_upload': SimpleUploadedFile('licensekey.dat', b'KEY-DATA'),
+            },
+        )
 
         settings_obj = TeamSpeakSettings.load()
         self.assertEqual(bytes(settings_obj.license_data), b'KEY-DATA')

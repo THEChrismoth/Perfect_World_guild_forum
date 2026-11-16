@@ -4,6 +4,7 @@
 TsTask, выполняет их в TeamSpeak и сообщает результат, а также присылает, кто в каких каналах
 находится — по этим данным начисляются очки активности за ивенты.
 """
+
 import datetime
 import secrets
 
@@ -19,23 +20,32 @@ class TeamSpeakSettings(models.Model):
     """Настройки TeamSpeak. Хранится единственная запись (pk=1)."""
 
     server_address = models.CharField(
-        'Адрес сервера TeamSpeak', max_length=255, blank=True,
-        help_text='Что вводить в клиенте TeamSpeak, например myguild.ru. Если пусто — домен сайта'
+        'Адрес сервера TeamSpeak',
+        max_length=255,
+        blank=True,
+        help_text='Что вводить в клиенте TeamSpeak, например myguild.ru. Если пусто — домен сайта',
     )
     rooms_per_member = models.PositiveSmallIntegerField(
-        'Комнат на члена гильдии', default=1,
-        help_text='Сколько комнат в разделе «Комнаты членов гильдии» может создать один игрок через сайт'
+        'Комнат на члена гильдии',
+        default=1,
+        help_text='Сколько комнат в разделе «Комнаты членов гильдии» может создать один игрок через сайт',
     )
     max_clients = models.PositiveIntegerField(
-        'Слотов на сервере', null=True, blank=True,
-        help_text='После установки лицензии бот выставит это число слотов. Пусто — не менять'
+        'Слотов на сервере',
+        null=True,
+        blank=True,
+        help_text='После установки лицензии бот выставит это число слотов. Пусто — не менять',
     )
 
     # Лицензия хранится в базе, а не в media: файлы media доступны из интернета.
     license_name = models.CharField('Файл лицензии', max_length=255, blank=True, editable=False)
     license_data = models.BinaryField('Лицензия', null=True, blank=True, editable=False)
-    license_uploaded_at = models.DateTimeField('Лицензия загружена', null=True, blank=True, editable=False)
-    license_installed_at = models.DateTimeField('Лицензия установлена', null=True, blank=True, editable=False)
+    license_uploaded_at = models.DateTimeField(
+        'Лицензия загружена', null=True, blank=True, editable=False
+    )
+    license_installed_at = models.DateTimeField(
+        'Лицензия установлена', null=True, blank=True, editable=False
+    )
 
     bot_last_seen = models.DateTimeField('Бот был на связи', null=True, blank=True, editable=False)
 
@@ -79,7 +89,9 @@ class TsLink(models.Model):
         ('verified', 'Подтверждена'),
     ]
 
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ts_link')
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ts_link'
+    )
     uid = models.CharField('TS3 ID', max_length=64)
     status = models.CharField('Статус', max_length=10, choices=STATUS_CHOICES, default='pending')
     token = models.CharField(max_length=64, unique=True, editable=False)
@@ -125,8 +137,14 @@ class TsTask(models.Model):
     status = models.CharField('Статус', max_length=10, choices=STATUS_CHOICES, default='pending')
     result = models.JSONField('Результат', null=True, blank=True)
     error = models.TextField('Ошибка', blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-                             related_name='ts_tasks', verbose_name='Пользователь')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ts_tasks',
+        verbose_name='Пользователь',
+    )
     created_at = models.DateTimeField('Создана', auto_now_add=True)
     started_at = models.DateTimeField('Взята ботом', null=True, blank=True)
     finished_at = models.DateTimeField('Завершена', null=True, blank=True)
@@ -154,8 +172,12 @@ class TsRoom(models.Model):
         ('failed', 'Ошибка'),
     ]
 
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ts_rooms',
-                              verbose_name='Владелец')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ts_rooms',
+        verbose_name='Владелец',
+    )
     name = models.CharField('Название', max_length=40)
     channel_id = models.PositiveIntegerField('ID канала', null=True, blank=True)
     status = models.CharField('Статус', max_length=10, choices=STATUS_CHOICES, default='creating')
@@ -174,10 +196,18 @@ class TsRoom(models.Model):
 class EventPresence(models.Model):
     """Сколько минут игрок провёл в каналах ивента во время его проведения."""
 
-    notification = models.ForeignKey('events.EventNotification', on_delete=models.CASCADE,
-                                     related_name='ts_presence', verbose_name='Ивент')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ts_presence',
-                             verbose_name='Игрок')
+    notification = models.ForeignKey(
+        'events.EventNotification',
+        on_delete=models.CASCADE,
+        related_name='ts_presence',
+        verbose_name='Ивент',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ts_presence',
+        verbose_name='Игрок',
+    )
     minutes = models.PositiveIntegerField('Минут в канале', default=0)
     last_minute = models.DateTimeField('Последняя отметка', null=True, blank=True)
 

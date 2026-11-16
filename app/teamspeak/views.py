@@ -13,8 +13,9 @@ from .tasks import confirm_link, request_link
 
 ROOM_NAME_MAX = 40
 
+
 def card_context(request, profile_user):
-    """Данные для блока TeamSpeak на странице профиля (показывается только владельцу)."""
+    """Подготовить блок TeamSpeak профиля для показа его владельцу."""
     ts_settings = TeamSpeakSettings.load()
     link = TsLink.objects.filter(user=profile_user).first()
     last_verify = TsTask.objects.filter(user=profile_user, type='verify_link').first()
@@ -27,9 +28,12 @@ def card_context(request, profile_user):
         'ts_is_guild_member': check_guild_member(profile_user),
         'ts_uid': (profile_user.profile.ts3_id or '').strip(),
         'ts_link': link,
-        'ts_verify_error': last_verify.error if last_verify and last_verify.status == 'failed' and link and not link.verified else '',
+        'ts_verify_error': last_verify.error
+        if last_verify and last_verify.status == 'failed' and link and not link.verified
+        else '',
         'ts_rooms': rooms,
-        'ts_can_create_room': bool(link and link.verified) and len(active_rooms) < ts_settings.rooms_per_member,
+        'ts_can_create_room': bool(link and link.verified)
+        and len(active_rooms) < ts_settings.rooms_per_member,
         'ts_room_limit': ts_settings.rooms_per_member,
     }
 
@@ -55,17 +59,26 @@ def request_access(request):
         messages.error(request, 'Укажите свой TS3 ID')
         return _back(request)
     if not TS3_UID_RE.match(uid):
-        messages.error(request, 'Это не похоже на TS3 ID: нужен «Уникальный ID» локального идентификатора — '
-                                '28 символов, в конце знак «=»')
+        messages.error(
+            request,
+            'Это не похоже на TS3 ID: нужен «Уникальный ID» локального идентификатора — '
+            '28 символов, в конце знак «=»',
+        )
         return _back(request)
     if TsLink.objects.filter(uid=uid, status='verified').exclude(user=request.user).exists():
         messages.error(request, 'Этот клиент TeamSpeak уже привязан к другому аккаунту сайта')
         return _back(request)
 
-    request_link(request.user, uid,
-                 lambda token: request.build_absolute_uri(reverse('teamspeak:confirm', args=[token])))
-    messages.success(request, 'Бот отправил вам личное сообщение в TeamSpeak — откройте ссылку из него. '
-                              'Вы должны быть подключены к серверу.')
+    request_link(
+        request.user,
+        uid,
+        lambda token: request.build_absolute_uri(reverse('teamspeak:confirm', args=[token])),
+    )
+    messages.success(
+        request,
+        'Бот отправил вам личное сообщение в TeamSpeak — откройте ссылку из него. '
+        'Вы должны быть подключены к серверу.',
+    )
     return _back(request)
 
 
@@ -82,7 +95,10 @@ def confirm(request, token):
         # Подтверждённый ID сохраняем в профиль — вводить его вручную не нужно.
         # update() вместо save(): сигнал смены TS3 ID здесь не нужен.
         Profile.objects.filter(user=request.user).update(ts3_id=link.uid)
-        messages.success(request, 'TeamSpeak привязан! Бот выдаст вам группу «Член гильдии» в течение нескольких секунд.')
+        messages.success(
+            request,
+            'TeamSpeak привязан! Бот выдаст вам группу «Член гильдии» в течение нескольких секунд.',
+        )
     return _back(request)
 
 
@@ -91,7 +107,9 @@ def confirm(request, token):
 def room_create(request):
     context = card_context(request, request.user)
     name = ' '.join((request.POST.get('name') or '').split())[:ROOM_NAME_MAX]
-    if not context['ts_is_guild_member'] or not (context['ts_link'] and context['ts_link'].verified):
+    if not context['ts_is_guild_member'] or not (
+        context['ts_link'] and context['ts_link'].verified
+    ):
         messages.error(request, 'Создавать комнаты могут члены гильдии с подтверждённым TS3 ID')
     elif not context['ts_can_create_room']:
         messages.error(request, f'Можно создать не больше {context["ts_room_limit"]} комнат')
@@ -99,8 +117,16 @@ def room_create(request):
         messages.error(request, 'Укажите название комнаты')
     else:
         room = TsRoom.objects.create(owner=request.user, name=name)
-        TsTask.enqueue('create_room', user=request.user, room_id=room.pk, name=name, owner_uid=context['ts_link'].uid)
-        messages.success(request, f'Комната «{name}» создаётся — она появится в TeamSpeak через несколько секунд')
+        TsTask.enqueue(
+            'create_room',
+            user=request.user,
+            room_id=room.pk,
+            name=name,
+            owner_uid=context['ts_link'].uid,
+        )
+        messages.success(
+            request, f'Комната «{name}» создаётся — она появится в TeamSpeak через несколько секунд'
+        )
     return _back(request)
 
 

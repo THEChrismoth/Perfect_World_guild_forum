@@ -1,4 +1,5 @@
 """Синхронизация группы гильдии и привязки TS3 ID с TeamSpeak."""
+
 from django.contrib.auth.models import User
 from django.db.models.signals import m2m_changed, pre_save
 from django.dispatch import receiver
@@ -10,7 +11,7 @@ from .tasks import revoke_link
 
 @receiver(m2m_changed, sender=User.groups.through)
 def guild_group_changed(sender, instance, action, pk_set, reverse, **kwargs):
-    """Игрока добавили в «Член гильдии» на сайте — выдаём группу в TS, убрали — снимаем.
+    """Поставить задачи выдачи или снятия TS-группы при изменении членства на сайте.
 
     Работает только для подтверждённых привязок: клиент в TS должен быть точно этим игроком.
     """
@@ -28,7 +29,7 @@ def guild_group_changed(sender, instance, action, pk_set, reverse, **kwargs):
 
 @receiver(pre_save, sender=Profile)
 def ts3_id_changed(sender, instance, **kwargs):
-    """Сменили TS3 ID в профиле — старая привязка больше не действительна."""
+    """Отозвать старую привязку при изменении TS3 ID профиля."""
     if not instance.pk:
         return
     old = Profile.objects.filter(pk=instance.pk).values_list('ts3_id', flat=True).first()

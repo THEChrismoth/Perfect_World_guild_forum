@@ -9,6 +9,7 @@ POST /api/tsbot/presence/         — кто в каких каналах во �
                                     {"clients": [{"uid": "...", "path": ["Гильдия", ...]}]}
 GET  /api/tsbot/license/          — файл лицензии TeamSpeak (для задачи install_license)
 """
+
 import datetime
 import hmac
 import json
@@ -43,12 +44,15 @@ def bot_api(view):
     def wrapper(request, *args, **kwargs):
         expected = settings.TSBOT_API_TOKEN
         if not expected:
-            return JsonResponse({'error': 'API бота отключено: не задан TSBOT_API_TOKEN'}, status=403)
+            return JsonResponse(
+                {'error': 'API бота отключено: не задан TSBOT_API_TOKEN'}, status=403
+            )
         header = request.headers.get('Authorization', '')
-        token = header[len('Bearer '):] if header.startswith('Bearer ') else ''
+        token = header[len('Bearer ') :] if header.startswith('Bearer ') else ''
         if not hmac.compare_digest(token.encode(), expected.encode()):
             return JsonResponse({'error': 'Неверный токен'}, status=403)
         return view(request, *args, **kwargs)
+
     return wrapper
 
 
@@ -65,20 +69,35 @@ def state(request):
     now = timezone.now()
     TeamSpeakSettings.objects.update_or_create(pk=1, defaults={'bot_last_seen': now})
 
-    TsTask.objects.filter(status='running', started_at__lt=now - STALE_TASK_AFTER).update(status='pending')
+    TsTask.objects.filter(status='running', started_at__lt=now - STALE_TASK_AFTER).update(
+        status='pending'
+    )
     with transaction.atomic():
-        tasks = list(TsTask.objects.select_for_update().filter(status='pending').order_by('created_at')[:MAX_TASKS_PER_POLL])
-        TsTask.objects.filter(pk__in=[task.pk for task in tasks]).update(status='running', started_at=now)
+        tasks = list(
+            TsTask.objects.select_for_update()
+            .filter(status='pending')
+            .order_by('created_at')[:MAX_TASKS_PER_POLL]
+        )
+        TsTask.objects.filter(pk__in=[task.pk for task in tasks]).update(
+            status='running', started_at=now
+        )
 
     attendance.finalize_due(now)
     sessions = attendance.active_sessions(now)
-    skirmish_id = Skirmish.objects.filter(ended_at__isnull=True).values_list('pk', flat=True).first()
-    return JsonResponse({
-        'tasks': [{'id': task.pk, 'type': task.type, 'payload': task.payload} for task in tasks],
-        'track_presence': bool(sessions) or skirmish_id is not None,
-        'active_skirmish_id': skirmish_id,
-        'presence_key': f"{skirmish_id or ''}:" + ','.join(str(session.pk) for session in sessions),
-    })
+    skirmish_id = (
+        Skirmish.objects.filter(ended_at__isnull=True).values_list('pk', flat=True).first()
+    )
+    return JsonResponse(
+        {
+            'tasks': [
+                {'id': task.pk, 'type': task.type, 'payload': task.payload} for task in tasks
+            ],
+            'track_presence': bool(sessions) or skirmish_id is not None,
+            'active_skirmish_id': skirmish_id,
+            'presence_key': f'{skirmish_id or ""}:'
+            + ','.join(str(session.pk) for session in sessions),
+        }
+    )
 
 
 @bot_api
@@ -110,10 +129,13 @@ def presence(request):
     clients = data['clients']
     if len(clients) > 2000 or any(
         not isinstance(client, dict)
-        or not isinstance(client.get('uid'), str) or not 1 <= len(client['uid']) <= 64
-        or not isinstance(client.get('path'), list) or len(client['path']) > 32
+        or not isinstance(client.get('uid'), str)
+        or not 1 <= len(client['uid']) <= 64
+        or not isinstance(client.get('path'), list)
+        or len(client['path']) > 32
         or any(not isinstance(part, str) or len(part) > 255 for part in client['path'])
-        or not isinstance(client.get('nickname', ''), str) or len(client.get('nickname', '')) > 128
+        or not isinstance(client.get('nickname', ''), str)
+        or len(client.get('nickname', '')) > 128
         for client in clients
     ):
         return JsonResponse({'error': 'Некорректный список клиентов TS'}, status=400)
@@ -133,6 +155,8 @@ def license_file(request):
     ts_settings = TeamSpeakSettings.load()
     if not ts_settings.license_data:
         return JsonResponse({'error': 'Лицензия не загружена'}, status=404)
-    response = HttpResponse(bytes(ts_settings.license_data), content_type='application/octet-stream')
+    response = HttpResponse(
+        bytes(ts_settings.license_data), content_type='application/octet-stream'
+    )
     response['Content-Disposition'] = 'attachment; filename="licensekey.dat"'
     return response

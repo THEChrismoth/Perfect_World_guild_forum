@@ -8,6 +8,7 @@
 Учитываются только игроки с подтверждённым TS3 ID (TsLink.verified) — иначе можно было бы
 получать очки, вписав чужой ID.
 """
+
 import datetime
 import logging
 
@@ -22,7 +23,7 @@ PATH_SEPARATOR = '/'
 
 
 def parse_channels(text):
-    """Каналы ивента из настройки типа: по одному пути на строку, например 'Гильдия / МТВ / ГВГ'.
+    """Разобрать настройку каналов ивента в список строковых путей.
 
     Имена каналов сами могут содержать «/» («МТВ / ГВГ»), поэтому путь не разбивается на части:
     сравнение идёт по склеенной строке — см. path_matches.
@@ -35,7 +36,7 @@ def _normalize(path_text):
 
 
 def path_matches(client_path, channel_rules, include_children=True):
-    """Канал клиента — один из каналов ивента или его подканал."""
+    """Проверить совпадение канала клиента с правилом или разрешённым подканалом."""
     joined = _normalize(PATH_SEPARATOR.join(client_path))
     for rule in channel_rules:
         rule = _normalize(rule)
@@ -46,36 +47,57 @@ def path_matches(client_path, channel_rules, include_children=True):
 
 def _tracked_notifications():
     from events.models import EventNotification
-    return (EventNotification.objects
-            .filter(start_time__isnull=False, sent_at__isnull=False, points_processed_at__isnull=True)
-            .exclude(event_type__ts_channels='')
-            .select_related('event_type'))
+
+    return (
+        EventNotification.objects.filter(
+            start_time__isnull=False, sent_at__isnull=False, points_processed_at__isnull=True
+        )
+        .exclude(event_type__ts_channels='')
+        .select_related('event_type')
+    )
 
 
 def active_sessions(now=None):
+    """Выбрать отправленные ивенты, идущие в данный момент, включая переход через полночь."""
     now = now or timezone.now()
     today = timezone.localtime(now).date()
     # Ивент может начаться вчера и закончиться после полуночи.
-    candidates = _tracked_notifications().filter(event_date__gte=today - datetime.timedelta(days=1), event_date__lte=today)
+    candidates = _tracked_notifications().filter(
+        event_date__gte=today - datetime.timedelta(days=1), event_date__lte=today
+    )
     return [n for n in candidates if n.starts_at <= now < n.ends_at]
 
 
 def record_presence(clients, now=None):
-    """clients: [{'uid': '...', 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}]. Возвращает число отметок."""
+    """Учесть присутствие подтверждённых TS-клиентов на текущих ивентах.
+
+    Args:
+        clients: Список словарей с uid и path — компонентами пути канала.
+        now: Время отчёта; по умолчанию текущее время.
+
+    Returns:
+        Число новых минутных отметок по всем активным ивентам.
+        Повторный отчёт за ту же минуту не добавляет минуту повторно.
+    """
     now = now or timezone.now()
     sessions = active_sessions(now)
     if not sessions:
         return 0
 
     uids = {client.get('uid') for client in clients if client.get('uid')}
-    users_by_uid = {link.uid: link.user_id for link in TsLink.objects.filter(status='verified', uid__in=uids)}
+    users_by_uid = {
+        link.uid: link.user_id for link in TsLink.objects.filter(status='verified', uid__in=uids)
+    }
     minute = now.replace(second=0, microsecond=0)
     marks = 0
 
     for session in sessions:
         rules = parse_channels(session.event_type.ts_channels)
-        present = {users_by_uid[c['uid']] for c in clients
-                   if c.get('uid') in users_by_uid and path_matches(c.get('path') or [], rules)}
+        present = {
+            users_by_uid[c['uid']]
+            for c in clients
+            if c.get('uid') in users_by_uid and path_matches(c.get('path') or [], rules)
+        }
         for user_id in present:
             presence, _ = EventPresence.objects.get_or_create(notification=session, user_id=user_id)
             # Бот может прислать отчёт чаще раза в минуту — считаем каждую минуту один раз.
@@ -88,7 +110,7 @@ def record_presence(clients, now=None):
 
 
 def finalize_due(now=None):
-    """Подводит итоги всех закончившихся ивентов. Вызывается при каждом обращении бота."""
+    """Подвести итоги всех закончившихся ивентов. Вызывается при каждом обращении бота."""
     now = now or timezone.now()
     today = timezone.localtime(now).date()
     done = 0
@@ -108,22 +130,42 @@ def _invited_users(notification):
 
 
 def finalize(notification_id, now=None):
+    """Начислить очки и штрафы по явке и отметить дату как обработанную.
+
+    Выполняет изменения в транзакции с блокировкой приглашения. Повторная
+    обработка не меняет баланс и не отправляет уведомления повторно.
+
+    Args:
+        notification_id: ID приглашения на дату ивента.
+        now: Время обработки для отметки завершения; по умолчанию текущее время.
+
+    Returns:
+        True при новой обработке; False, если дата уже обработана или не отправлена.
+
+    Raises:
+        EventNotification.DoesNotExist: Дата ивента не найдена.
+    """
     from auction.models import PointsTransaction
     from events.models import EventNotification
     from notifications.utils import send_notification
 
     now = now or timezone.now()
     with transaction.atomic():
-        notification = (EventNotification.objects.select_for_update()
-                         .select_related('event_type').get(pk=notification_id))
+        notification = (
+            EventNotification.objects.select_for_update()
+            .select_related('event_type')
+            .get(pk=notification_id)
+        )
         if notification.points_processed_at or not notification.sent_at:
             return False
         event_type = notification.event_type
         title = f'{event_type.icon} {event_type.name} {notification.event_date:%d.%m}'
 
-        present_ids = set(EventPresence.objects.filter(
-            notification=notification, minutes__gte=event_type.min_presence_minutes
-        ).values_list('user_id', flat=True))
+        present_ids = set(
+            EventPresence.objects.filter(
+                notification=notification, minutes__gte=event_type.min_presence_minutes
+            ).values_list('user_id', flat=True)
+        )
 
         statuses = dict(notification.attendances.values_list('user_id', 'status'))
         invited = _invited_users(notification)
@@ -131,8 +173,11 @@ def finalize(notification_id, now=None):
             candidates = [u for u in invited if statuses.get(u.pk) == 'yes']
             # Ответивший «Приду» мог не попасть в список рассылки (например, приглашение без рассылки).
             known = {u.pk for u in candidates}
-            candidates += list(User.objects.filter(pk__in=[uid for uid, s in statuses.items()
-                                                           if s == 'yes' and uid not in known]))
+            candidates += list(
+                User.objects.filter(
+                    pk__in=[uid for uid, s in statuses.items() if s == 'yes' and uid not in known]
+                )
+            )
         elif event_type.penalty_scope == 'not_declined':
             candidates = [u for u in invited if statuses.get(u.pk) != 'no']
         else:
@@ -143,12 +188,17 @@ def finalize(notification_id, now=None):
             for user in User.objects.filter(pk__in=present_ids).select_related('profile'):
                 user.profile.add_points(event_type.points_present)
                 PointsTransaction.objects.create(
-                    user=user, amount=event_type.points_present, transaction_type='credit',
+                    user=user,
+                    amount=event_type.points_present,
+                    transaction_type='credit',
                     description=f'Участие в ивенте: {title}'[:255],
                 )
-                send_notification(user, '⭐ Очки за ивент',
-                                  f'+{event_type.points_present} очков активности за участие: {title}',
-                                  notification_type='success')
+                send_notification(
+                    user,
+                    '⭐ Очки за ивент',
+                    f'+{event_type.points_present} очков активности за участие: {title}',
+                    notification_type='success',
+                )
 
         if event_type.points_absent:
             for user in absent:
@@ -157,15 +207,22 @@ def finalize(notification_id, now=None):
                 profile.activity_points -= penalty
                 profile.save()
                 PointsTransaction.objects.create(
-                    user=user, amount=penalty, transaction_type='debit',
+                    user=user,
+                    amount=penalty,
+                    transaction_type='debit',
                     description=f'Отсутствие на ивенте: {title}'[:255],
                 )
-                send_notification(user, '⚠️ Пропуск ивента',
-                                  f'−{penalty} очков активности за отсутствие: {title}',
-                                  notification_type='warning')
+                send_notification(
+                    user,
+                    '⚠️ Пропуск ивента',
+                    f'−{penalty} очков активности за отсутствие: {title}',
+                    notification_type='warning',
+                )
 
         notification.points_processed_at = now
         notification.save(update_fields=['points_processed_at'])
 
-    logger.info('Ивент %s: участников %s, пропусков %s', notification, len(present_ids), len(absent))
+    logger.info(
+        'Ивент %s: участников %s, пропусков %s', notification, len(present_ids), len(absent)
+    )
     return True

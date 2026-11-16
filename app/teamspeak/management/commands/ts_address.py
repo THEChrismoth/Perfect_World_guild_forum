@@ -4,7 +4,9 @@ from teamspeak.models import TeamSpeakSettings
 
 
 class Command(BaseCommand):
-    help = 'Показывает или задает адрес сервера TeamSpeak, который видят игроки (Настройки TeamSpeak)'
+    help = (
+        'Показывает или задает адрес сервера TeamSpeak, который видят игроки (Настройки TeamSpeak)'
+    )
 
     def add_arguments(self, parser):
         parser.add_argument('address', nargs='?', help='Новый адрес, например ts.myguild.ru')

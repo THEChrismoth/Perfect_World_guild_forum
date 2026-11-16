@@ -24,9 +24,10 @@ class SuperuserOnlyMixin:
 
 class TeamSpeakSettingsForm(forms.ModelForm):
     license_upload = forms.FileField(
-        label='Загрузить лицензию', required=False,
+        label='Загрузить лицензию',
+        required=False,
         help_text='Файл licensekey.dat, купленный у TeamSpeak. После сохранения бот установит его '
-                  'и перезапустит сервер TeamSpeak (около минуты все будут отключены)',
+        'и перезапустит сервер TeamSpeak (около минуты все будут отключены)',
     )
 
     class Meta:
@@ -36,7 +37,9 @@ class TeamSpeakSettingsForm(forms.ModelForm):
     def clean_license_upload(self):
         upload = self.cleaned_data.get('license_upload')
         if upload and upload.size > MAX_LICENSE_SIZE:
-            raise forms.ValidationError('Слишком большой файл — лицензия TeamSpeak весит несколько килобайт')
+            raise forms.ValidationError(
+                'Слишком большой файл — лицензия TeamSpeak весит несколько килобайт'
+            )
         return upload
 
 
@@ -45,16 +48,22 @@ class TeamSpeakSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     form = TeamSpeakSettingsForm
     readonly_fields = ('bot_status', 'license_status')
     fieldsets = (
-        ('Бот', {
-            'fields': ('bot_status',),
-            'description': 'Бот TeamSpeak — отдельный контейнер tsbot. Он выдаёт группу «Член гильдии», создаёт '
-                           'комнаты и считает присутствие на ивентах. Как включить — в docs/GUIDE.md, раздел «TeamSpeak».',
-        }),
+        (
+            'Бот',
+            {
+                'fields': ('bot_status',),
+                'description': 'Бот TeamSpeak — отдельный контейнер tsbot. Он выдаёт группу «Член гильдии», создаёт '
+                'комнаты и считает присутствие на ивентах. Как включить — в docs/GUIDE.md, раздел «TeamSpeak».',
+            },
+        ),
         ('Сервер', {'fields': ('server_address', 'rooms_per_member')}),
-        ('Лицензия', {
-            'fields': ('license_status', 'license_upload', 'max_clients'),
-            'description': 'Без лицензии TeamSpeak 3 работает на 32 слота. Купленный файл лицензии загрузите здесь.',
-        }),
+        (
+            'Лицензия',
+            {
+                'fields': ('license_status', 'license_upload', 'max_clients'),
+                'description': 'Без лицензии TeamSpeak 3 работает на 32 слота. Купленный файл лицензии загрузите здесь.',
+            },
+        ),
     )
 
     def has_add_permission(self, request):
@@ -64,23 +73,31 @@ class TeamSpeakSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         return False
 
     def changelist_view(self, request, extra_context=None):
-        return redirect(reverse('admin:teamspeak_teamspeaksettings_change', args=[TeamSpeakSettings.load().pk]))
+        return redirect(
+            reverse('admin:teamspeak_teamspeaksettings_change', args=[TeamSpeakSettings.load().pk])
+        )
 
     @admin.display(description='Состояние')
     def bot_status(self, obj):
         if obj.bot_online:
             return format_html('<strong style="color:#16a34a">{}</strong>', '🟢 на связи')
         if obj.bot_last_seen:
-            return format_html('<strong style="color:#dc2626">{}</strong> {}', '🔴 не отвечает',
-                               f'(последний раз {timezone.localtime(obj.bot_last_seen):%d.%m.%Y %H:%M})')
+            return format_html(
+                '<strong style="color:#dc2626">{}</strong> {}',
+                '🔴 не отвечает',
+                f'(последний раз {timezone.localtime(obj.bot_last_seen):%d.%m.%Y %H:%M})',
+            )
         return 'ещё не подключался'
 
     @admin.display(description='Лицензия')
     def license_status(self, obj):
         if not obj.license_name:
             return 'не загружена (32 слота)'
-        installed = (f'установлена {timezone.localtime(obj.license_installed_at):%d.%m.%Y %H:%M}'
-                     if obj.license_installed_at else 'ожидает установки ботом')
+        installed = (
+            f'установлена {timezone.localtime(obj.license_installed_at):%d.%m.%Y %H:%M}'
+            if obj.license_installed_at
+            else 'ожидает установки ботом'
+        )
         return f'{obj.license_name} — {installed}'
 
     def save_model(self, request, obj, form, change):
@@ -93,14 +110,26 @@ class TeamSpeakSettingsAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         if upload:
             TsTask.enqueue('install_license', user=request.user, max_clients=obj.max_clients)
-            messages.info(request, 'Лицензия загружена — бот установит её и перезапустит сервер TeamSpeak')
+            messages.info(
+                request, 'Лицензия загружена — бот установит её и перезапустит сервер TeamSpeak'
+            )
 
 
 @admin.register(TsTask)
 class TsTaskAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     list_display = ('created_at', 'type', 'status_display', 'user', 'error_short')
     list_filter = ('status', 'type')
-    readonly_fields = ('type', 'status', 'user', 'payload', 'result', 'error', 'created_at', 'started_at', 'finished_at')
+    readonly_fields = (
+        'type',
+        'status',
+        'user',
+        'payload',
+        'result',
+        'error',
+        'created_at',
+        'started_at',
+        'finished_at',
+    )
 
     def has_add_permission(self, request):
         return False
@@ -111,7 +140,11 @@ class TsTaskAdmin(SuperuserOnlyMixin, admin.ModelAdmin):
     @admin.display(description='Статус', ordering='status')
     def status_display(self, obj):
         colors = {'done': '#16a34a', 'failed': '#dc2626', 'running': '#0ea5e9'}
-        return format_html('<strong style="color:{}">{}</strong>', colors.get(obj.status, '#64748b'), obj.get_status_display())
+        return format_html(
+            '<strong style="color:{}">{}</strong>',
+            colors.get(obj.status, '#64748b'),
+            obj.get_status_display(),
+        )
 
     @admin.display(description='Ошибка')
     def error_short(self, obj):

@@ -1,4 +1,5 @@
 """Постановка задач боту и обработка их результатов на стороне сайта."""
+
 from django.urls import reverse
 from django.utils import timezone
 
@@ -6,7 +7,11 @@ from .models import TeamSpeakSettings, TsLink, TsRoom, TsTask
 
 
 def apply_task_result(task):
-    """Последствия выполненной (или проваленной) задачи для данных сайта."""
+    """Применить результат задачи к комнате, лицензии и уведомлениям игрока.
+
+    Args:
+        task: Задача с сохранёнными статусом, результатом и ошибкой от бота.
+    """
     from notifications.utils import send_notification
 
     payload = task.payload or {}
@@ -37,26 +42,59 @@ def apply_task_result(task):
         TeamSpeakSettings.objects.filter(pk=1).update(license_installed_at=timezone.now())
 
     elif task.type == 'grant_guild' and task.status == 'done' and task.user:
-        send_notification(task.user, '🎧 Доступ в TeamSpeak',
-                          'Вам выдана группа «Член гильдии» в TeamSpeak — комнаты гильдии открыты.',
-                          notification_type='success')
+        send_notification(
+            task.user,
+            '🎧 Доступ в TeamSpeak',
+            'Вам выдана группа «Член гильдии» в TeamSpeak — комнаты гильдии открыты.',
+            notification_type='success',
+        )
 
-    if task.status == 'failed' and task.user and task.type in ('verify_link', 'grant_guild', 'create_room', 'delete_room'):
-        send_notification(task.user, '⚠️ TeamSpeak', f'{task.get_type_display()}: {task.error}',
-                          notification_type='error', link=reverse('profile_view', args=[task.user.username]))
+    if (
+        task.status == 'failed'
+        and task.user
+        and task.type in ('verify_link', 'grant_guild', 'create_room', 'delete_room')
+    ):
+        send_notification(
+            task.user,
+            '⚠️ TeamSpeak',
+            f'{task.get_type_display()}: {task.error}',
+            notification_type='error',
+            link=reverse('profile_view', args=[task.user.username]),
+        )
 
 
 def request_link(user, uid, confirm_url_builder):
-    """Начинает привязку: бот отправит игроку в TeamSpeak ссылку подтверждения."""
+    """Начать привязку и поставить боту задачу отправки ссылки в TeamSpeak.
+
+    Args:
+        user: Владелец привязки.
+        uid: Уникальный идентификатор клиента TeamSpeak.
+        confirm_url_builder: Функция преобразования токена в ссылку подтверждения.
+
+    Returns:
+        Созданная или обновлённая привязка в статусе pending.
+    """
     link, _ = TsLink.objects.update_or_create(
-        user=user, defaults={'uid': uid, 'status': 'pending', 'token': TsLink.new_token(), 'verified_at': None}
+        user=user,
+        defaults={
+            'uid': uid,
+            'status': 'pending',
+            'token': TsLink.new_token(),
+            'verified_at': None,
+        },
     )
-    TsTask.enqueue('verify_link', user=user, uid=uid, username=user.username,
-                   url=confirm_url_builder(link.token))
+    TsTask.enqueue(
+        'verify_link',
+        user=user,
+        uid=uid,
+        username=user.username,
+        url=confirm_url_builder(link.token),
+    )
     return link
 
 
 def confirm_link(link):
+    """Подтвердить привязку и поставить задачу выдачи TS-группы гильдии."""
     link.status = 'verified'
     link.verified_at = timezone.now()
     link.save(update_fields=['status', 'verified_at'])
@@ -64,7 +102,7 @@ def confirm_link(link):
 
 
 def revoke_link(link):
-    """Снимает группу гильдии с привязанного клиента и удаляет привязку."""
+    """Поставить задачу снятия TS-группы с подтверждённого клиента и удалить привязку."""
     if link.verified:
         TsTask.enqueue('revoke_guild', user=link.user, uid=link.uid)
     link.delete()
