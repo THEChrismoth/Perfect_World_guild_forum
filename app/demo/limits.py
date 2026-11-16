@@ -4,6 +4,7 @@
 2. Всего — не больше MAX_GUESTS. Когда места нет, удаляются самые старые гости,
    неактивные дольше INACTIVE_MINUTES. Если таких нет, новый аккаунт не создается.
 """
+
 import datetime
 
 from django.contrib.auth.models import User
@@ -19,8 +20,10 @@ INACTIVE_MINUTES = 30
 
 
 def client_ip(request):
-    """IP посетителя. За прокси хостинга берем последний адрес X-Forwarded-For —
-    его дописывает сам прокси, а первые адреса посетитель может подставить любые."""
+    """Определить IP посетителя по последнему адресу X-Forwarded-For или REMOTE_ADDR.
+
+    Последний адрес дописывает прокси хостинга; первые адреса посетитель может подставить.
+    """
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
     if forwarded:
         return forwarded.split(',')[-1].strip()
@@ -28,7 +31,7 @@ def client_ip(request):
 
 
 def take_ip_slot(request):
-    """Учитывает новый аккаунт с IP посетителя. False — лимит на этот час исчерпан."""
+    """Учесть новый аккаунт с IP посетителя. False — лимит на этот час исчерпан."""
     key = f'demo-guests-ip:{client_ip(request)}'
     # add создает счетчик с окном в час только если его еще нет.
     cache.add(key, 0, IP_WINDOW_SECONDS)
@@ -42,13 +45,16 @@ def take_ip_slot(request):
 
 
 def make_room():
-    """Освобождает место под новый аккаунт. False — все места заняты активными посетителями."""
+    """Освободить место под новый аккаунт. False — все места заняты активными посетителями."""
     guests = User.objects.filter(groups__name=GUEST_GROUP)
     excess = guests.count() - MAX_GUESTS + 1
     if excess <= 0:
         return True
     inactive_since = timezone.now() - datetime.timedelta(minutes=INACTIVE_MINUTES)
-    stale = list(guests.filter(profile__last_activity__lt=inactive_since)
-                 .order_by('date_joined').values_list('pk', flat=True)[:excess])
+    stale = list(
+        guests.filter(profile__last_activity__lt=inactive_since)
+        .order_by('date_joined')
+        .values_list('pk', flat=True)[:excess]
+    )
     User.objects.filter(pk__in=stale).delete()
     return len(stale) == excess

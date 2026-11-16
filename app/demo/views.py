@@ -16,6 +16,7 @@ from .limits import make_room, take_ip_slot
 
 def _require_demo_member(request):
     from core.roles import is_guild_member
+
     if not settings.DEMO_MODE:
         raise Http404
     if not is_guild_member(request.user):
@@ -24,20 +25,25 @@ def _require_demo_member(request):
 
 @login_required
 def teamspeak_preview(request):
-    """Показывает возможности TS без подключения к голосовому серверу."""
+    """Показать возможности TS без подключения к голосовому серверу."""
     _require_demo_member(request)
     from skirmishes.models import Skirmish
-    return render(request, 'demo/teamspeak.html', {
-        'demo_linked': bool(request.session.get('demo_ts_linked')),
-        'demo_room': request.session.get('demo_ts_room', ''),
-        'active_skirmish': Skirmish.objects.filter(ended_at__isnull=True).first(),
-    })
+
+    return render(
+        request,
+        'demo/teamspeak.html',
+        {
+            'demo_linked': bool(request.session.get('demo_ts_linked')),
+            'demo_room': request.session.get('demo_ts_room', ''),
+            'active_skirmish': Skirmish.objects.filter(ended_at__isnull=True).first(),
+        },
+    )
 
 
 @login_required
 @require_POST
 def teamspeak_action(request):
-    """Имитирует привязку и комнату только в сессии посетителя, без задач настоящему боту."""
+    """Имитировать привязку и комнату только в сессии посетителя, без задач настоящему боту."""
     _require_demo_member(request)
     action = request.POST.get('action')
     if action == 'link':
@@ -53,7 +59,9 @@ def teamspeak_action(request):
             messages.error(request, 'В демонстрации доступна одна личная комната.')
         else:
             request.session['demo_ts_room'] = name
-            messages.success(request, 'Демонстрация: комната создана, вам выданы права администратора комнаты.')
+            messages.success(
+                request, 'Демонстрация: комната создана, вам выданы права администратора комнаты.'
+            )
     elif action == 'delete_room':
         request.session.pop('demo_ts_room', None)
         messages.success(request, 'Демонстрационная комната удалена.')
@@ -65,9 +73,10 @@ def teamspeak_action(request):
 @login_required
 @require_POST
 def skirmish_presence(request):
-    """Добавляет демонстрационную отметку TS только самому посетителю активного сбора."""
+    """Добавить демонстрационную отметку TS только самому посетителю активного сбора."""
     _require_demo_member(request)
     from skirmishes.models import Participant, Skirmish
+
     if not request.session.get('demo_ts_linked'):
         messages.info(request, 'Сначала покажите привязку TeamSpeak в демо.')
         return redirect('demo:teamspeak')
@@ -86,23 +95,31 @@ def skirmish_presence(request):
     if not session:
         messages.info(request, 'Нет активного замеса. Войдите ролью администратора и начните сбор.')
         return redirect('skirmishes:index')
-    messages.success(request, f'Демонстрация: добавлены отметки TS до порога {session.min_minutes} мин. Настоящий бот не подключён.')
+    messages.success(
+        request,
+        f'Демонстрация: добавлены отметки TS до порога {session.min_minutes} мин. Настоящий бот не подключён.',
+    )
     return redirect(session)
 
 
 @login_not_required
 @require_POST
 def demo_login(request, role):
-    """Вход в демо-роль без пароля: в личный аккаунт этого браузера или в новый. Только при DEMO_MODE."""
+    """Войти в прежний или новый личный аккаунт демо-роли без пароля при DEMO_MODE."""
     if not settings.DEMO_MODE or role not in DEMO_ROLES:
         raise Http404
     user = find_guest(role, read_guests(request).get(role))
     if user is None:
         if not take_ip_slot(request):
-            messages.error(request, 'С вашего адреса создано слишком много демо-аккаунтов. Попробуйте через час.')
+            messages.error(
+                request,
+                'С вашего адреса создано слишком много демо-аккаунтов. Попробуйте через час.',
+            )
             return redirect('/')
         if not make_room():
-            messages.error(request, 'Демо сейчас переполнено посетителями. Попробуйте через полчаса.')
+            messages.error(
+                request, 'Демо сейчас переполнено посетителями. Попробуйте через полчаса.'
+            )
             return redirect('/')
         user = create_guest(role)
     login(request, user, backend='django.contrib.auth.backends.ModelBackend')

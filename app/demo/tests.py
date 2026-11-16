@@ -39,7 +39,6 @@ class DemoModeOffTests(TestCase):
     def test_register_open(self):
         self.assertEqual(self.client.get(reverse('register')).status_code, 200)
 
-
     def test_login_page_has_password_form(self):
         response = self.client.get(reverse('login'))
         self.assertContains(response, 'id_password')
@@ -111,7 +110,9 @@ class DemoModeOnTests(TestCase):
     def test_cookie_does_not_log_into_other_players(self):
         User.objects.create_user('Северянка', is_staff=True)
         self.login('member')
-        self.client.cookies['demo_guests'] = self.client.cookies['demo_guests'].value.replace('Гость', 'Север')
+        self.client.cookies['demo_guests'] = self.client.cookies['demo_guests'].value.replace(
+            'Гость', 'Север'
+        )
         self.assertNotEqual(self.login('member').username, 'Северянка')
 
     def test_admin_account(self):
@@ -129,19 +130,28 @@ class DemoModeOnTests(TestCase):
         self.assertEqual(self.client.get(reverse('demo:login', args=['member'])).status_code, 405)
 
     def test_unknown_role(self):
-        self.assertEqual(self.client.post(reverse('demo:login', args=['superuser'])).status_code, 404)
+        self.assertEqual(
+            self.client.post(reverse('demo:login', args=['superuser'])).status_code, 404
+        )
 
     def test_register_blocked(self):
         response = self.client.get(reverse('register'))
         self.assertRedirects(response, '/', fetch_redirect_response=False)
 
     def test_blocked_referer_does_not_loop(self):
-        response = self.client.get(reverse('register'), HTTP_REFERER='http://testserver' + reverse('register'))
+        response = self.client.get(
+            reverse('register'), HTTP_REFERER='http://testserver' + reverse('register')
+        )
         self.assertRedirects(response, '/', fetch_redirect_response=False)
 
     def test_admin_service_sections_blocked(self):
         self.client.force_login(User.objects.create_superuser('root'))
-        for url in ['/admin/auth/user/', '/admin/core/', '/admin/backups/', reverse('admin:password_change')]:
+        for url in [
+            '/admin/auth/user/',
+            '/admin/core/',
+            '/admin/backups/',
+            reverse('admin:password_change'),
+        ]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 302)
 
@@ -166,9 +176,12 @@ class DemoSeedTests(TestCase):
 
         self.assertTrue(AuctionLot.objects.filter(status='active').exists())
         self.assertTrue(AuctionLot.objects.filter(status='ended').exists())
-        self.assertTrue(EventNotification.objects.filter(points_processed_at__isnull=False).exists())
+        self.assertTrue(
+            EventNotification.objects.filter(points_processed_at__isnull=False).exists()
+        )
         self.assertTrue(Application.objects.filter(status='voting').exists())
         from skirmishes.models import Skirmish
+
         self.assertEqual(Skirmish.objects.filter(ended_at__isnull=True).count(), 1)
         self.assertTrue(Skirmish.objects.filter(reviewed_at__isnull=False).exists())
 
@@ -176,10 +189,16 @@ class DemoSeedTests(TestCase):
         self.client.post(reverse('demo:login', args=['member']))
         guest = User.objects.get(pk=self.client.session['_auth_user_id'])
         self.assertGreater(guest.profile.activity_points, 100)
-        self.assertTrue(Notification.objects.filter(user=guest, link__startswith='/events/vote/').exists())
+        self.assertTrue(
+            Notification.objects.filter(user=guest, link__startswith='/events/vote/').exists()
+        )
 
         # Главные страницы открываются под каждой ролью; ивенты и аукцион — только членам гильдии.
-        members_only = [reverse('events:event_index'), reverse('auction:auction_index'), reverse('skirmishes:index')]
+        members_only = [
+            reverse('events:event_index'),
+            reverse('auction:auction_index'),
+            reverse('skirmishes:index'),
+        ]
         for role in DEMO_ROLES:
             self.client.post(reverse('demo:login', args=[role]))
             for url in ['/', '/koslist/', *members_only]:
@@ -197,9 +216,9 @@ class AutoResetRuleTests(TestCase):
         hour = timedelta(hours=1)
         cases = [
             (timedelta(minutes=30), False, False),  # интервал не прошел
-            (hour, False, True),                    # прошел, посетителей нет
-            (hour, True, False),                    # прошел, но кто-то сидит — ждем
-            (2 * hour, True, True),                 # двойной интервал — сбрасываем в любом случае
+            (hour, False, True),  # прошел, посетителей нет
+            (hour, True, False),  # прошел, но кто-то сидит — ждем
+            (2 * hour, True, True),  # двойной интервал — сбрасываем в любом случае
         ]
         for elapsed, active, expected in cases:
             with self.subTest(elapsed=elapsed, active=active):
@@ -211,7 +230,9 @@ class AutoResetRuleTests(TestCase):
 
         from .management.commands.demo_autoreset import visitors_active
 
-        User.objects.create_user('player')  # вымышленный игрок с «свежей» активностью — не посетитель
+        User.objects.create_user(
+            'player'
+        )  # вымышленный игрок с «свежей» активностью — не посетитель
         self.assertFalse(visitors_active(timedelta(minutes=10)))
         create_guest('member')
         self.assertTrue(visitors_active(timedelta(minutes=10)))
@@ -251,7 +272,9 @@ class GuestLimitTests(TestCase):
         self.assertEqual(User.objects.count(), 1)
 
     def test_ip_behind_proxy(self):
-        request = mock.Mock(META={'HTTP_X_FORWARDED_FOR': '1.1.1.1, 2.2.2.2', 'REMOTE_ADDR': '10.0.0.9'})
+        request = mock.Mock(
+            META={'HTTP_X_FORWARDED_FOR': '1.1.1.1, 2.2.2.2', 'REMOTE_ADDR': '10.0.0.9'}
+        )
         self.assertEqual(limits.client_ip(request), '2.2.2.2')
 
     def test_full_demo_removes_oldest_inactive_guest(self):

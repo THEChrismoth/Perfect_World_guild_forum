@@ -4,6 +4,7 @@
 поэтому делается, когда посетителей нет: прошло --hours часов и гости не заходили --idle-minutes минут.
 Если посетители идут без перерыва, база все равно сбрасывается через двойной интервал.
 """
+
 import datetime
 import logging
 import time
@@ -20,7 +21,16 @@ logger = logging.getLogger(__name__)
 
 
 def should_reset(elapsed, interval, visitors_active):
-    """elapsed и interval — timedelta с прошлого сброса и между сбросами."""
+    """Определить, наступило ли время сброса демо с учётом активности гостей.
+
+    Args:
+        elapsed: Время с прошлого сброса как timedelta.
+        interval: Плановый интервал сброса как timedelta.
+        visitors_active: Есть ли активные посетители.
+
+    Returns:
+        True после двойного интервала либо после обычного интервала без посетителей.
+    """
     if elapsed < interval:
         return False
     return elapsed >= 2 * interval or not visitors_active
@@ -35,10 +45,18 @@ class Command(BaseCommand):
     help = 'Периодически сбрасывает демо-сайт к исходным данным (только при DEMO_MODE=True)'
 
     def add_arguments(self, parser):
-        parser.add_argument('--hours', type=float, default=6, help='Как часто сбрасывать, часов (по умолчанию 6)')
-        parser.add_argument('--idle-minutes', type=int, default=10,
-                            help='Сколько минут без посетителей ждать перед сбросом (по умолчанию 10)')
-        parser.add_argument('--check-minutes', type=int, default=5, help='Как часто проверять, минут')
+        parser.add_argument(
+            '--hours', type=float, default=6, help='Как часто сбрасывать, часов (по умолчанию 6)'
+        )
+        parser.add_argument(
+            '--idle-minutes',
+            type=int,
+            default=10,
+            help='Сколько минут без посетителей ждать перед сбросом (по умолчанию 10)',
+        )
+        parser.add_argument(
+            '--check-minutes', type=int, default=5, help='Как часто проверять, минут'
+        )
 
     def handle(self, *args, **options):
         if not settings.DEMO_MODE:
@@ -48,7 +66,9 @@ class Command(BaseCommand):
         idle = datetime.timedelta(minutes=options['idle_minutes'])
         # Контейнер стартует с только что заполненной базой — отсчет от запуска.
         last_reset = time.monotonic()
-        self.stdout.write(f'Сброс демо каждые {options["hours"]:g} ч, после {options["idle_minutes"]} мин без посетителей')
+        self.stdout.write(
+            f'Сброс демо каждые {options["hours"]:g} ч, после {options["idle_minutes"]} мин без посетителей'
+        )
 
         while True:
             time.sleep(options['check_minutes'] * 60)

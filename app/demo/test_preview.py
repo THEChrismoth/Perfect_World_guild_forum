@@ -47,7 +47,9 @@ class TeamSpeakPreviewTests(TestCase):
         self.assertContains(response, '&lt;script&gt;bad()&lt;/script&gt;')
 
     def test_presence_requires_link_and_only_changes_own_active_record(self):
-        session = Skirmish.objects.create(title='Пример', code='1234', ts_channel='Гильдия', min_minutes=5)
+        session = Skirmish.objects.create(
+            title='Пример', code='1234', ts_channel='Гильдия', min_minutes=5
+        )
         self.client.post(self.presence)
         self.assertFalse(Participant.objects.exists())
         self.client.post(self.action, {'action': 'link'})
@@ -59,6 +61,7 @@ class TeamSpeakPreviewTests(TestCase):
         self.assertTrue(entry.attended)
         self.assertIsNone(entry.joined_at)
         from django.utils import timezone
+
         session.ended_at = timezone.now()
         session.save()
         self.client.post(self.presence)
@@ -76,9 +79,15 @@ class TeamSpeakPreviewTests(TestCase):
         response = self.client.get(reverse('admin:activity_management'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Таблица активности участников')
-        response = self.client.post(reverse('admin:update_activity_points'), {
-            'profile_id': self.user.profile.pk, 'field': 'current', 'value': 25,
-        }, content_type='application/json')
+        response = self.client.post(
+            reverse('admin:update_activity_points'),
+            {
+                'profile_id': self.user.profile.pk,
+                'field': 'current',
+                'value': 25,
+            },
+            content_type='application/json',
+        )
         self.assertTrue(response.json()['success'])
         self.assertEqual(self.client.get(reverse('admin:auth_user_changelist')).status_code, 302)
 

@@ -4,6 +4,7 @@
 В демо закрыто то, что ломает сайт для других посетителей или требует внешних сервисов:
 регистрация, смена пароля, служебные разделы админки, TeamSpeak и загрузка файлов.
 """
+
 from urllib.parse import urlparse
 
 from django.conf import settings
@@ -16,7 +17,8 @@ UPLOADS_DISABLED = 'В демо загрузка файлов отключена
 
 
 def _blocked_prefixes():
-    """(начало адреса, сообщение) для закрытых в демо разделов."""
+    """Перечислить префиксы закрытых демо-разделов с сообщениями об ограничении."""
+
     def admin_app(label):
         return reverse('admin:app_list', kwargs={'app_label': label})
 
@@ -56,8 +58,9 @@ class DemoModeMiddleware:
     def _refuse(request, message, blocked):
         messages.warning(request, message)
         back = request.META.get('HTTP_REFERER', '')
-        safe = url_has_allowed_host_and_scheme(back, allowed_hosts={request.get_host()},
-                                               require_https=request.is_secure())
+        safe = url_has_allowed_host_and_scheme(
+            back, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
         # Возвращаем на предыдущую страницу, но не на закрытую — иначе будет цикл.
         if not safe or _blocked_message(urlparse(back).path, blocked):
             back = '/'
