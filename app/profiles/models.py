@@ -12,7 +12,7 @@ MAGIC_CLASSES = frozenset({'mag', 'zhrec', 'dru', 'sham', 'mist', 'zhnec', 'bard
 
 
 def damage_type(player_class):
-    """Возвращает тип атаки и пробива для класса персонажа."""
+    """Вернуть тип атаки и пробива для класса персонажа."""
     return 'magic' if player_class in MAGIC_CLASSES else 'physical'
 
 
@@ -65,27 +65,39 @@ class Profile(models.Model):
         ('zhnec', 'Жнец'),
         ('makaka', 'Странник'),
         ('bard', 'Бард'),
-        ('dk', 'Дух крови')
+        ('dk', 'Дух крови'),
     ]
-    
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     avatar = models.ImageField('Аватар', upload_to='avatars/', blank=True, null=True)
     ts3_id = models.CharField('TS3 ID', max_length=100, blank=True, null=True)
-    player_class = models.CharField('Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True)
+    player_class = models.CharField(
+        'Класс персонажа', max_length=20, choices=CLASS_CHOICES, blank=True, null=True
+    )
     # Какой из двух комплектов брони показывать первым (характеристики — в GearSet).
-    main_set = models.CharField('Основной сет', max_length=2, default='pa',
-                                choices=[('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')])
+    main_set = models.CharField(
+        'Основной сет', max_length=2, default='pa', choices=[('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')]
+    )
 
     # Очки активности (только для админа).
-    activity_points = models.IntegerField('Очки активности', default=0, help_text='Изменяется только в админ-панели')
-    spent_points = models.IntegerField('Потрачено очков активности', default=0, help_text='Общее количество потраченных очков')
-    earned_points = models.IntegerField('Начислено очков активности', default=0, help_text='Общее количество начисленных очков')
+    activity_points = models.IntegerField(
+        'Очки активности', default=0, help_text='Изменяется только в админ-панели'
+    )
+    spent_points = models.IntegerField(
+        'Потрачено очков активности', default=0, help_text='Общее количество потраченных очков'
+    )
+    earned_points = models.IntegerField(
+        'Начислено очков активности', default=0, help_text='Общее количество начисленных очков'
+    )
 
-    last_activity = models.DateTimeField('Последняя активность', default=timezone.now, null=True, blank=True)
+    last_activity = models.DateTimeField(
+        'Последняя активность', default=timezone.now, null=True, blank=True
+    )
 
     # Цвет оформления (пока — в админ-панели), список цветов — core/accents.py.
-    accent_color = models.CharField('Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES,
-                                    blank=True, default='')
+    accent_color = models.CharField(
+        'Цвет оформления', max_length=10, choices=PROFILE_ACCENT_CHOICES, blank=True, default=''
+    )
 
     def save(self, *args, **kwargs):
         # Автоматически поддерживаем консистентность при сохранении.
@@ -94,23 +106,30 @@ class Profile(models.Model):
         super().save(*args, **kwargs)
 
     def add_points(self, points):
-        """Начисление очков."""
+        """Начислить положительное количество очков и сохранить профиль."""
         if points > 0:
             self.earned_points += points
             self.activity_points += points
             self.save()
-    
+
     def spend_points(self, points):
-        """Списание очков."""
+        """Списать очки при достаточном балансе.
+
+        Args:
+            points: Положительное количество списываемых очков.
+
+        Returns:
+            True после списания; False для неположительной суммы или недостаточного баланса.
+        """
         if points > 0 and points <= self.activity_points:
             self.spent_points += points
             self.activity_points -= points
             self.save()
             return True
-        return False 
+        return False
 
     def set_balance(self, new_balance):
-        """Установка нового баланса (для администратора)."""
+        """Установить неотрицательный баланс с пересчётом суммы заработанных очков."""
         if new_balance >= 0:
             # Корректируем earned_points чтобы баланс сходился.
             self.earned_points = new_balance + self.spent_points
@@ -119,28 +138,37 @@ class Profile(models.Model):
 
     @property
     def total_earned_points(self):
-        """Всего начислено очков активности."""
+        """Вернуть общее количество начисленных очков активности."""
         return self.earned_points
 
     # ========== МЕТОДЫ ДЛЯ АУКЦИОНА ==========
-    
+
     def get_available_points(self):
-        """Возвращает доступные очки (не замороженные)."""
+        """Вернуть доступные очки (не замороженные)."""
         from auction.models import AuctionBid
-        
+
         # Сумма всех замороженных ставок.
-        frozen_amount = AuctionBid.objects.filter(
-            bidder=self.user,
-            is_frozen=True
-        ).aggregate(total=models.Sum('bid_amount'))['total'] or 0
-        
+        frozen_amount = (
+            AuctionBid.objects.filter(bidder=self.user, is_frozen=True).aggregate(
+                total=models.Sum('bid_amount')
+            )['total']
+            or 0
+        )
+
         return self.activity_points - frozen_amount
 
     def spend_points_auction(self, amount):
-        """Списание очков для аукциона (только доступных, не замороженных)."""
+        """Списать очки аукциона из доступного, незамороженного остатка.
+
+        Args:
+            amount: Положительная сумма списания.
+
+        Returns:
+            True после списания; False для неположительной суммы или недостатка доступных очков.
+        """
         if amount <= 0:
             return False
-        
+
         # Проверяем что достаточно доступных очков.
         available = self.get_available_points()
         if available >= amount and self.activity_points >= amount:
@@ -155,16 +183,16 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'редактировать профиль'
         verbose_name_plural = 'редактировать профили'
-    
+
     def __str__(self):
-        return f"Профиль {self.user.username}"
-    
+        return f'Профиль {self.user.username}'
+
     def get_icon_url(self):
-        """Возвращает URL иконки для класса персонажа."""
+        """Вернуть URL иконки для класса персонажа."""
         return class_icon_url(self.player_class)
 
     def gear_sets(self):
-        """Оба комплекта: основной первым. Создаются вместе с пользователем, но старые аккаунты — на всякий случай."""
+        """Вернуть оба комплекта основным первым, создав отсутствующие записи."""
         sets = {gear.kind: gear for gear in self.user.gear_sets.all()}
         for kind in GearSet.KINDS:
             if kind not in sets:
@@ -176,16 +204,32 @@ class Profile(models.Model):
 
 
 class GearSet(models.Model):
-    """Комплект брони. В игре их два — на атаку (ПА) и на защиту (ПЗ), меняются одной кнопкой в бою,
-    поэтому у игрока два набора характеристик. Какой основной — Profile.main_set."""
+    """Один из двух комплектов брони игрока.
+
+    Комплекты на атаку (ПА) и защиту (ПЗ) имеют отдельные характеристики.
+    Основной комплект определяется значением Profile.main_set.
+    """
 
     KIND_CHOICES = [('pa', 'Сет ПА'), ('pz', 'Сет ПЗ')]
     KINDS = [kind for kind, _ in KIND_CHOICES]
     # Характеристики сета — порядок для форм и копирования.
-    STAT_FIELDS = ('hp', 'bd', 'bu', 'pa', 'fa', 'ma', 'physical_pierce', 'magic_pierce',
-                   'pz', 'physical_defense', 'magic_defense')
+    STAT_FIELDS = (
+        'hp',
+        'bd',
+        'bu',
+        'pa',
+        'fa',
+        'ma',
+        'physical_pierce',
+        'magic_pierce',
+        'pz',
+        'physical_defense',
+        'magic_defense',
+    )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gear_sets', verbose_name='Игрок')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='gear_sets', verbose_name='Игрок'
+    )
     kind = models.CharField('Сет', max_length=2, choices=KIND_CHOICES)
 
     # Оба типа хранятся для сохранности данных; форма и профиль показывают тип по классу.
@@ -205,19 +249,26 @@ class GearSet(models.Model):
         verbose_name = 'Сет брони'
         verbose_name_plural = 'Сеты брони'
         ordering = ['kind']
-        constraints = [models.UniqueConstraint(fields=['user', 'kind'], name='unique_gear_set_per_user')]
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'kind'], name='unique_gear_set_per_user')
+        ]
 
     def __str__(self):
         return f'{self.get_kind_display()} — {self.user.username}'
 
     @property
     def attack_stats(self):
-        """Возвращает атаку и пробив только своего типа для класса игрока."""
+        """Вернуть атаку и пробив только своего типа для класса игрока."""
         magic = damage_type(self.user.profile.player_class) == 'magic'
         return [
-            {'label': 'Маг. атака' if magic else 'Физ. атака', 'value': self.ma if magic else self.fa},
-            {'label': 'Маг. пробив' if magic else 'Физ. пробив',
-             'value': self.magic_pierce if magic else self.physical_pierce},
+            {
+                'label': 'Маг. атака' if magic else 'Физ. атака',
+                'value': self.ma if magic else self.fa,
+            },
+            {
+                'label': 'Маг. пробив' if magic else 'Физ. пробив',
+                'value': self.magic_pierce if magic else self.physical_pierce,
+            },
         ]
 
     def is_empty(self):
@@ -226,7 +277,7 @@ class GearSet(models.Model):
 
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    """Создает профиль и оба сета брони только когда пользователь создается."""
+    """Создать профиль и оба сета брони только когда пользователь создается."""
     if created:
         Profile.objects.create(user=instance)
         GearSet.objects.bulk_create([GearSet(user=instance, kind=kind) for kind in GearSet.KINDS])

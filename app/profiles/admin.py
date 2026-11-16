@@ -14,13 +14,14 @@ class ProfileInline(admin.StackedInline):
     model = Profile
     can_delete = False
     fieldsets = (
-        ('Основная информация', {
-            'fields': ('avatar', 'ts3_id', 'player_class', 'main_set')
-        }),
-        ('Очки активности', {
-            'fields': ('activity_points', 'spent_points', 'earned_points'),
-            'description': 'Меняются в «Таблице активности» — так правка попадёт в историю очков игрока',
-        }),
+        ('Основная информация', {'fields': ('avatar', 'ts3_id', 'player_class', 'main_set')}),
+        (
+            'Очки активности',
+            {
+                'fields': ('activity_points', 'spent_points', 'earned_points'),
+                'description': 'Меняются в «Таблице активности» — так правка попадёт в историю очков игрока',
+            },
+        ),
     )
     # Правка здесь не попала бы в «Движение моих очков» у игрока — только просмотр.
     readonly_fields = ('activity_points', 'spent_points', 'earned_points')
@@ -31,13 +32,18 @@ class ProfileInline(admin.StackedInline):
 
 class GearSetInline(admin.StackedInline):
     """Два сета брони игрока — ПА и ПЗ; их ровно два, добавлять и удалять нельзя."""
+
     model = GearSet
     form = GearSetForm
     can_delete = False
     extra = 0
     max_num = 2
-    fields = ('kind', ('hp', 'bd', 'bu'), ('pa', 'attack', 'pierce'),
-              ('pz', 'physical_defense', 'magic_defense'))
+    fields = (
+        'kind',
+        ('hp', 'bd', 'bu'),
+        ('pa', 'attack', 'pierce'),
+        ('pz', 'physical_defense', 'magic_defense'),
+    )
     readonly_fields = ('kind',)
 
     class Media:
@@ -45,7 +51,9 @@ class GearSetInline(admin.StackedInline):
 
     def get_formset(self, request, obj=None, **kwargs):
         formset = super().get_formset(request, obj, **kwargs)
-        selected = request.POST.get('profile-0-player_class', obj.profile.player_class if obj else None)
+        selected = request.POST.get(
+            'profile-0-player_class', obj.profile.player_class if obj else None
+        )
 
         class ClassGearSetFormSet(formset):
             def get_form_kwargs(self, index):
@@ -60,16 +68,26 @@ class GearSetInline(admin.StackedInline):
 class UserAdmin(NoRelatedPopupsMixin, BaseUserAdmin):
     inlines = [ProfileInline, GearSetInline]
     # Дата последнего входа и регистрации заполняются сами — править их вручную незачем.
-    fieldsets = tuple(fieldset for fieldset in BaseUserAdmin.fieldsets
-                      if 'last_login' not in fieldset[1]['fields'])
+    fieldsets = tuple(
+        fieldset
+        for fieldset in BaseUserAdmin.fieldsets
+        if 'last_login' not in fieldset[1]['fields']
+    )
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('activity-management/', admin_views.activity_management, name='activity_management'),
-            path('activity/update/', admin_views.update_activity_points, name='update_activity_points'),
+            path(
+                'activity-management/', admin_views.activity_management, name='activity_management'
+            ),
+            path(
+                'activity/update/',
+                admin_views.update_activity_points,
+                name='update_activity_points',
+            ),
         ]
         return custom_urls + urls
+
 
 # Создаем кастомный ModelAdmin для отображения в меню.
 class ActivityManagementAdmin(admin.ModelAdmin):
@@ -91,8 +109,9 @@ class ActivityManagementAdmin(admin.ModelAdmin):
         return request.user.is_staff
 
     def changelist_view(self, request, extra_context=None):
-        """Перенаправляет на страницу управления активностью."""
+        """Перенаправить на страницу управления активностью."""
         from django.shortcuts import redirect
+
         return redirect('admin:activity_management')
 
 

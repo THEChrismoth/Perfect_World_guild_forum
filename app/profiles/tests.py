@@ -19,11 +19,18 @@ class ClosedSiteTests(TestCase):
     """Без входа сайт не виден: открываются только вход, регистрация и служебные адреса."""
 
     def test_guest_redirected_to_login(self):
-        for url in ['/', '/koslist/', reverse('auction:auction_index'), reverse('events:event_index'),
-                    reverse('notifications:notification_list')]:
+        for url in [
+            '/',
+            '/koslist/',
+            reverse('auction:auction_index'),
+            reverse('events:event_index'),
+            reverse('notifications:notification_list'),
+        ]:
             with self.subTest(url=url):
                 response = self.client.get(url)
-                self.assertRedirects(response, f'{reverse("login")}?next={url}', fetch_redirect_response=False)
+                self.assertRedirects(
+                    response, f'{reverse("login")}?next={url}', fetch_redirect_response=False
+                )
 
     def test_auth_pages_use_guild_accent(self):
         site = SiteSettings.load()
@@ -48,7 +55,9 @@ class ClosedSiteTests(TestCase):
 
         self.assertEqual(self.client.get('/').status_code, 200)
         self.assertRedirects(self.client.get(reverse('login')), '/', fetch_redirect_response=False)
-        self.assertRedirects(self.client.get(reverse('register')), '/', fetch_redirect_response=False)
+        self.assertRedirects(
+            self.client.get(reverse('register')), '/', fetch_redirect_response=False
+        )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -62,7 +71,9 @@ class SiteAccentTests(TestCase):
     def test_player_saves_color_and_it_applies_everywhere(self):
         self.client.force_login(self.user)
 
-        response = self.client.post(self.url, {'accent': 'teal'}, headers={'X-Requested-With': 'fetch'})
+        response = self.client.post(
+            self.url, {'accent': 'teal'}, headers={'X-Requested-With': 'fetch'}
+        )
 
         self.assertEqual(response.status_code, 204)
         self.user.profile.refresh_from_db()
@@ -86,7 +97,9 @@ class SiteAccentTests(TestCase):
         self.assertContains(self.client.get('/'), 'data-accent="pink"')
 
     def test_bad_values_and_guest(self):
-        self.assertEqual(self.client.post(self.url, {'accent': 'teal'}).status_code, 302)  # гостя — на вход
+        self.assertEqual(
+            self.client.post(self.url, {'accent': 'teal'}).status_code, 302
+        )  # гостя — на вход
         self.client.force_login(self.user)
         self.assertEqual(self.client.post(self.url, {'accent': 'red'}).status_code, 400)
         self.assertEqual(self.client.get(self.url).status_code, 405)
@@ -162,7 +175,11 @@ class RegistrationTests(TestCase):
 
     @mock.patch('core.mail.get_mail_connection', locmem_connection)
     def test_with_verification_email_sent_and_link_activates(self):
-        self.configure(email_verification=True, email_host='smtp.example.com', email_from='Гильдия <noreply@example.com>')
+        self.configure(
+            email_verification=True,
+            email_host='smtp.example.com',
+            email_from='Гильдия <noreply@example.com>',
+        )
 
         response = self.register()
 
@@ -184,13 +201,17 @@ class RegistrationTests(TestCase):
         User.objects.create_superuser('admin', password='pass')
         self.configure(email_verification=True, email_host='smtp.example.com')
 
-        with mock.patch('profiles.views.send_site_mail', side_effect=smtplib.SMTPException('connection refused')):
+        with mock.patch(
+            'profiles.views.send_site_mail', side_effect=smtplib.SMTPException('connection refused')
+        ):
             response = self.register()
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Не удалось отправить письмо')
         self.assertFalse(User.objects.filter(username='newbie').exists())
-        self.assertTrue(Notification.objects.filter(user__username='admin', notification_type='error').exists())
+        self.assertTrue(
+            Notification.objects.filter(user__username='admin', notification_type='error').exists()
+        )
 
     def test_duplicate_email_rejected(self):
         User.objects.create_user('old', email='Newbie@Example.com', password='pass')
@@ -229,18 +250,27 @@ class RegistrationCaptchaTests(TestCase):
         self.assertFalse(User.objects.filter(username='newbie').exists())
 
     def test_valid_token_accepted_and_private_key_sent(self):
-        with mock.patch('core.captcha.urllib.request.urlopen',
-                        return_value=captcha_response({'success': True, 'error-codes': []})) as urlopen:
+        with mock.patch(
+            'core.captcha.urllib.request.urlopen',
+            return_value=captcha_response({'success': True, 'error-codes': []}),
+        ) as urlopen:
             response = self.register(**{'ddg-captcha-token': 'token-from-widget'})
 
         self.assertRedirects(response, '/')
         request = urlopen.call_args.args[0]
         self.assertEqual(request.full_url, 'https://captcha.ddos-guard.net/siteverify')
-        self.assertEqual(json.loads(request.data), {'response': 'token-from-widget', 'private_key': 'private-key-456'})
+        self.assertEqual(
+            json.loads(request.data),
+            {'response': 'token-from-widget', 'private_key': 'private-key-456'},
+        )
 
     def test_expired_token_message(self):
-        with mock.patch('core.captcha.urllib.request.urlopen',
-                        return_value=captcha_response({'success': False, 'error-codes': ['timeout-or-duplicate']})):
+        with mock.patch(
+            'core.captcha.urllib.request.urlopen',
+            return_value=captcha_response(
+                {'success': False, 'error-codes': ['timeout-or-duplicate']}
+            ),
+        ):
             response = self.register(**{'ddg-captcha-token': 'old'})
 
         self.assertContains(response, 'Проверка устарела')
@@ -248,7 +278,10 @@ class RegistrationCaptchaTests(TestCase):
 
     def test_service_down_blocks_registration(self):
         import urllib.error
-        with mock.patch('core.captcha.urllib.request.urlopen', side_effect=urllib.error.URLError('timed out')):
+
+        with mock.patch(
+            'core.captcha.urllib.request.urlopen', side_effect=urllib.error.URLError('timed out')
+        ):
             response = self.register(**{'ddg-captcha-token': 'token'})
 
         self.assertContains(response, 'временно недоступен')
@@ -308,13 +341,24 @@ class ProfilePageTests(TestCase):
         self.assertContains(page, 'name="pz-hp"')
 
         data = {f'{kind}-{name}': 0 for kind in ('pa', 'pz') for name in GearSet.STAT_FIELDS}
-        data.update({'username': 'owner', 'player_class': 'mag', 'main_set': 'pz',
-                     'pa-hp': 42000, 'pa-attack': 15000, 'pz-hp': 55000, 'pz-pz': 300})
+        data.update(
+            {
+                'username': 'owner',
+                'player_class': 'mag',
+                'main_set': 'pz',
+                'pa-hp': 42000,
+                'pa-attack': 15000,
+                'pz-hp': 55000,
+                'pz-pz': 300,
+            }
+        )
         response = self.client.post(reverse('profile_edit'), data)
 
         self.assertRedirects(response, reverse('profile_view', args=['owner']))
         sets = {gear.kind: gear for gear in self.owner.gear_sets.all()}
-        self.assertEqual((sets['pa'].hp, sets['pa'].ma, sets['pz'].hp, sets['pz'].pz), (42000, 15000, 55000, 300))
+        self.assertEqual(
+            (sets['pa'].hp, sets['pa'].ma, sets['pz'].hp, sets['pz'].pz), (42000, 15000, 55000, 300)
+        )
         self.owner.profile.refresh_from_db()
         self.assertEqual(self.owner.profile.main_set, 'pz')
         # Основной сет — первым.
@@ -332,10 +376,18 @@ class PointsHistoryTests(TestCase):
         self.owner = User.objects.create_user('owner', password='pass')
         self.owner.profile.activity_points = 6
         self.owner.profile.save()
-        PointsTransaction.objects.create(user=self.owner, amount=3, transaction_type='credit',
-                                         description='Участие в ивенте: Садэман')
-        PointsTransaction.objects.create(user=self.owner, amount=2, transaction_type='debit',
-                                         description='Отсутствие на ивенте: ТВ')
+        PointsTransaction.objects.create(
+            user=self.owner,
+            amount=3,
+            transaction_type='credit',
+            description='Участие в ивенте: Садэман',
+        )
+        PointsTransaction.objects.create(
+            user=self.owner,
+            amount=2,
+            transaction_type='debit',
+            description='Отсутствие на ивенте: ТВ',
+        )
         self.url = reverse('profile_view', args=['owner'])
 
     def test_owner_sees_balance_and_history(self):
@@ -351,7 +403,10 @@ class PointsHistoryTests(TestCase):
         self.client.force_login(self.owner)
         response = self.client.get(self.url, {'points': 'debit'})
 
-        self.assertEqual([item.description for item in response.context['points_page']], ['Отсутствие на ивенте: ТВ'])
+        self.assertEqual(
+            [item.description for item in response.context['points_page']],
+            ['Отсутствие на ивенте: ТВ'],
+        )
 
     def test_other_players_see_points_too(self):
         self.client.force_login(User.objects.create_user('guest', password='pass'))
@@ -368,9 +423,11 @@ class PointsHistoryTests(TestCase):
 
         admin = User.objects.create_superuser('boss', 'boss@example.com', 'pass')
         self.client.force_login(admin)
-        self.client.post(reverse('admin:update_activity_points'),
-                         json.dumps({'profile_id': self.owner.profile.id, 'field': 'current', 'value': 10}),
-                         content_type='application/json')
+        self.client.post(
+            reverse('admin:update_activity_points'),
+            json.dumps({'profile_id': self.owner.profile.id, 'field': 'current', 'value': 10}),
+            content_type='application/json',
+        )
 
         correction = PointsTransaction.objects.filter(user=self.owner).latest('id')
         self.assertEqual((correction.transaction_type, correction.amount), ('credit', 4))

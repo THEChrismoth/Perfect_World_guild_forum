@@ -52,7 +52,9 @@ def register(request):
                 # Подтверждение почты выключено — аккаунт активен сразу, входим автоматически.
                 user = form.save()
                 login(request, user)
-                messages.success(request, f'Добро пожаловать, {user.username}! Регистрация завершена.')
+                messages.success(
+                    request, f'Добро пожаловать, {user.username}! Регистрация завершена.'
+                )
                 return redirect('/')
 
             try:
@@ -67,28 +69,38 @@ def register(request):
             except Exception:
                 logger.exception('Не удалось отправить письмо подтверждения регистрации')
                 from notifications.utils import send_notification_to_admins
+
                 send_notification_to_admins(
                     title='⚠️ Не отправляются письма регистрации',
                     message='Не удалось отправить письмо подтверждения регистрации. '
-                            'Проверьте настройки почты: Настройки сайта → Почта (SMTP) → «Отправить тестовое письмо».',
+                    'Проверьте настройки почты: Настройки сайта → Почта (SMTP) → «Отправить тестовое письмо».',
                     notification_type='error',
                     link=reverse('admin:core_sitesettings_change', args=[site_settings.pk]),
                 )
-                form.add_error(None, 'Не удалось отправить письмо с подтверждением. '
-                                     'Попробуйте позже — администраторы уже получили уведомление.')
+                form.add_error(
+                    None,
+                    'Не удалось отправить письмо с подтверждением. '
+                    'Попробуйте позже — администраторы уже получили уведомление.',
+                )
             else:
-                messages.success(request,
-                                 'Регистрация почти завершена! Перейдите по ссылке из письма, '
-                                 'которое мы отправили на вашу почту (проверьте и папку «Спам»).')
+                messages.success(
+                    request,
+                    'Регистрация почти завершена! Перейдите по ссылке из письма, '
+                    'которое мы отправили на вашу почту (проверьте и папку «Спам»).',
+                )
                 return redirect('login')
     else:
         form = RegistrationForm(site_settings=site_settings)
-    return render(request, 'registration/register.html', {
-        'form': form,
-        'captcha_active': site_settings.captcha_active,
-        'captcha_site_key': site_settings.captcha_site_key,
-        'captcha_script_url': captcha.SCRIPT_URL,
-    })
+    return render(
+        request,
+        'registration/register.html',
+        {
+            'form': form,
+            'captcha_active': site_settings.captcha_active,
+            'captcha_site_key': site_settings.captcha_site_key,
+            'captcha_script_url': captcha.SCRIPT_URL,
+        },
+    )
 
 
 @login_not_required
@@ -109,10 +121,11 @@ def verify_email(request, uidb64, token):
         messages.error(request, 'Ошибка подтверждения email.')
         return redirect('register')
 
+
 @login_required
 @require_POST
 def set_accent(request):
-    """Цвет оформления из меню профиля в верхней панели. Та же логика, что и в админ-панели."""
+    """Сохранить цвет оформления из меню профиля по общим правилам сайта и админки."""
     from core.accents import handle_accent_post
 
     return handle_accent_post(request, '/')
@@ -125,7 +138,7 @@ def profile_view(request, username):
     user = get_object_or_404(User, username=username)
     profile = user.profile
     is_owner = request.user == user
-    
+
     # Проверяем, состоит ли пользователь в группе "Член гильдии".
     is_guild_member = user.groups.filter(name='Член гильдии').exists()
 
@@ -141,6 +154,7 @@ def profile_view(request, username):
     context.update(_points_context(request, profile))
     if is_owner:
         from teamspeak.views import card_context
+
         context.update(card_context(request, user))
     return render(request, 'profiles/profile_view.html', context)
 
@@ -156,13 +170,16 @@ POINTS_PER_PAGE = (10, 20, 50)
 
 
 def _points_context(request, profile):
-    """Очки активности игрока и история операций с фильтром и страницами."""
+    """Подготовить баланс и историю операций с фильтрацией и пагинацией."""
     from auction.models import PointsTransaction
 
     available = profile.get_available_points()
     kind = request.GET.get('points') if request.GET.get('points') in POINTS_FILTERS else 'all'
-    per_page = (int(request.GET['per_page']) if request.GET.get('per_page') in map(str, POINTS_PER_PAGE)
-                else POINTS_PER_PAGE[0])
+    per_page = (
+        int(request.GET['per_page'])
+        if request.GET.get('per_page') in map(str, POINTS_PER_PAGE)
+        else POINTS_PER_PAGE[0]
+    )
     history = PointsTransaction.objects.filter(user=profile.user)
     if POINTS_FILTERS[kind][1]:
         history = history.filter(transaction_type__in=POINTS_FILTERS[kind][1])
@@ -170,8 +187,11 @@ def _points_context(request, profile):
     params = request.GET.copy()
     params.pop('page', None)
     return {
-        'points': {'available': available, 'frozen': profile.activity_points - available,
-                   'balance': profile.activity_points},
+        'points': {
+            'available': available,
+            'frozen': profile.activity_points - available,
+            'balance': profile.activity_points,
+        },
         'points_page': Paginator(history, per_page).get_page(request.GET.get('page')),
         'points_filters': [(key, label) for key, (label, _) in POINTS_FILTERS.items()],
         'points_filter': kind,
@@ -180,6 +200,7 @@ def _points_context(request, profile):
         'points_query': params.urlencode(),
     }
 
+
 @login_required
 def profile_edit(request):
     profile = request.user.profile
@@ -187,9 +208,15 @@ def profile_edit(request):
     user_form = UserForm(data, instance=request.user)
     profile_form = ProfileForm(data, request.FILES or None, instance=profile)
     # Два сета брони — две формы с приставками pa- и pz-, чтобы поля не путались.
-    selected_class = request.POST.get('player_class', profile.player_class) if data is not None else profile.player_class
-    set_forms = [GearSetForm(data, instance=gear, prefix=gear.kind, player_class=selected_class)
-                 for gear in profile.gear_sets()]
+    selected_class = (
+        request.POST.get('player_class', profile.player_class)
+        if data is not None
+        else profile.player_class
+    )
+    set_forms = [
+        GearSetForm(data, instance=gear, prefix=gear.kind, player_class=selected_class)
+        for gear in profile.gear_sets()
+    ]
     set_forms.sort(key=lambda form: form.instance.kind)
 
     if request.method == 'POST':
@@ -213,7 +240,14 @@ def profile_edit(request):
     context = {
         'user_form': user_form,
         'profile_form': profile_form,
-        'sets': [{'kind': form.instance.kind, 'label': form.instance.get_kind_display(), 'form': form,
-                  'groups': form.stat_groups()} for form in set_forms],
+        'sets': [
+            {
+                'kind': form.instance.kind,
+                'label': form.instance.get_kind_display(),
+                'form': form,
+                'groups': form.stat_groups(),
+            }
+            for form in set_forms
+        ],
     }
     return render(request, 'profiles/profile_edit.html', context)

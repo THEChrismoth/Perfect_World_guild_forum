@@ -23,7 +23,10 @@ class ClassDamageStatsTests(TestCase):
         for code, _ in Profile.CLASS_CHOICES:
             with self.subTest(player_class=code):
                 form = GearSetForm(instance=self.gear, player_class=code)
-                self.assertEqual(form.fields['attack'].label, 'Маг. атака' if code in expected_magic else 'Физ. атака')
+                self.assertEqual(
+                    form.fields['attack'].label,
+                    'Маг. атака' if code in expected_magic else 'Физ. атака',
+                )
                 self.assertEqual(form.initial['attack'], 222 if code in expected_magic else 111)
                 self.assertEqual(form.initial['pierce'], 22 if code in expected_magic else 11)
                 self.assertNotIn('fa', form.fields)
@@ -36,15 +39,25 @@ class ClassDamageStatsTests(TestCase):
                 self.gear.fa, self.gear.ma = 111, 222
                 self.gear.physical_pierce, self.gear.magic_pierce = 11, 22
                 data = {name: 0 for name in GearSetForm.Meta.fields}
-                data.update(attack=900, pierce=90, fa=777, ma=777, physical_pierce=777, magic_pierce=777)
+                data.update(
+                    attack=900, pierce=90, fa=777, ma=777, physical_pierce=777, magic_pierce=777
+                )
                 form = GearSetForm(data, instance=self.gear, player_class=code)
                 self.assertTrue(form.is_valid(), form.errors)
                 form.save()
                 self.gear.refresh_from_db()
-                self.assertEqual((self.gear.fa, self.gear.ma, self.gear.physical_pierce, self.gear.magic_pierce), expected)
+                self.assertEqual(
+                    (self.gear.fa, self.gear.ma, self.gear.physical_pierce, self.gear.magic_pierce),
+                    expected,
+                )
 
     def test_class_change_and_both_sets_save_in_one_submission(self):
-        data = {'username': self.user.username, 'player_class': 'zhnec', 'main_set': 'pz', 'ts3_id': ''}
+        data = {
+            'username': self.user.username,
+            'player_class': 'zhnec',
+            'main_set': 'pz',
+            'ts3_id': '',
+        }
         for kind in ('pa', 'pz'):
             for name in GearSetForm.Meta.fields:
                 data[f'{kind}-{name}'] = 0
@@ -62,8 +75,11 @@ class ClassDamageStatsTests(TestCase):
 
     def test_profile_and_shared_application_stats_show_only_selected_type(self):
         from django.template.loader import render_to_string
-        for code, label, value, hidden in [('mag', 'Маг. атака', '222', 'Физ. атака'),
-                                           ('var', 'Физ. атака', '111', 'Маг. атака')]:
+
+        for code, label, value, hidden in [
+            ('mag', 'Маг. атака', '222', 'Физ. атака'),
+            ('var', 'Физ. атака', '111', 'Маг. атака'),
+        ]:
             with self.subTest(player_class=code):
                 self.user.profile.player_class = code
                 self.user.profile.save()
@@ -71,7 +87,9 @@ class ClassDamageStatsTests(TestCase):
                 self.assertContains(response, label)
                 self.assertContains(response, value)
                 self.assertNotContains(response, hidden)
-                html = render_to_string('profiles/includes/gear_sets.html', {'profile': self.user.profile})
+                html = render_to_string(
+                    'profiles/includes/gear_sets.html', {'profile': self.user.profile}
+                )
                 self.assertIn(label, html)
                 self.assertNotIn(hidden, html)
 

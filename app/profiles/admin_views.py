@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.views.decorators.http import require_POST
 from .models import Profile
 
+
 @staff_member_required
 def activity_management(request):
     # Получаем группу "Член гильдии".
@@ -36,7 +37,7 @@ def activity_management(request):
             class_dict[class_name] = {
                 'name': class_display,
                 'icon': profile.get_icon_url(),
-                'members': []
+                'members': [],
             }
         class_dict[class_name]['members'].append(profile)
 
@@ -55,14 +56,17 @@ def activity_management(request):
     }
     return render(request, 'admin/activity_management.html', context)
 
+
 def _log_admin_change(profile, old_balance, admin_user):
-    """Правка баланса из таблицы активности попадает в «Движение моих очков» игрока."""
+    """Записать изменение баланса из таблицы активности в историю очков игрока."""
     from auction.models import PointsTransaction
 
     delta = profile.activity_points - old_balance
     if delta:
         PointsTransaction.objects.create(
-            user=profile.user, amount=abs(delta), transaction_type='credit' if delta > 0 else 'debit',
+            user=profile.user,
+            amount=abs(delta),
+            transaction_type='credit' if delta > 0 else 'debit',
             description=f'Корректировка администратором {admin_user.username}'[:255],
         )
 
@@ -70,7 +74,7 @@ def _log_admin_change(profile, old_balance, admin_user):
 @staff_member_required
 @require_POST
 def update_activity_points(request):
-    """API для обновления очков активности.
+    """Обработать запрос обновления очков активности.
 
     CSRF-токен передается из JS в заголовке X-CSRFToken.
     """
@@ -94,13 +98,15 @@ def update_activity_points(request):
                     profile.earned_points = profile.activity_points + profile.spent_points
                     profile.save()
                     _log_admin_change(profile, old_balance, request.user)
-                    return JsonResponse({
-                        'success': True,
-                        'current': profile.activity_points,
-                        'spent': profile.spent_points,
-                        'earned': profile.earned_points
-                    })
-            
+                    return JsonResponse(
+                        {
+                            'success': True,
+                            'current': profile.activity_points,
+                            'spent': profile.spent_points,
+                            'earned': profile.earned_points,
+                        }
+                    )
+
             elif field == 'spent':
                 # Корректировка потраченных очков.
                 if value is not None and value >= 0:
@@ -114,13 +120,15 @@ def update_activity_points(request):
                     profile.earned_points = profile.activity_points + profile.spent_points
                     profile.save()
                     _log_admin_change(profile, old_balance, request.user)
-                    return JsonResponse({
-                        'success': True,
-                        'current': profile.activity_points,
-                        'spent': profile.spent_points,
-                        'earned': profile.earned_points
-                    })
-            
+                    return JsonResponse(
+                        {
+                            'success': True,
+                            'current': profile.activity_points,
+                            'spent': profile.spent_points,
+                            'earned': profile.earned_points,
+                        }
+                    )
+
             elif field == 'earned':
                 # Изменение начисленных очков.
                 if value is not None and value >= 0:
@@ -133,15 +141,17 @@ def update_activity_points(request):
                         profile.activity_points = 0
                     profile.save()
                     _log_admin_change(profile, old_balance, request.user)
-                    return JsonResponse({
-                        'success': True,
-                        'current': profile.activity_points,
-                        'spent': profile.spent_points,
-                        'earned': profile.earned_points
-                    })
-            
+                    return JsonResponse(
+                        {
+                            'success': True,
+                            'current': profile.activity_points,
+                            'spent': profile.spent_points,
+                            'earned': profile.earned_points,
+                        }
+                    )
+
             return JsonResponse({'success': False, 'error': 'Invalid field or value'})
-            
+
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     return JsonResponse({'success': False, 'error': 'Invalid method'})
