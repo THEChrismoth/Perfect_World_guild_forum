@@ -7,11 +7,19 @@
 
 
 def normalize(path_text):
+    """Нормализовать пробелы и разделители строкового пути канала."""
     return ' / '.join(part.strip() for part in path_text.split('/') if part.strip())
 
 
 def channel_paths(channels):
-    """channellist -> {cid: ['Гильдия', 'МТВ / ГВГ', 'Пати 1']}."""
+    """Построить пути каналов по родительским ID без зацикливания.
+
+    Args:
+        channels: Записи channellist с cid, pid и channel_name.
+
+    Returns:
+        Словарь, где ID канала соответствует список имён от корня до канала.
+    """
     by_id = {c['cid']: c for c in channels}
     paths = {}
 
@@ -32,7 +40,7 @@ def channel_paths(channels):
 
 
 def find_channel(channels, path_text):
-    """cid канала по пути или None."""
+    """Найти ID канала по нормализованному пути или вернуть None."""
     wanted = normalize(path_text)
     for cid, path in channel_paths(channels).items():
         if normalize(' / '.join(path)) == wanted:

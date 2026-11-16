@@ -3,6 +3,7 @@
 run   — настроить сервер по channels.json и работать с сайтом (по умолчанию)
 setup — только настроить сервер и выйти
 """
+
 import os
 import sys
 from functools import partial
@@ -35,7 +36,9 @@ def main():
     try:
         query = connect_query()
     except QueryError as error:
-        raise SystemExit(f'Не удалось войти в ServerQuery: {error}. Проверьте TS3_SERVERADMIN_PASSWORD')
+        raise SystemExit(
+            f'Не удалось войти в ServerQuery: {error}. Проверьте TS3_SERVERADMIN_PASSWORD'
+        )
 
     Setup(query, config, log=log).run()
     if mode == 'setup':
@@ -44,13 +47,20 @@ def main():
 
     token = os.environ.get('TSBOT_API_TOKEN', '')
     if not token:
-        log('TSBOT_API_TOKEN не задан — бот только настроил комнаты. Чтобы связать TeamSpeak с сайтом, '
-            'задайте TSBOT_API_TOKEN в .env и выполните docker compose up -d')
+        log(
+            'TSBOT_API_TOKEN не задан — бот только настроил комнаты. Чтобы связать TeamSpeak с сайтом, '
+            'задайте TSBOT_API_TOKEN в .env и выполните docker compose up -d'
+        )
         query.close()
         return
 
-    bot = Bot(connect_query, SiteApi(os.environ.get('SITE_URL', 'http://web:8000'), token), config,
-              ts_data_dir=os.environ.get('TS3_DATA_DIR', '/ts3data'), log=log)
+    bot = Bot(
+        connect_query,
+        SiteApi(os.environ.get('SITE_URL', 'http://web:8000'), token),
+        config,
+        ts_data_dir=os.environ.get('TS3_DATA_DIR', '/ts3data'),
+        log=log,
+    )
     bot.query = query
     log('Бот запущен: жду задач от сайта')
     bot.run_forever()

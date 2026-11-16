@@ -1,4 +1,5 @@
 """Основной цикл бота: задачи сайта и присутствие в каналах."""
+
 import os
 import time
 from pathlib import Path
@@ -8,13 +9,13 @@ from .setup import guild_channel_perms
 from .site_api import SiteApiError
 from .tree import channel_paths, find_channel
 
-POLL_INTERVAL = 3          # Как часто спрашивать сайт о задачах, секунд
-PRESENCE_INTERVAL = 60     # Как часто отправлять присутствие в каналах во время ивента
-KEEPALIVE_INTERVAL = 120   # ServerQuery отключает молчащих через 300 секунд
-RESTART_WAIT = 150         # Сколько ждать перезапуска TeamSpeak после установки лицензии
+POLL_INTERVAL = 3  # Как часто спрашивать сайт о задачах, секунд
+PRESENCE_INTERVAL = 60  # Как часто отправлять присутствие в каналах во время ивента
+KEEPALIVE_INTERVAL = 120  # ServerQuery отключает молчащих через 300 секунд
+RESTART_WAIT = 150  # Сколько ждать перезапуска TeamSpeak после установки лицензии
 
-ERR_INVALID_CLIENT = (512, 1281, 1540)   # Клиента нет в базе TeamSpeak
-ERR_DUPLICATE = 2561                     # Уже в группе
+ERR_INVALID_CLIENT = (512, 1281, 1540)  # Клиента нет в базе TeamSpeak
+ERR_DUPLICATE = 2561  # Уже в группе
 ERR_INVALID_CHANNEL = 768
 ERR_NAME_IN_USE = 771
 
@@ -67,8 +68,10 @@ class Bot:
             return self.query.command('clientgetdbidfromuid', cluid=uid)[0]['cldbid']
         except QueryError as error:
             if error.error_id in ERR_INVALID_CLIENT:
-                raise TaskError('Клиент с этим TS3 ID ещё не заходил на сервер TeamSpeak — '
-                                'подключитесь к серверу и повторите') from None
+                raise TaskError(
+                    'Клиент с этим TS3 ID ещё не заходил на сервер TeamSpeak — '
+                    'подключитесь к серверу и повторите'
+                ) from None
             raise
 
     def online_clients(self):
@@ -77,16 +80,26 @@ class Bot:
     # ----- задачи -----
 
     def verify_link(self, payload):
-        clients = [c for c in self.online_clients() if c.get('client_unique_identifier') == payload['uid']]
+        clients = [
+            c for c in self.online_clients() if c.get('client_unique_identifier') == payload['uid']
+        ]
         if not clients:
-            raise TaskError('Вы не подключены к TeamSpeak: клиент с вашим TS3 ID не найден в сети. '
-                            'Подключитесь к серверу и нажмите кнопку ещё раз')
-        message = (f'Сайт гильдии: подтвердите, что это ваш TeamSpeak, для аккаунта {payload["username"]} — '
-                   f'откройте ссылку, войдя на сайт: [URL]{payload["url"]}[/URL]')
+            raise TaskError(
+                'Вы не подключены к TeamSpeak: клиент с вашим TS3 ID не найден в сети. '
+                'Подключитесь к серверу и нажмите кнопку ещё раз'
+            )
+        message = (
+            f'Сайт гильдии: подтвердите, что это ваш TeamSpeak, для аккаунта {payload["username"]} — '
+            f'откройте ссылку, войдя на сайт: [URL]{payload["url"]}[/URL]'
+        )
         for client in clients:
             self.query.command('sendtextmessage', targetmode=1, target=client['clid'], msg=message)
             # Тычок привлекает внимание: личное сообщение легко не заметить.
-            self.query.command('clientpoke', clid=client['clid'], msg='Сайт гильдии: откройте личное сообщение от бота')
+            self.query.command(
+                'clientpoke',
+                clid=client['clid'],
+                msg='Сайт гильдии: откройте личное сообщение от бота',
+            )
         return {'clients': len(clients)}
 
     def grant_guild(self, payload):
@@ -119,19 +132,29 @@ class Bot:
             raise TaskError(f'Комната «{name}» уже есть — выберите другое название')
 
         try:
-            cid = self.query.command('channelcreate', channel_name=name, cpid=parent, channel_flag_permanent=1)[0]['cid']
+            cid = self.query.command(
+                'channelcreate', channel_name=name, cpid=parent, channel_flag_permanent=1
+            )[0]['cid']
         except QueryError as error:
             if error.error_id == ERR_NAME_IN_USE:
                 raise TaskError(f'Комната «{name}» уже есть — выберите другое название') from None
             raise
         # Комната внутри раздела гильдии — тоже только для гильдии.
-        self.query.command('channeladdperm', cid=cid, items=guild_channel_perms(self.config['guild_power']))
+        self.query.command(
+            'channeladdperm', cid=cid, items=guild_channel_perms(self.config['guild_power'])
+        )
 
         result = {'cid': int(cid), 'owner_admin': False}
         try:
             db_id = self.client_db_id(payload['owner_uid'])
-            admin_group = next((g['cgid'] for g in self.query.command('channelgrouplist')
-                                if g['name'] == 'Channel Admin' and g.get('type') == '1'), None)
+            admin_group = next(
+                (
+                    g['cgid']
+                    for g in self.query.command('channelgrouplist')
+                    if g['name'] == 'Channel Admin' and g.get('type') == '1'
+                ),
+                None,
+            )
             if admin_group:
                 self.query.command('setclientchannelgroup', cgid=admin_group, cid=cid, cldbid=db_id)
                 result['owner_admin'] = True
@@ -148,7 +171,7 @@ class Bot:
         return {}
 
     def install_license(self, payload):
-        """Кладёт файл лицензии в данные TeamSpeak и перезапускает сервер.
+        """Сохранить файл лицензии в данные TeamSpeak и перезапускает сервер.
 
         Контейнер teamspeak перезапускается Docker'ом (restart: unless-stopped) после
         serverprocessstop. Если с новой лицензией сервер не поднялся — возвращается старая.
@@ -167,7 +190,9 @@ class Bot:
         self.log('Лицензия записана, перезапускаю сервер TeamSpeak...')
 
         try:
-            self.query.command('serverprocessstop', reasonmsg='Установка лицензии, сервер вернётся через минуту')
+            self.query.command(
+                'serverprocessstop', reasonmsg='Установка лицензии, сервер вернётся через минуту'
+            )
         except (QueryError, OSError):
             pass  # Сервер закрывает соединение, не дожидаясь ответа
         self.query.close()
@@ -184,17 +209,23 @@ class Bot:
         else:
             if backup.exists():
                 backup.replace(target)
-                raise TaskError('Сервер TeamSpeak не запустился с новой лицензией — возвращена прежняя. '
-                                'Проверьте файл лицензии и логи: docker compose logs teamspeak')
+                raise TaskError(
+                    'Сервер TeamSpeak не запустился с новой лицензией — возвращена прежняя. '
+                    'Проверьте файл лицензии и логи: docker compose logs teamspeak'
+                )
             target.unlink(missing_ok=True)
-            raise TaskError('Сервер TeamSpeak не запустился с новой лицензией — она удалена. '
-                            'Проверьте файл и логи: docker compose logs teamspeak')
+            raise TaskError(
+                'Сервер TeamSpeak не запустился с новой лицензией — она удалена. '
+                'Проверьте файл и логи: docker compose logs teamspeak'
+            )
 
         result = {}
         if payload.get('max_clients'):
             self.query.command('serveredit', virtualserver_maxclients=payload['max_clients'])
             result['max_clients'] = payload['max_clients']
-        result['max_clients_now'] = self.query.command('serverinfo')[0].get('virtualserver_maxclients')
+        result['max_clients_now'] = self.query.command('serverinfo')[0].get(
+            'virtualserver_maxclients'
+        )
         return result
 
     def run_task(self, task):
@@ -212,21 +243,30 @@ class Bot:
 
     def presence_snapshot(self):
         paths = channel_paths(self.query.command('channellist'))
-        return [{'uid': c['client_unique_identifier'], 'path': paths.get(c['cid'], []),
-                 'nickname': c.get('client_nickname', '')}
-                for c in self.online_clients()]
+        return [
+            {
+                'uid': c['client_unique_identifier'],
+                'path': paths.get(c['cid'], []),
+                'nickname': c.get('client_nickname', ''),
+            }
+            for c in self.online_clients()
+        ]
 
     # ----- цикл -----
 
     def tick(self, now, state):
-        """Один шаг: выполнить задачи и при необходимости отправить присутствие."""
+        """Выполнить задачи одного опроса и при необходимости отправить присутствие."""
         for task in state.get('tasks', []):
             ok, data, error = self.run_task(task)
-            self.log(f'Задача #{task["id"]} {task["type"]}: {"готово" if ok else "ошибка — " + error}')
+            self.log(
+                f'Задача #{task["id"]} {task["type"]}: {"готово" if ok else "ошибка — " + error}'
+            )
             self.api.task_result(task['id'], ok, data, error)
 
         presence_key = state.get('presence_key', 'active') if state.get('track_presence') else None
-        if presence_key is not None and (presence_key != self.presence_key or now - self.last_presence >= PRESENCE_INTERVAL):
+        if presence_key is not None and (
+            presence_key != self.presence_key or now - self.last_presence >= PRESENCE_INTERVAL
+        ):
             self.api.presence(self.presence_snapshot(), skirmish_id=state.get('active_skirmish_id'))
             self.last_presence = now
         self.presence_key = presence_key

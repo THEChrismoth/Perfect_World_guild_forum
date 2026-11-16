@@ -1,4 +1,5 @@
 """Клиент ServerQuery TeamSpeak 3 (raw-протокол, порт 10011)."""
+
 import socket
 import time
 
@@ -8,12 +9,24 @@ FLOOD_ERROR = 524
 FLOOD_RETRIES = 5
 EMPTY_RESULT = 1281
 
-ESCAPES = [('\\', '\\\\'), ('/', '\\/'), (' ', '\\s'), ('|', '\\p'),
-           ('\a', '\\a'), ('\b', '\\b'), ('\f', '\\f'), ('\n', '\\n'), ('\r', '\\r'), ('\t', '\\t'), ('\v', '\\v')]
+ESCAPES = [
+    ('\\', '\\\\'),
+    ('/', '\\/'),
+    (' ', '\\s'),
+    ('|', '\\p'),
+    ('\a', '\\a'),
+    ('\b', '\\b'),
+    ('\f', '\\f'),
+    ('\n', '\\n'),
+    ('\r', '\\r'),
+    ('\t', '\\t'),
+    ('\v', '\\v'),
+]
 _UNESCAPE = {escaped[1]: raw for raw, escaped in ESCAPES}
 
 
 def escape(value):
+    """Экранировать значение параметра по правилам ServerQuery."""
     value = str(value)
     for raw, escaped in ESCAPES:
         value = value.replace(raw, escaped)
@@ -21,6 +34,7 @@ def escape(value):
 
 
 def unescape(value):
+    """Восстановить строку из экранированного значения ServerQuery."""
     result, index = [], 0
     while index < len(value):
         if value[index] == '\\' and index + 1 < len(value):
@@ -33,6 +47,7 @@ def unescape(value):
 
 
 def parse_item(text):
+    """Разобрать строку параметров ServerQuery в словарь строковых значений."""
     item = {}
     for pair in text.split(' '):
         key, _, value = pair.partition('=')
@@ -41,10 +56,25 @@ def parse_item(text):
 
 
 def build_command(cmd, flags=(), items=None, **params):
+    """Собрать команду ServerQuery с экранированием значений.
+
+    Args:
+        cmd: Имя команды.
+        flags: Флаги команды с префиксами протокола.
+        items: Наборы параметров для одной команды, разделяемые символом «|».
+        **params: Общие именованные параметры команды.
+
+    Returns:
+        Строка команды без завершающего перевода строки.
+    """
     parts = [cmd]
     parts += [f'{key}={escape(value)}' for key, value in params.items()]
     if items:
-        parts.append('|'.join(' '.join(f'{key}={escape(value)}' for key, value in item.items()) for item in items))
+        parts.append(
+            '|'.join(
+                ' '.join(f'{key}={escape(value)}' for key, value in item.items()) for item in items
+            )
+        )
     parts += list(flags)
     return ' '.join(parts)
 
@@ -87,7 +117,7 @@ class ServerQuery:
             if not line:
                 continue
             if line.startswith('error '):
-                fields = parse_item(line[len('error '):])
+                fields = parse_item(line[len('error ') :])
                 error_id = int(fields.get('id', 0))
                 if error_id != 0:
                     raise QueryError(error_id, fields.get('msg', 'ошибка'))
@@ -97,10 +127,21 @@ class ServerQuery:
             data.extend(parse_item(item) for item in line.split('|'))
 
     def command(self, cmd, *flags, items=None, **params):
-        """Выполняет команду и возвращает строки результата списком словарей.
+        """Выполнить команду с повтором при ограничении частоты ServerQuery.
 
-        items — несколько наборов параметров в одной команде (через «|»).
-        При ответе «client is flooding» ждёт и повторяет.
+        Args:
+            cmd: Имя команды.
+            *flags: Флаги команды.
+            items: Наборы параметров для одной команды через «|».
+            **params: Именованные параметры команды.
+
+        Returns:
+            Список словарей строковых значений ответа.
+
+        Raises:
+            QueryError: Сервер вернул ошибку или исчерпаны повторы при флуде.
+            ConnectionError: Сервер закрыл соединение при чтении ответа.
+            OSError: Отправка или чтение сокета завершились ошибкой.
         """
         line = build_command(cmd, flags, items, **params) + '\n'
         for attempt in range(FLOOD_RETRIES + 1):
@@ -114,7 +155,7 @@ class ServerQuery:
                 time.sleep(3.5)
 
     def list(self, cmd, *flags, **params):
-        """Как command, но пустой результат (ошибка 1281) превращается в []."""
+        """Выполнить команду, заменив ошибку пустого результата 1281 пустым списком."""
         try:
             return self.command(cmd, *flags, **params)
         except QueryError as error:
@@ -124,7 +165,7 @@ class ServerQuery:
 
 
 def connect(host, port, password, nickname, log=print, wait_seconds=120):
-    """Подключается (дожидаясь запуска сервера), входит как serveradmin и выбирает сервер 1."""
+    """Дождаться сервера, войти как serveradmin и выбрать виртуальный сервер 1."""
     deadline = time.time() + wait_seconds
     while True:
         try:

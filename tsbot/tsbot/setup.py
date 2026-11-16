@@ -11,12 +11,20 @@
 
 Ограничение TeamSpeak 3: полностью скрыть канал нельзя — названия комнат гильдии видны всем.
 """
+
 import json
 
 # Права, которые закрывают канал для всех, кроме группы гильдии (и администраторов).
-GUILD_CHANNEL_PERMS = ['i_channel_needed_join_power', 'i_channel_needed_subscribe_power',
-                       'i_channel_needed_description_view_power']
-GUILD_GROUP_PERMS = ['i_channel_join_power', 'i_channel_subscribe_power', 'i_channel_description_view_power']
+GUILD_CHANNEL_PERMS = [
+    'i_channel_needed_join_power',
+    'i_channel_needed_subscribe_power',
+    'i_channel_needed_description_view_power',
+]
+GUILD_GROUP_PERMS = [
+    'i_channel_join_power',
+    'i_channel_subscribe_power',
+    'i_channel_description_view_power',
+]
 
 
 def load_config(path):
@@ -29,7 +37,7 @@ def load_config(path):
 
 
 def expand(nodes):
-    """Раскрывает count: {"name": "Пати {n}", "count": 3} -> Пати 1, Пати 2, Пати 3."""
+    """Раскрыть count: {"name": "Пати {n}", "count": 3} -> Пати 1, Пати 2, Пати 3."""
     result = []
     for node in nodes:
         if 'count' in node:
@@ -65,7 +73,9 @@ class Setup:
 
     def join_power(self, group_id):
         perms = self.query.list('servergrouppermlist', '-permsid', sgid=group_id)
-        return int(next((p['permvalue'] for p in perms if p.get('permsid') == 'i_channel_join_power'), 0))
+        return int(
+            next((p['permvalue'] for p in perms if p.get('permsid') == 'i_channel_join_power'), 0)
+        )
 
     def rename_default_group(self):
         name = self.config.get('default_group_name')
@@ -78,14 +88,16 @@ class Setup:
             self.log(f'Группа по умолчанию «{group["name"]}» переименована в «{name}»')
 
     def check_guild_power(self):
-        """Порог доступа к комнатам гильдии должен быть выше силы входа группы посетителей."""
+        """Проверить превышение порога доступа к комнатам над силой входа посетителей."""
         visitors = self.join_power(self.default_group_id())
         if self.power <= visitors:
-            raise SystemExit(f'guild_power в channels.json ({self.power}) должен быть больше силы входа группы '
-                             f'посетителей ({visitors}), иначе в комнаты гильдии смогут зайти все')
+            raise SystemExit(
+                f'guild_power в channels.json ({self.power}) должен быть больше силы входа группы '
+                f'посетителей ({visitors}), иначе в комнаты гильдии смогут зайти все'
+            )
 
     def ensure_guild_group(self):
-        """Группа гильдии — переименованная стандартная группа Normal (guild_group_source).
+        """Настроить группу гильдии на основе стандартной группы guild_group_source.
 
         Если группа гильдии уже создана отдельно (так делали ранние версии бота) и в ней никого нет —
         она удаляется, а Normal переименовывается. Если в ней есть люди — ничего не удаляется.
@@ -94,16 +106,24 @@ class Setup:
         source_name = self.config.get('guild_group_source', 'Normal')
         groups = self.server_groups()
         group = next((g for g in groups if g['name'] == name), None)
-        source = next((g for g in groups if g['name'] == source_name), None) if source_name != name else None
+        source = (
+            next((g for g in groups if g['name'] == source_name), None)
+            if source_name != name
+            else None
+        )
 
         if group and source:
             if not self.query.list('servergroupclientlist', sgid=group['sgid']):
                 self.query.command('servergroupdel', sgid=group['sgid'], force=1)
-                self.log(f'Удалена пустая группа «{name}» — вместо неё будет переименована «{source_name}»')
+                self.log(
+                    f'Удалена пустая группа «{name}» — вместо неё будет переименована «{source_name}»'
+                )
                 group = None
             else:
-                self.log(f'Подсказка: на сервере есть и «{name}», и «{source_name}». Бот выдаёт «{name}»; '
-                         f'«{source_name}» можно удалить вручную, если она не нужна')
+                self.log(
+                    f'Подсказка: на сервере есть и «{name}», и «{source_name}». Бот выдаёт «{name}»; '
+                    f'«{source_name}» можно удалить вручную, если она не нужна'
+                )
 
         if group:
             group_id = group['sgid']
@@ -114,9 +134,14 @@ class Setup:
         else:
             group_id = self.query.command('servergroupadd', name=name)[0]['sgid']
             self.log(f'Создана группа «{name}»')
-        self.query.command('servergroupaddperm', sgid=group_id, items=[
-            {'permsid': perm, 'permvalue': self.power, 'permnegated': 0, 'permskip': 0} for perm in GUILD_GROUP_PERMS
-        ])
+        self.query.command(
+            'servergroupaddperm',
+            sgid=group_id,
+            items=[
+                {'permsid': perm, 'permvalue': self.power, 'permnegated': 0, 'permskip': 0}
+                for perm in GUILD_GROUP_PERMS
+            ],
+        )
         return group_id
 
     # ----- каналы -----
@@ -133,7 +158,14 @@ class Setup:
 
         if channel_id is None and node.get('default'):
             # Канал по умолчанию уже есть («Default Channel») — переименовываем его.
-            default = next((c for c in self.channels if c['pid'] == '0' and 'Default Channel' in c['channel_name']), None)
+            default = next(
+                (
+                    c
+                    for c in self.channels
+                    if c['pid'] == '0' and 'Default Channel' in c['channel_name']
+                ),
+                None,
+            )
             if default:
                 self.query.command('channeledit', cid=default['cid'], channel_name=name)
                 default['channel_name'] = name
@@ -153,7 +185,9 @@ class Setup:
 
         guild_only = guild_only or node.get('guild_only', False)
         if guild_only:
-            self.query.command('channeladdperm', cid=channel_id, items=guild_channel_perms(self.power))
+            self.query.command(
+                'channeladdperm', cid=channel_id, items=guild_channel_perms(self.power)
+            )
 
         previous = None
         for child in expand(node.get('children', [])):
@@ -163,14 +197,16 @@ class Setup:
     # ----- администратор -----
 
     def admin_token(self):
-        """Неиспользованный ключ Server Admin, пока у сервера нет администратора (иначе None)."""
+        """Найти неиспользованный ключ Server Admin или вернуть None после назначения администратора."""
         admin = next((g for g in self.server_groups() if g['name'] == 'Server Admin'), None)
         if not admin or self.query.list('servergroupclientlist', sgid=admin['sgid']):
             return None
         tokens = self.query.list('tokenlist')
         token = next((t['token'] for t in tokens if t.get('token_id1') == admin['sgid']), None)
         if not token:
-            token = self.query.command('tokenadd', tokentype=0, tokenid1=admin['sgid'], tokenid2=0)[0]['token']
+            token = self.query.command('tokenadd', tokentype=0, tokenid1=admin['sgid'], tokenid2=0)[
+                0
+            ]['token']
         return token
 
     def run(self):
@@ -184,7 +220,11 @@ class Setup:
         token = self.admin_token()
         if token:
             self.log('')
-            self.log('Ключ администратора TeamSpeak — введите его в клиенте: Права → Использовать ключ привилегий')
+            self.log(
+                'Ключ администратора TeamSpeak — введите его в клиенте: Права → Использовать ключ привилегий'
+            )
             self.log(f'    {token}')
             self.log('')
-        self.log(f'Настройка TeamSpeak: создано каналов — {self.created}, структура соответствует channels.json')
+        self.log(
+            f'Настройка TeamSpeak: создано каналов — {self.created}, структура соответствует channels.json'
+        )

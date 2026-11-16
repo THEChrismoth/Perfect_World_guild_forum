@@ -2,6 +2,7 @@
 
 Запуск из папки tsbot: python -m unittest discover -s tests -t .
 """
+
 import tempfile
 import unittest
 from pathlib import Path
@@ -22,10 +23,14 @@ CONFIG = {
     'rooms_parent': 'Гильдия / Комнаты членов гильдии',
     'channels': [
         {'name': 'Гостиная', 'default': True, 'children': [{'name': 'Гостевая {n}', 'count': 2}]},
-        {'name': 'Гильдия', 'guild_only': True, 'children': [
-            {'name': 'МТВ / ГВГ', 'children': [{'name': 'Пати {n}', 'count': 2}]},
-            {'name': 'Комнаты членов гильдии'},
-        ]},
+        {
+            'name': 'Гильдия',
+            'guild_only': True,
+            'children': [
+                {'name': 'МТВ / ГВГ', 'children': [{'name': 'Пати {n}', 'count': 2}]},
+                {'name': 'Комнаты членов гильдии'},
+            ],
+        },
     ],
 }
 
@@ -92,19 +97,35 @@ class FakeQuery:
             sgid = self._id()
             self.groups.append({'sgid': sgid, 'name': params['name'], 'type': '1'})
             return [{'sgid': sgid}]
-        if cmd in ('servergroupaddperm', 'channeladdperm', 'clientupdate', 'whoami', 'serveredit', 'serverprocessstop'):
+        if cmd in (
+            'servergroupaddperm',
+            'channeladdperm',
+            'clientupdate',
+            'whoami',
+            'serveredit',
+            'serverprocessstop',
+        ):
             if cmd == 'channeladdperm':
-                self.channel_perms[str(params['cid'])] = {i['permsid']: i['permvalue'] for i in items}
+                self.channel_perms[str(params['cid'])] = {
+                    i['permsid']: i['permvalue'] for i in items
+                }
             return []
         if cmd == 'channeledit':
-            next(c for c in self.channels if c['cid'] == str(params['cid']))['channel_name'] = params['channel_name']
+            next(c for c in self.channels if c['cid'] == str(params['cid']))['channel_name'] = (
+                params['channel_name']
+            )
             return []
         if cmd == 'channelcreate':
             parent = str(params.get('cpid', 0))
-            if any(c['pid'] == parent and c['channel_name'] == params['channel_name'] for c in self.channels):
+            if any(
+                c['pid'] == parent and c['channel_name'] == params['channel_name']
+                for c in self.channels
+            ):
                 raise QueryError(771, 'channel name is already in use')
             cid = self._id()
-            self.channels.append({'cid': cid, 'pid': parent, 'channel_name': params['channel_name']})
+            self.channels.append(
+                {'cid': cid, 'pid': parent, 'channel_name': params['channel_name']}
+            )
             return [{'cid': cid}]
         if cmd == 'channeldelete':
             before = len(self.channels)
@@ -181,11 +202,18 @@ class EscapingTests(unittest.TestCase):
         self.assertEqual(escape('a b/c'), 'a\\sb\\/c')
 
     def test_build_with_items(self):
-        line = build_command('channeladdperm', items=[{'permsid': 'a', 'permvalue': 60}, {'permsid': 'b', 'permvalue': 60}], cid=5)
+        line = build_command(
+            'channeladdperm',
+            items=[{'permsid': 'a', 'permvalue': 60}, {'permsid': 'b', 'permvalue': 60}],
+            cid=5,
+        )
         self.assertEqual(line, 'channeladdperm cid=5 permsid=a permvalue=60|permsid=b permvalue=60')
 
     def test_parse(self):
-        self.assertEqual(parse_item('cid=1 channel_name=МТВ\\s\\/\\sГВГ'), {'cid': '1', 'channel_name': 'МТВ / ГВГ'})
+        self.assertEqual(
+            parse_item('cid=1 channel_name=МТВ\\s\\/\\sГВГ'),
+            {'cid': '1', 'channel_name': 'МТВ / ГВГ'},
+        )
 
 
 class SetupTests(unittest.TestCase):
@@ -197,8 +225,8 @@ class SetupTests(unittest.TestCase):
         self.assertIn('Гильдия / МТВ / ГВГ / Пати 2', paths)
         self.assertIn('Гильдия / Комнаты членов гильдии', paths)
         names = {g['name'] for g in query.groups}
-        self.assertIn('Гость', names)            # Guest — группа посетителей по умолчанию
-        self.assertIn('Член гильдии', names)     # Переименованная Normal
+        self.assertIn('Гость', names)  # Guest — группа посетителей по умолчанию
+        self.assertIn('Член гильдии', names)  # Переименованная Normal
         self.assertNotIn('Normal', names)
         self.assertEqual(next(g['sgid'] for g in query.groups if g['name'] == 'Член гильдии'), '7')
         guild_cid = find_channel(query.channels, 'Гильдия')
@@ -260,13 +288,19 @@ class TaskTests(unittest.TestCase):
         return self.bot.run_task({'id': 1, 'type': task_type, 'payload': payload})
 
     def test_verify_link_offline(self):
-        ok, _, error = self.run_task('verify_link', uid=UID, username='Аквилон', url='https://site/confirm/x/')
+        ok, _, error = self.run_task(
+            'verify_link', uid=UID, username='Аквилон', url='https://site/confirm/x/'
+        )
         self.assertFalse(ok)
         self.assertIn('не подключены', error)
 
     def test_verify_link_sends_message_and_poke(self):
-        self.query.online = [{'clid': '3', 'cid': '1', 'client_type': '0', 'client_unique_identifier': UID}]
-        ok, data, _ = self.run_task('verify_link', uid=UID, username='Аквилон', url='https://site/confirm/x/')
+        self.query.online = [
+            {'clid': '3', 'cid': '1', 'client_type': '0', 'client_unique_identifier': UID}
+        ]
+        ok, data, _ = self.run_task(
+            'verify_link', uid=UID, username='Аквилон', url='https://site/confirm/x/'
+        )
         self.assertTrue(ok)
         self.assertEqual(self.query.pokes, ['3'])
         self.assertIn('[URL]https://site/confirm/x/[/URL]', self.query.messages[0][1])
@@ -319,8 +353,11 @@ class TaskTests(unittest.TestCase):
         def never_starts():
             raise ConnectionError('нет сервера')
 
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(bot_module.time, 'sleep'), \
-                mock.patch.object(bot_module, 'RESTART_WAIT', 0):
+        with (
+            tempfile.TemporaryDirectory() as tmp,
+            mock.patch.object(bot_module.time, 'sleep'),
+            mock.patch.object(bot_module, 'RESTART_WAIT', 0),
+        ):
             self.bot.connect_query = never_starts
             self.bot.ts_data_dir = Path(tmp)
             (Path(tmp) / 'licensekey.dat').write_bytes(b'OLD')
@@ -330,14 +367,34 @@ class TaskTests(unittest.TestCase):
             self.assertEqual((Path(tmp) / 'licensekey.dat').read_bytes(), b'OLD')
 
     def test_tick_reports_results_and_presence(self):
-        self.query.online = [{'clid': '3', 'cid': find_channel(self.query.channels, 'Гильдия / МТВ / ГВГ / Пати 1'),
-                              'client_type': '0', 'client_unique_identifier': UID, 'client_nickname': 'Аквилон'},
-                             {'clid': '4', 'cid': '1', 'client_type': '1', 'client_unique_identifier': 'serveradmin'}]
-        self.bot.tick(1000, {'tasks': [{'id': 7, 'type': 'grant_guild', 'payload': {'uid': UID}}], 'track_presence': True})
+        self.query.online = [
+            {
+                'clid': '3',
+                'cid': find_channel(self.query.channels, 'Гильдия / МТВ / ГВГ / Пати 1'),
+                'client_type': '0',
+                'client_unique_identifier': UID,
+                'client_nickname': 'Аквилон',
+            },
+            {
+                'clid': '4',
+                'cid': '1',
+                'client_type': '1',
+                'client_unique_identifier': 'serveradmin',
+            },
+        ]
+        self.bot.tick(
+            1000,
+            {
+                'tasks': [{'id': 7, 'type': 'grant_guild', 'payload': {'uid': UID}}],
+                'track_presence': True,
+            },
+        )
 
         self.assertEqual(self.api.results[0][:2], (7, True))
-        self.assertEqual(self.api.presence_calls, [[{'uid': UID, 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1'],
-                                                    'nickname': 'Аквилон'}]])
+        self.assertEqual(
+            self.api.presence_calls,
+            [[{'uid': UID, 'path': ['Гильдия', 'МТВ / ГВГ', 'Пати 1'], 'nickname': 'Аквилон'}]],
+        )
         # Чаще раза в минуту не отправляется, а вне ивента — вообще.
         self.bot.tick(1010, {'tasks': [], 'track_presence': True})
         self.assertEqual(len(self.api.presence_calls), 1)
@@ -351,8 +408,12 @@ class TaskTests(unittest.TestCase):
 
     def test_new_skirmish_forces_snapshot_without_waiting_a_minute(self):
         self.bot.tick(1000, {'track_presence': True, 'presence_key': ':1'})
-        self.bot.tick(1003, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5})
-        self.bot.tick(1006, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5})
+        self.bot.tick(
+            1003, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5}
+        )
+        self.bot.tick(
+            1006, {'track_presence': True, 'presence_key': '5:1', 'active_skirmish_id': 5}
+        )
         self.assertEqual(len(self.api.presence_calls), 2)
         self.assertEqual(self.api.skirmish_ids, [None, 5])
 
