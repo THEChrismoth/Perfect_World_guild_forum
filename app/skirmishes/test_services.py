@@ -8,7 +8,13 @@ from django.utils import timezone
 from core.models import SiteSettings
 from core.roles import GUILD_GROUP
 from .models import AttendanceCorrection, CodeAttempt, Participant, Skirmish
-from .services import confirm_results, correct_attendance, finish_skirmish, join_by_code, start_skirmish
+from .services import (
+    confirm_results,
+    correct_attendance,
+    finish_skirmish,
+    join_by_code,
+    start_skirmish,
+)
 
 
 class ServiceTests(TestCase):
@@ -19,7 +25,9 @@ class ServiceTests(TestCase):
         group.user_set.add(self.actor, self.member)
         self.actor.user_permissions.add(Permission.objects.get(codename='manage_skirmish'))
         self.outsider = User.objects.create_user('Гость')
-        SiteSettings.objects.update_or_create(pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Сбор'})
+        SiteSettings.objects.update_or_create(
+            pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Сбор'}
+        )
 
     def start(self):
         return start_skirmish(self.actor)[0]
@@ -62,7 +70,9 @@ class ServiceTests(TestCase):
                 join_by_code(self.member, 'wrong')
         with self.assertRaisesMessage(ValidationError, 'Слишком много попыток'):
             join_by_code(self.member, session.code)
-        CodeAttempt.objects.filter(user=self.member).update(window_started_at=timezone.now() - timedelta(minutes=2))
+        CodeAttempt.objects.filter(user=self.member).update(
+            window_started_at=timezone.now() - timedelta(minutes=2)
+        )
         self.assertIsNotNone(join_by_code(self.member, session.code))
 
     def test_finished_code_is_closed_and_new_start_allowed(self):
@@ -105,15 +115,19 @@ class ServiceTests(TestCase):
     def test_manager_can_add_missed_member_but_not_outsider(self):
         session = self.start()
         finish_skirmish(session.pk, self.actor)
-        entry = correct_attendance(session.pk, self.actor, self.member, True, 'Был в игре, TS не работал')
+        entry = correct_attendance(
+            session.pk, self.actor, self.member, True, 'Был в игре, TS не работал'
+        )
         self.assertTrue(entry.attended)
         with self.assertRaises(ValidationError):
             correct_attendance(session.pk, self.actor, self.outsider, True, 'Гость')
 
     def test_all_management_operations_check_permissions(self):
         session = self.start()
-        for operation in [lambda: finish_skirmish(session.pk, self.member),
-                          lambda: confirm_results(session.pk, self.member),
-                          lambda: correct_attendance(session.pk, self.member, self.member, True, 'Причина')]:
+        for operation in [
+            lambda: finish_skirmish(session.pk, self.member),
+            lambda: confirm_results(session.pk, self.member),
+            lambda: correct_attendance(session.pk, self.member, self.member, True, 'Причина'),
+        ]:
             with self.assertRaises(PermissionDenied):
                 operation()

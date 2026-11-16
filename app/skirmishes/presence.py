@@ -1,4 +1,5 @@
 """Учёт минут TS без начисления баллов и без доверия к входу по коду."""
+
 from collections import Counter
 
 from django.db import transaction
@@ -11,20 +12,49 @@ from .models import Participant, Skirmish, UnidentifiedPresence
 
 
 def record_presence(clients, session_id, now=None):
-    """Учитывает минуту один раз; отчёт от предыдущего замеса не попадает в новый."""
+    """Учесть минуту присутствия в активном замесе без повторных начислений.
+
+    Неоднозначные и неподтверждённые TS-привязки учитываются отдельно от игроков.
+    Отчёт закрытого или другого замеса не переносится в текущий сбор.
+
+    Args:
+        clients: Клиенты с uid, nickname и списком компонентов пути path.
+        session_id: ID замеса из отчёта бота; None означает отсутствие сбора.
+        now: Время отчёта; по умолчанию текущее время.
+
+    Returns:
+        Количество новых минутных отметок, включая неопознанных клиентов.
+        Ноль для устаревшего отчёта, закрытого или отсутствующего замеса.
+    """
     if session_id is None:
         return 0
     now = now or timezone.now()
     with transaction.atomic():
-        session = (Skirmish.objects.select_for_update()
-                   .filter(pk=session_id, ended_at__isnull=True, started_at__lte=now).first())
+        session = (
+            Skirmish.objects.select_for_update()
+            .filter(pk=session_id, ended_at__isnull=True, started_at__lte=now)
+            .first()
+        )
         if not session or (session.last_report_at and session.last_report_at >= now):
             return 0
         minute = now.replace(second=0, microsecond=0)
-        present = {client['uid']: client for client in clients
-                   if path_matches(client.get('path') or [], [session.ts_channel], session.include_children)}
-        links = list(TsLink.objects.filter(status='verified', uid__in=present,
-                     user__is_active=True, user__groups__name=GUILD_GROUP).values_list('uid', 'user_id').distinct())
+        present = {
+            client['uid']: client
+            for client in clients
+            if path_matches(
+                client.get('path') or [], [session.ts_channel], session.include_children
+            )
+        }
+        links = list(
+            TsLink.objects.filter(
+                status='verified',
+                uid__in=present,
+                user__is_active=True,
+                user__groups__name=GUILD_GROUP,
+            )
+            .values_list('uid', 'user_id')
+            .distinct()
+        )
         counts = Counter(uid for uid, _ in links)
         users = {uid: user_id for uid, user_id in links if counts[uid] == 1}
         marks = 0
@@ -34,10 +64,16 @@ def record_presence(clients, session_id, now=None):
                 if entry.first_seen_at is None:
                     entry.first_seen_at = now
             else:
-                entry, _ = UnidentifiedPresence.objects.get_or_create(skirmish=session, uid=uid, defaults={
-                    'nickname': client.get('nickname', ''), 'first_seen_at': now,
-                    'last_seen_at': now, 'last_minute': minute,
-                })
+                entry, _ = UnidentifiedPresence.objects.get_or_create(
+                    skirmish=session,
+                    uid=uid,
+                    defaults={
+                        'nickname': client.get('nickname', ''),
+                        'first_seen_at': now,
+                        'last_seen_at': now,
+                        'last_minute': minute,
+                    },
+                )
                 entry.nickname = client.get('nickname', '')
             # Новый неопознанный клиент создаётся с текущей минутой и нулём отметок.
             if entry.last_minute != minute or entry.minutes == 0:

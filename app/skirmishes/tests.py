@@ -22,14 +22,17 @@ class ModelTests(TestCase):
         start = timezone.now()
         for values in [{'ended_at': start - timedelta(seconds=1)}, {'reviewed_at': start}]:
             with self.assertRaises(IntegrityError), transaction.atomic():
-                Skirmish.objects.create(title='Сбор', code='0010', ts_channel='Гильдия',
-                                         started_at=start, **values)
+                Skirmish.objects.create(
+                    title='Сбор', code='0010', ts_channel='Гильдия', started_at=start, **values
+                )
 
     def test_settings_do_not_change_existing_channel_snapshot(self):
         config = SiteSettings.load()
         config.skirmish_ts_channel = 'Гильдия / Сбор'
         config.save()
-        session = Skirmish.objects.create(title='Сбор', code='0010', ts_channel=config.skirmish_ts_channel)
+        session = Skirmish.objects.create(
+            title='Сбор', code='0010', ts_channel=config.skirmish_ts_channel
+        )
         config.skirmish_ts_channel = 'Гильдия / Другой'
         config.save()
         session.refresh_from_db()

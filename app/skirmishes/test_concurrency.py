@@ -21,7 +21,9 @@ class ConcurrencyTests(TransactionTestCase):
         self.actor = User.objects.create_superuser('Офицер')
         self.member = User.objects.create_user('Игрок')
         self.member.groups.add(Group.objects.get_or_create(name=GUILD_GROUP)[0])
-        SiteSettings.objects.update_or_create(pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Замесы'})
+        SiteSettings.objects.update_or_create(
+            pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Замесы'}
+        )
 
     def concurrently(self, operation):
         barrier = Barrier(2)
@@ -49,15 +51,22 @@ class ConcurrencyTests(TransactionTestCase):
 
     def test_parallel_join_creates_one_participant(self):
         session = start_skirmish(self.actor)[0]
-        results = self.concurrently(lambda: join_by_code(User.objects.get(pk=self.member.pk), session.code).pk)
+        results = self.concurrently(
+            lambda: join_by_code(User.objects.get(pk=self.member.pk), session.code).pk
+        )
         self.assertEqual(len(set(results)), 1)
         self.assertEqual(Participant.objects.count(), 1)
 
     def test_parallel_presence_does_not_double_minutes(self):
         session = start_skirmish(self.actor)[0]
-        TsLink.objects.create(user=self.member, uid='verified', status='verified', token=TsLink.new_token())
+        TsLink.objects.create(
+            user=self.member, uid='verified', status='verified', token=TsLink.new_token()
+        )
         now = timezone.now()
-        results = self.concurrently(lambda: record_presence(
-            [{'uid': 'verified', 'path': ['Гильдия', 'Замесы']}], session.pk, now))
+        results = self.concurrently(
+            lambda: record_presence(
+                [{'uid': 'verified', 'path': ['Гильдия', 'Замесы']}], session.pk, now
+            )
+        )
         self.assertEqual(sum(results), 1)
         self.assertEqual(Participant.objects.get(user=self.member).minutes, 1)

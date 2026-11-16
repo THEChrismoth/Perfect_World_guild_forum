@@ -7,8 +7,19 @@ from .models import Skirmish
 @admin.register(Skirmish)
 class SkirmishAdmin(admin.ModelAdmin):
     list_display = ('title', 'started_at', 'ended_at', 'open_on_site')
-    readonly_fields = ('title', 'organizer', 'started_at', 'ended_at', 'reviewed_at', 'reviewed_by',
-                       'ts_channel', 'include_children', 'min_minutes', 'last_report_at', 'open_on_site')
+    readonly_fields = (
+        'title',
+        'organizer',
+        'started_at',
+        'ended_at',
+        'reviewed_at',
+        'reviewed_by',
+        'ts_channel',
+        'include_children',
+        'min_minutes',
+        'last_report_at',
+        'open_on_site',
+    )
     fields = readonly_fields
 
     def has_add_permission(self, request):

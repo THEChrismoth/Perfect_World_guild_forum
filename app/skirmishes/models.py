@@ -1,4 +1,5 @@
 """Внеплановые сборы, фактическая явка и история проверки результатов."""
+
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
@@ -8,13 +9,24 @@ from django.utils import timezone
 class Skirmish(models.Model):
     title = models.CharField('Название', max_length=120)
     code = models.CharField('Код входа', max_length=4)
-    organizer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-                                  null=True, related_name='organized_skirmishes', verbose_name='Организатор')
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='organized_skirmishes',
+        verbose_name='Организатор',
+    )
     started_at = models.DateTimeField('Начат', default=timezone.now)
     ended_at = models.DateTimeField('Завершён', null=True, blank=True)
     reviewed_at = models.DateTimeField('Результат подтверждён', null=True, blank=True)
-    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
-                                    null=True, blank=True, related_name='+', verbose_name='Проверил')
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='+',
+        verbose_name='Проверил',
+    )
     ts_channel = models.CharField('TS-канал', max_length=255)
     include_children = models.BooleanField('Учитывать подканалы', default=True)
     min_minutes = models.PositiveSmallIntegerField('Минимум минут', default=10)
@@ -26,12 +38,20 @@ class Skirmish(models.Model):
         ordering = ['-started_at', '-pk']
         permissions = [('manage_skirmish', 'Может начинать замесы и проверять участие')]
         constraints = [
-            models.UniqueConstraint(models.Value(1), condition=models.Q(ended_at__isnull=True),
-                                    name='one_active_skirmish'),
-            models.CheckConstraint(condition=models.Q(ended_at__isnull=True) | models.Q(ended_at__gte=models.F('started_at')),
-                                   name='skirmish_end_after_start'),
-            models.CheckConstraint(condition=models.Q(reviewed_at__isnull=True) | models.Q(ended_at__isnull=False),
-                                   name='skirmish_review_after_end'),
+            models.UniqueConstraint(
+                models.Value(1),
+                condition=models.Q(ended_at__isnull=True),
+                name='one_active_skirmish',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(ended_at__isnull=True)
+                | models.Q(ended_at__gte=models.F('started_at')),
+                name='skirmish_end_after_start',
+            ),
+            models.CheckConstraint(
+                condition=models.Q(reviewed_at__isnull=True) | models.Q(ended_at__isnull=False),
+                name='skirmish_review_after_end',
+            ),
         ]
 
     def __str__(self):
@@ -53,7 +73,9 @@ class Skirmish(models.Model):
 
 class Participant(models.Model):
     skirmish = models.ForeignKey(Skirmish, on_delete=models.CASCADE, related_name='participants')
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='skirmish_participations')
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='skirmish_participations'
+    )
     joined_at = models.DateTimeField('Вход по коду', null=True, blank=True)
     minutes = models.PositiveIntegerField('Минут в TS', default=0)
     first_seen_at = models.DateTimeField('Впервые в TS', null=True, blank=True)
@@ -64,7 +86,9 @@ class Participant(models.Model):
     class Meta:
         verbose_name = 'Участник замеса'
         verbose_name_plural = 'Участники замесов'
-        constraints = [models.UniqueConstraint(fields=['skirmish', 'user'], name='unique_skirmish_participant')]
+        constraints = [
+            models.UniqueConstraint(fields=['skirmish', 'user'], name='unique_skirmish_participant')
+        ]
 
     @property
     def attended(self):
@@ -83,11 +107,15 @@ class UnidentifiedPresence(models.Model):
     last_minute = models.DateTimeField('Учтённая минута')
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=['skirmish', 'uid'], name='unique_skirmish_unknown')]
+        constraints = [
+            models.UniqueConstraint(fields=['skirmish', 'uid'], name='unique_skirmish_unknown')
+        ]
 
 
 class AttendanceCorrection(models.Model):
-    participant = models.ForeignKey(Participant, on_delete=models.CASCADE, related_name='corrections')
+    participant = models.ForeignKey(
+        Participant, on_delete=models.CASCADE, related_name='corrections'
+    )
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(default=timezone.now)
     previous_value = models.BooleanField(null=True)

@@ -17,7 +17,9 @@ class ViewTests(TestCase):
         self.member = User.objects.create_user('Игрок')
         Group.objects.get_or_create(name=GUILD_GROUP)[0].user_set.add(self.actor, self.member)
         self.actor.user_permissions.add(Permission.objects.get(codename='manage_skirmish'))
-        SiteSettings.objects.update_or_create(pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Замесы'})
+        SiteSettings.objects.update_or_create(
+            pk=1, defaults={'skirmish_ts_channel': 'Гильдия / Замесы'}
+        )
         self.client.force_login(self.actor)
 
     def start(self):
@@ -42,8 +44,10 @@ class ViewTests(TestCase):
         self.assertTrue(session.active)
         self.client.post(finish_url)
         self.assertContains(self.client.get(session.get_absolute_url()), 'Корректировка участия')
-        self.client.post(reverse('skirmishes:correct', args=[session.pk]), {
-            'user': self.member.pk, 'result': 'yes', 'reason': 'Вылет из TS'})
+        self.client.post(
+            reverse('skirmishes:correct', args=[session.pk]),
+            {'user': self.member.pk, 'result': 'yes', 'reason': 'Вылет из TS'},
+        )
         self.assertTrue(Participant.objects.get(user=self.member).attended)
         self.client.post(reverse('skirmishes:confirm', args=[session.pk]))
         self.assertNotContains(self.client.get(session.get_absolute_url()), 'Корректировка участия')
@@ -62,8 +66,14 @@ class ViewTests(TestCase):
 
     def test_unknown_uids_and_correction_reasons_are_manager_only(self):
         session = self.start()
-        UnidentifiedPresence.objects.create(skirmish=session, uid='private-uid', nickname='Незнакомец',
-            first_seen_at=timezone.now(), last_seen_at=timezone.now(), last_minute=timezone.now())
+        UnidentifiedPresence.objects.create(
+            skirmish=session,
+            uid='private-uid',
+            nickname='Незнакомец',
+            first_seen_at=timezone.now(),
+            last_seen_at=timezone.now(),
+            last_minute=timezone.now(),
+        )
         self.assertContains(self.client.get(session.get_absolute_url()), 'private-uid')
         self.client.force_login(self.member)
         self.assertNotContains(self.client.get(session.get_absolute_url()), 'private-uid')
@@ -98,8 +108,13 @@ class ViewTests(TestCase):
 
     def test_history_pagination_mine_and_counts(self):
         for number in range(22):
-            session = Skirmish.objects.create(title=f'Сбор {number}', code='0001', ts_channel='Гильдия',
-                started_at=timezone.now() - timedelta(days=number + 1), ended_at=timezone.now())
+            session = Skirmish.objects.create(
+                title=f'Сбор {number}',
+                code='0001',
+                ts_channel='Гильдия',
+                started_at=timezone.now() - timedelta(days=number + 1),
+                ended_at=timezone.now(),
+            )
             if number == 0:
                 Participant.objects.create(skirmish=session, user=self.member)
                 Participant.objects.create(skirmish=session, user=self.actor)
@@ -116,8 +131,10 @@ class ViewTests(TestCase):
         SiteSettings.objects.update(skirmish_ts_channel='Гильдия')
         session = self.start()
         self.client.post(reverse('skirmishes:finish', args=[session.pk]))
-        response = self.client.post(reverse('skirmishes:correct', args=[session.pk]), {
-            'user': self.member.pk, 'result': 'yes', 'reason': ''})
+        response = self.client.post(
+            reverse('skirmishes:correct', args=[session.pk]),
+            {'user': self.member.pk, 'result': 'yes', 'reason': ''},
+        )
         self.assertEqual(response.status_code, 400)
         self.assertFalse(session.participants.exists())
 
