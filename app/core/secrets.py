@@ -3,6 +3,7 @@
 Ключ получается из DJANGO_SECRET_KEY: утечка базы или резервной копии не раскрывает секреты.
 Если SECRET_KEY сменить, сохранённые секреты перестанут расшифровываться — их нужно ввести заново.
 """
+
 import base64
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -14,6 +15,7 @@ SECRET_PREFIX = 'fernet:'
 
 
 def _fernet():
+    """Получить шифратор секретов с неизменной меткой производного ключа."""
     key = HKDF(
         algorithm=hashes.SHA256(),
         length=32,
@@ -26,6 +28,14 @@ def _fernet():
 
 
 def encrypt_secret(value):
+    """Зашифровать секрет, сохранив пустое или уже зашифрованное значение.
+
+    Args:
+        value: Открытая строка либо строка с префиксом SECRET_PREFIX.
+
+    Returns:
+        Пустая строка, исходный шифротекст или новый шифротекст с префиксом.
+    """
     if not value:
         return ''
     if value.startswith(SECRET_PREFIX):
@@ -34,9 +44,14 @@ def encrypt_secret(value):
 
 
 def decrypt_secret(value):
-    """Возвращает расшифрованное значение.
+    """Прочитать секрет с поддержкой старых незашифрованных записей.
 
-    Если расшифровать не удалось (например, сменился SECRET_KEY), возвращает None.
+    Args:
+        value: Пустая строка, открытый текст старого формата или шифротекст.
+
+    Returns:
+        Открытое значение; пустая строка для пустого входа. При неверном токене,
+        в том числе после смены SECRET_KEY, вернуть None.
     """
     if not value:
         return ''
@@ -44,6 +59,6 @@ def decrypt_secret(value):
         # Значение, сохранённое до появления шифрования.
         return value
     try:
-        return _fernet().decrypt(value[len(SECRET_PREFIX):].encode()).decode()
+        return _fernet().decrypt(value[len(SECRET_PREFIX) :].encode()).decode()
     except InvalidToken:
         return None

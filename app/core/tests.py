@@ -19,9 +19,20 @@ class PluralTests(SimpleTestCase):
         from .dashboard import _plural
 
         forms = ('сообщение', 'сообщения', 'сообщений')
-        expected = {0: 'сообщений', 1: 'сообщение', 2: 'сообщения', 4: 'сообщения', 5: 'сообщений',
-                    11: 'сообщений', 12: 'сообщений', 14: 'сообщений', 21: 'сообщение', 22: 'сообщения',
-                    111: 'сообщений', 101: 'сообщение'}
+        expected = {
+            0: 'сообщений',
+            1: 'сообщение',
+            2: 'сообщения',
+            4: 'сообщения',
+            5: 'сообщений',
+            11: 'сообщений',
+            12: 'сообщений',
+            14: 'сообщений',
+            21: 'сообщение',
+            22: 'сообщения',
+            111: 'сообщений',
+            101: 'сообщение',
+        }
         for number, word in expected.items():
             with self.subTest(number=number):
                 self.assertEqual(_plural(number, *forms), word)
@@ -44,7 +55,9 @@ class DashboardTests(TestCase):
         member.groups.add(guild)
         candidate = User.objects.create_user('candidate', password='pass')
         Application.objects.create(user=candidate, player_class='Маг', development_plans='Расти')
-        AuctionLot.objects.create(name='Старый лот', initial_price=10, end_date=timezone.now() - timedelta(hours=1))
+        AuctionLot.objects.create(
+            name='Старый лот', initial_price=10, end_date=timezone.now() - timedelta(hours=1)
+        )
 
     def test_superuser_dashboard(self):
         self.client.force_login(self.admin)
@@ -106,7 +119,9 @@ class DashboardTests(TestCase):
     def test_accent_color_saved_to_profile(self):
         self.client.force_login(self.admin)
 
-        response = self.client.post(reverse('admin:set_accent'), {'accent': 'teal', 'next': '/admin/'})
+        response = self.client.post(
+            reverse('admin:set_accent'), {'accent': 'teal', 'next': '/admin/'}
+        )
 
         self.assertRedirects(response, '/admin/')
         self.admin.profile.refresh_from_db()
@@ -136,12 +151,18 @@ class DashboardTests(TestCase):
     def test_accent_color_background_request_and_bad_values(self):
         self.client.force_login(self.admin)
 
-        response = self.client.post(reverse('admin:set_accent'), {'accent': 'pink'}, headers={'X-Requested-With': 'fetch'})
+        response = self.client.post(
+            reverse('admin:set_accent'), {'accent': 'pink'}, headers={'X-Requested-With': 'fetch'}
+        )
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(self.client.post(reverse('admin:set_accent'), {'accent': 'red'}).status_code, 400)
+        self.assertEqual(
+            self.client.post(reverse('admin:set_accent'), {'accent': 'red'}).status_code, 400
+        )
         self.assertEqual(self.client.get(reverse('admin:set_accent')).status_code, 405)
         # Чужой адрес возврата не принимаем — возвращаем на главную админки.
-        response = self.client.post(reverse('admin:set_accent'), {'accent': 'blue', 'next': 'https://evil.example/'})
+        response = self.client.post(
+            reverse('admin:set_accent'), {'accent': 'blue', 'next': 'https://evil.example/'}
+        )
         self.assertRedirects(response, reverse('admin:index'))
         self.admin.profile.refresh_from_db()
         self.assertEqual(self.admin.profile.accent_color, 'blue')
@@ -161,14 +182,25 @@ class DashboardTests(TestCase):
 @override_settings(SECURE_SSL_REDIRECT=False)
 class SiteSettingsAdminTests(TestCase):
     FORM = {
-        'site_name': 'Гильдия', 'accent_color': 'indigo', 'email_port': '587', 'email_security': 'tls',
-        'email_host': '', 'email_host_user': '', 'email_host_password': '', 'email_from': '',
-        'captcha_site_key': '', 'captcha_private_key': '',
-        'skirmish_ts_channel': '', 'skirmish_min_minutes': '10', 'skirmish_include_children': 'on',
+        'site_name': 'Гильдия',
+        'accent_color': 'indigo',
+        'email_port': '587',
+        'email_security': 'tls',
+        'email_host': '',
+        'email_host_user': '',
+        'email_host_password': '',
+        'email_from': '',
+        'captcha_site_key': '',
+        'captcha_private_key': '',
+        'skirmish_ts_channel': '',
+        'skirmish_min_minutes': '10',
+        'skirmish_include_children': 'on',
     }
 
     def setUp(self):
-        self.admin = User.objects.create_superuser('admin', email='admin@example.com', password='pass')
+        self.admin = User.objects.create_superuser(
+            'admin', email='admin@example.com', password='pass'
+        )
         self.client.force_login(self.admin)
         self.url = reverse('admin:core_sitesettings_change', args=[SiteSettings.load().pk])
 
@@ -176,7 +208,11 @@ class SiteSettingsAdminTests(TestCase):
         return self.client.post(self.url, {**self.FORM, **fields})
 
     def test_secrets_encrypted_and_kept_when_left_empty(self):
-        self.post(email_host='smtp.example.com', email_host_password='mail-pass', captcha_private_key='captcha-secret')
+        self.post(
+            email_host='smtp.example.com',
+            email_host_password='mail-pass',
+            captcha_private_key='captcha-secret',
+        )
         site = SiteSettings.load()
         self.assertTrue(site.email_host_password.startswith(SECRET_PREFIX))
         self.assertNotIn('captcha-secret', site.captcha_private_key)
@@ -221,7 +257,9 @@ class SiteSettingsAdminTests(TestCase):
         self.assertEqual(send.call_args.args[2], ['admin@example.com'])
         self.assertContains(response, 'Тестовое письмо отправлено')
 
-        with mock.patch('core.admin.send_site_mail', side_effect=smtplib.SMTPAuthenticationError(535, b'bad')):
+        with mock.patch(
+            'core.admin.send_site_mail', side_effect=smtplib.SMTPAuthenticationError(535, b'bad')
+        ):
             response = self.client.post(reverse('admin:core_send_test_email'), follow=True)
         self.assertContains(response, 'пароль приложения')
 
@@ -244,10 +282,15 @@ class HashedStaticTests(SimpleTestCase):
         # Имя зависит от содержимого: так браузер узнаёт о новой версии файла.
         url = static('forum/css/forum.css')
         other = static('css/style.css')
-        self.assertNotEqual(re.search(r'\.([0-9a-f]{12})\.', url).group(1), re.search(r'\.([0-9a-f]{12})\.', other).group(1))
+        self.assertNotEqual(
+            re.search(r'\.([0-9a-f]{12})\.', url).group(1),
+            re.search(r'\.([0-9a-f]{12})\.', other).group(1),
+        )
 
     def test_missing_file_does_not_break_page(self):
-        self.assertEqual(static('auction_icons/not-uploaded.png'), '/static/auction_icons/not-uploaded.png')
+        self.assertEqual(
+            static('auction_icons/not-uploaded.png'), '/static/auction_icons/not-uploaded.png'
+        )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)
@@ -258,7 +301,7 @@ class SiteNavTests(TestCase):
 
     def current_items(self, url):
         html = self.client.get(url).content.decode()
-        sidebar = html[html.find('id="site-sidebar"'):html.find('</aside>')]
+        sidebar = html[html.find('id="site-sidebar"') : html.find('</aside>')]
         return re.findall(r'class="site-nav-link is-current".*?<span>([^<]+)</span>', sidebar, re.S)
 
     def test_current_section_highlighted(self):
@@ -313,9 +356,15 @@ class SiteNavTests(TestCase):
         response = self.client.get('/')
 
         # Онлайн только сам пользователь (его активность отмечается при каждом запросе), всего — двое.
-        self.assertContains(response, '<span class="site-online-value"><i class="site-online-dot" aria-hidden="true"></i>'
-                                      '<b>1</b> / 2</span>', html=True)
-        self.assertContains(response, f'<a href="{reverse("profile_view", args=["member"])}">member</a>', html=True)
+        self.assertContains(
+            response,
+            '<span class="site-online-value"><i class="site-online-dot" aria-hidden="true"></i>'
+            '<b>1</b> / 2</span>',
+            html=True,
+        )
+        self.assertContains(
+            response, f'<a href="{reverse("profile_view", args=["member"])}">member</a>', html=True
+        )
         self.assertContains(response, 'Редактировать профиль')
 
 
@@ -361,11 +410,20 @@ class ModeratorRoleTests(TestCase):
     def test_group_permissions(self):
         self.user.groups.add(self.group)
         user = User.objects.get(pk=self.user.pk)
-        for perm in ['auction.change_auctionlot', 'reception.change_application', 'events.add_eventnotification',
-                     'auth.view_user']:
+        for perm in [
+            'auction.change_auctionlot',
+            'reception.change_application',
+            'events.add_eventnotification',
+            'auth.view_user',
+        ]:
             with self.subTest(perm=perm):
                 self.assertTrue(user.has_perm(perm))
-        for perm in ['auth.change_user', 'core.change_sitesettings', 'backups.view_backuprecord', 'forum.delete_post']:
+        for perm in [
+            'auth.change_user',
+            'core.change_sitesettings',
+            'backups.view_backuprecord',
+            'forum.delete_post',
+        ]:
             with self.subTest(perm=perm):
                 self.assertFalse(user.has_perm(perm))
 
@@ -426,10 +484,19 @@ class ModeratorRoleTests(TestCase):
         self.assertNotContains(self.client.get('/'), 'Панель управления')
         self.user.groups.add(self.group)
         self.assertContains(self.client.get('/'), 'Панель управления')
-        self.assertEqual(self.client.get(reverse('admin:auction_auctionlot_changelist')).status_code, 200)
+        self.assertEqual(
+            self.client.get(reverse('admin:auction_auctionlot_changelist')).status_code, 200
+        )
         # Поиск игроков при записи в отряд ивента.
-        autocomplete = self.client.get(reverse('admin:autocomplete'), {
-            'app_label': 'events', 'model_name': 'partymember', 'field_name': 'user', 'term': 'mo'})
+        autocomplete = self.client.get(
+            reverse('admin:autocomplete'),
+            {
+                'app_label': 'events',
+                'model_name': 'partymember',
+                'field_name': 'user',
+                'term': 'mo',
+            },
+        )
         self.assertEqual(autocomplete.status_code, 200)
         settings_url = reverse('admin:core_sitesettings_change', args=[SiteSettings.load().pk])
         self.assertEqual(self.client.get(settings_url).status_code, 403)
@@ -442,7 +509,9 @@ class ModeratorRoleTests(TestCase):
         User.objects.create_user('player')
         admin = User.objects.create_superuser('admin')
         send_notification_to_admins('t', 'm', perm='reception.change_application')
-        self.assertEqual(set(Notification.objects.values_list('user__username', flat=True)), {'mod', 'admin'})
+        self.assertEqual(
+            set(Notification.objects.values_list('user__username', flat=True)), {'mod', 'admin'}
+        )
         # Без perm — как раньше, только суперпользователям.
         Notification.objects.all().delete()
         send_notification_to_admins('t', 'm')

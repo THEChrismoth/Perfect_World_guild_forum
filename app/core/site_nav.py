@@ -1,4 +1,5 @@
 """Боковое меню сайта (templates/includes/site_sidebar.html). Иконки — имена из core/templatetags/ga_admin.py."""
+
 from django.urls import reverse
 from django.conf import settings
 
@@ -6,20 +7,30 @@ from .roles import is_guild_member
 
 
 def _item(label, icon, url, module, current_module, badge=0):
-    return {'label': label, 'icon': icon, 'url': url, 'badge': badge, 'current': module == current_module}
+    return {
+        'label': label,
+        'icon': icon,
+        'url': url,
+        'badge': badge,
+        'current': module == current_module,
+    }
 
 
 def online_summary():
-    """Блок «Онлайн» внизу меню: кто был на сайте последние 5 минут и сколько всего игроков."""
+    """Собрать игроков за последние пять минут и общее количество активных аккаунтов."""
     from django.contrib.auth.models import User
     from forum.models import get_online_users
 
     users = list(get_online_users().order_by('username').only('username'))
-    return {'users': users, 'count': len(users), 'total': User.objects.filter(is_active=True).count()}
+    return {
+        'users': users,
+        'count': len(users),
+        'total': User.objects.filter(is_active=True).count(),
+    }
 
 
 def build_site_nav(request):
-    """Группы меню с отметкой раздела, в котором сейчас находимся. Только для вошедших пользователей."""
+    """Собрать группы меню с отметкой текущего раздела для вошедшего пользователя."""
     from messaging.context_processors import request_unread
 
     user = request.user
@@ -40,7 +51,9 @@ def build_site_nav(request):
             _item('Аукцион', 'gavel', reverse('auction:auction_index'), 'auction', current),
         ]
         if settings.DEMO_MODE:
-            guild_items.append(_item('TeamSpeak', 'headphones', reverse('demo:teamspeak'), 'demo', current))
+            guild_items.append(
+                _item('TeamSpeak', 'headphones', reverse('demo:teamspeak'), 'demo', current)
+            )
     # Приём: член гильдии голосует по заявкам, остальные подают заявку и следят за своими.
     reception_url = reverse('reception:application_list' if member else 'reception:my_applications')
     guild_items += [
@@ -50,13 +63,29 @@ def build_site_nav(request):
 
     groups = [
         {'title': '', 'items': guild_items},
-        {'title': 'Личное', 'items': [
-            _item('Сообщения', 'message', reverse('messaging:inbox'), 'messaging', current,
-                  badge=request_unread(request)),
-        ]},
+        {
+            'title': 'Личное',
+            'items': [
+                _item(
+                    'Сообщения',
+                    'message',
+                    reverse('messaging:inbox'),
+                    'messaging',
+                    current,
+                    badge=request_unread(request),
+                ),
+            ],
+        },
     ]
     if user.is_staff:
-        groups.append({'title': 'Управление', 'items': [
-            _item('Панель управления', 'dashboard', reverse('admin:index'), 'admin', current),
-        ]})
+        groups.append(
+            {
+                'title': 'Управление',
+                'items': [
+                    _item(
+                        'Панель управления', 'dashboard', reverse('admin:index'), 'admin', current
+                    ),
+                ],
+            }
+        )
     return groups

@@ -1,4 +1,5 @@
 """Общие куски для форм админ-панели."""
+
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
 from django.urls import reverse
 from django.utils.html import format_html
@@ -22,5 +23,10 @@ class NoRelatedPopupsMixin:
 
 
 def related_hint(text, url_name, link_text):
-    """Подсказка к полю со ссылкой на раздел, где создаются связанные записи."""
-    return format_html('{} <a href="{}" target="_blank" rel="noopener">{} →</a>', text, reverse(url_name), link_text)
+    """Построить подсказку со ссылкой на раздел создания связанных записей."""
+    return format_html(
+        '{} <a href="{}" target="_blank" rel="noopener">{} →</a>',
+        text,
+        reverse(url_name),
+        link_text,
+    )

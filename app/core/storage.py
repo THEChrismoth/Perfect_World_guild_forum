@@ -20,7 +20,7 @@ class ForgivingManifestStaticFilesStorage(ManifestStaticFilesStorage):
             return StaticFilesStorage.url(self, name)
 
     def url_converter(self, name, hashed_files, template=None):
-        """Оставляет как есть ссылки на несуществующие файлы внутри CSS/JS.
+        """Оставить как есть ссылки на несуществующие файлы внутри CSS/JS.
 
         При collectstatic ссылки внутри CSS/JS заменяются на имена с хэшем. Сторонние пакеты
         иногда ссылаются на файлы, которых нет (например, на карты исходников *.js.map),

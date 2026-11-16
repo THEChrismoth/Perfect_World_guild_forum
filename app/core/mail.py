@@ -3,6 +3,7 @@
 Если почта не настроена, письма печатаются в консоль (в Docker — в логи контейнера web):
 так удобно при разработке.
 """
+
 from django.conf import settings
 from django.core.mail import EmailMessage, get_connection
 
@@ -10,6 +11,7 @@ from .models import SiteSettings
 
 
 def get_mail_connection(site_settings=None):
+    """Выбрать настроенный SMTP или консольный backend при отсутствии почтовых настроек."""
     site_settings = site_settings or SiteSettings.load()
     if not site_settings.email_configured:
         return get_connection('django.core.mail.backends.console.EmailBackend')
@@ -26,7 +28,18 @@ def get_mail_connection(site_settings=None):
 
 
 def send_site_mail(subject, message, recipients, site_settings=None):
-    """Отправляет письмо. Ошибки SMTP пробрасываются — вызывающий код решает, что с ними делать."""
+    """Отправить письмо через почтовое соединение сайта.
+
+    Args:
+        subject: Тема письма.
+        message: Текст письма.
+        recipients: Список адресов получателей.
+        site_settings: Настройки сайта; по умолчанию загружаются из базы.
+
+    Raises:
+        smtplib.SMTPException: SMTP-сервер отклонил отправку или авторизацию.
+        OSError: Почтовое соединение не удалось установить или использовать.
+    """
     site_settings = site_settings or SiteSettings.load()
     from_email = site_settings.sender or settings.DEFAULT_FROM_EMAIL
     EmailMessage(

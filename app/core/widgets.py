@@ -10,6 +10,7 @@ class DateTimeLocalInput(forms.DateTimeInput):
     «+N дней» считаются от поля from_field (например, от даты начала), а если оно пустое — от текущего момента.
     Кнопки работают через admin/js/datetime_quick.js.
     """
+
     input_type = 'datetime-local'
     template_name = 'widgets/datetime_local.html'
 
@@ -25,5 +26,5 @@ class DateTimeLocalInput(forms.DateTimeInput):
 
 
 def datetime_local_field(**kwargs):
-    """Поле формы под DateTimeLocalInput: браузер присылает значение в формате 2026-11-03T14:30."""
+    """Создать поле формы для DateTimeLocalInput с форматом браузера 2026-11-03T14:30."""
     return forms.DateTimeField(input_formats=[DATETIME_LOCAL_FORMAT, '%Y-%m-%dT%H:%M:%S'], **kwargs)

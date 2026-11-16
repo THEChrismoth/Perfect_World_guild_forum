@@ -19,21 +19,28 @@ SECRET_FIELDS = {
 
 class AccentSwatchSelect(forms.RadioSelect):
     """Цвет кружками, как в меню пользователя в шапке админки."""
+
     template_name = 'core/widgets/accent_swatches.html'
 
 
 def _secret_widget():
-    return forms.PasswordInput(render_value=False, attrs={'autocomplete': 'new-password', 'size': 50})
+    return forms.PasswordInput(
+        render_value=False, attrs={'autocomplete': 'new-password', 'size': 50}
+    )
 
 
 class SiteSettingsForm(forms.ModelForm):
     email_host_password = forms.CharField(
-        label='Пароль', required=False, widget=_secret_widget(),
+        label='Пароль',
+        required=False,
+        widget=_secret_widget(),
         help_text=SiteSettings._meta.get_field('email_host_password').help_text,
     )
     clear_email_password = forms.BooleanField(label='Удалить сохранённый пароль', required=False)
     captcha_private_key = forms.CharField(
-        label='Private key', required=False, widget=_secret_widget(),
+        label='Private key',
+        required=False,
+        widget=_secret_widget(),
         help_text=SiteSettings._meta.get_field('captcha_private_key').help_text,
     )
     clear_captcha_private_key = forms.BooleanField(label='Удалить сохранённый ключ', required=False)
@@ -56,23 +63,29 @@ class SiteSettingsForm(forms.ModelForm):
             cleaned_data[field] = value
 
         if cleaned_data.get('email_verification') and not cleaned_data.get('email_host'):
-            self.add_error('email_verification', 'Сначала настройте почту в разделе «Почта (SMTP)» — '
-                                                 'иначе письма с подтверждением не будут отправляться')
+            self.add_error(
+                'email_verification',
+                'Сначала настройте почту в разделе «Почта (SMTP)» — '
+                'иначе письма с подтверждением не будут отправляться',
+            )
 
         if cleaned_data.get('captcha_enabled'):
             if not cleaned_data.get('captcha_site_key'):
                 self.add_error('captcha_site_key', 'Укажите Site key, чтобы включить капчу')
             if not cleaned_data.get('captcha_private_key') or (
-                    cleaned_data['captcha_private_key'] == self.instance.captcha_private_key
-                    and self.instance.secret_unreadable('captcha_private_key')):
+                cleaned_data['captcha_private_key'] == self.instance.captcha_private_key
+                and self.instance.secret_unreadable('captcha_private_key')
+            ):
                 self.add_error('captcha_private_key', 'Укажите Private key, чтобы включить капчу')
         return cleaned_data
 
 
 def _secret_status(obj, field, getter):
     if obj.secret_unreadable(field):
-        return format_html('<strong style="color:#dc3545">{}</strong>',
-                           'не расшифровывается (сменился DJANGO_SECRET_KEY) — введите заново')
+        return format_html(
+            '<strong style="color:#dc3545">{}</strong>',
+            'не расшифровывается (сменился DJANGO_SECRET_KEY) — введите заново',
+        )
     value = getter()
     if value:
         return f'сохранён в зашифрованном виде (…{value[-3:]})'
@@ -83,30 +96,69 @@ def _secret_status(obj, field, getter):
 class SiteSettingsAdmin(admin.ModelAdmin):
     form = SiteSettingsForm
     change_form_template = 'admin/core/sitesettings/change_form.html'
-    readonly_fields = ('email_password_status', 'captcha_key_status', 'email_status', 'captcha_status')
+    readonly_fields = (
+        'email_password_status',
+        'captcha_key_status',
+        'email_status',
+        'captcha_status',
+    )
     fieldsets = (
         ('Основное', {'fields': ('site_name', 'favicon', 'accent_color')}),
-        ('Замесы', {
-            'fields': ('skirmish_ts_channel', 'skirmish_include_children', 'skirmish_min_minutes'),
-            'description': 'Общий канал для внезапных сборов. Изменения действуют на следующие замесы.',
-        }),
-        ('Регистрация', {
-            'fields': ('email_verification', 'email_status', 'captcha_enabled', 'captcha_status'),
-        }),
-        ('Почта (SMTP)', {
-            'fields': ('email_host', 'email_port', 'email_security', 'email_host_user',
-                       'email_password_status', 'email_host_password', 'clear_email_password', 'email_from'),
-            'description': 'Через эту почту отправляются письма подтверждения регистрации. '
-                           'Сохраните настройки и нажмите «Отправить тестовое письмо» вверху страницы.',
-        }),
-        ('Капча DDoS-Guard', {
-            'fields': ('captcha_site_key', 'captcha_key_status', 'captcha_private_key', 'clear_captcha_private_key'),
-            'description': format_html(
-                'Ключи выдаются в личном кабинете <a href="{}" target="_blank" rel="noopener">my.ddos-guard.net</a>: '
-                'услуга dCAPTCHA → «Ключи» → «Добавить ключ». В списке доменов ключа укажите домен сайта.',
-                'https://my.ddos-guard.net',
-            ),
-        }),
+        (
+            'Замесы',
+            {
+                'fields': (
+                    'skirmish_ts_channel',
+                    'skirmish_include_children',
+                    'skirmish_min_minutes',
+                ),
+                'description': 'Общий канал для внезапных сборов. Изменения действуют на следующие замесы.',
+            },
+        ),
+        (
+            'Регистрация',
+            {
+                'fields': (
+                    'email_verification',
+                    'email_status',
+                    'captcha_enabled',
+                    'captcha_status',
+                ),
+            },
+        ),
+        (
+            'Почта (SMTP)',
+            {
+                'fields': (
+                    'email_host',
+                    'email_port',
+                    'email_security',
+                    'email_host_user',
+                    'email_password_status',
+                    'email_host_password',
+                    'clear_email_password',
+                    'email_from',
+                ),
+                'description': 'Через эту почту отправляются письма подтверждения регистрации. '
+                'Сохраните настройки и нажмите «Отправить тестовое письмо» вверху страницы.',
+            },
+        ),
+        (
+            'Капча DDoS-Guard',
+            {
+                'fields': (
+                    'captcha_site_key',
+                    'captcha_key_status',
+                    'captcha_private_key',
+                    'clear_captcha_private_key',
+                ),
+                'description': format_html(
+                    'Ключи выдаются в личном кабинете <a href="{}" target="_blank" rel="noopener">my.ddos-guard.net</a>: '
+                    'услуга dCAPTCHA → «Ключи» → «Добавить ключ». В списке доменов ключа укажите домен сайта.',
+                    'https://my.ddos-guard.net',
+                ),
+            },
+        ),
     )
 
     # Здесь хранятся пароль почты и ключи — только для суперпользователей.
@@ -132,7 +184,11 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
     def get_urls(self):
         return [
-            path('send-test-email/', self.admin_site.admin_view(self.send_test_email_view), name='core_send_test_email'),
+            path(
+                'send-test-email/',
+                self.admin_site.admin_view(self.send_test_email_view),
+                name='core_send_test_email',
+            ),
         ] + super().get_urls()
 
     @admin.display(description='Сохранённый пароль')
@@ -166,7 +222,10 @@ class SiteSettingsAdmin(admin.ModelAdmin):
         if not site_settings.email_configured:
             messages.error(request, 'Сначала заполните и сохраните настройки почты')
         elif not request.user.email:
-            messages.error(request, 'У вашего аккаунта не указан email — укажите его в своём профиле в разделе «Пользователи»')
+            messages.error(
+                request,
+                'У вашего аккаунта не указан email — укажите его в своём профиле в разделе «Пользователи»',
+            )
         else:
             try:
                 send_site_mail(
@@ -176,10 +235,16 @@ class SiteSettingsAdmin(admin.ModelAdmin):
                     site_settings,
                 )
             except smtplib.SMTPAuthenticationError:
-                messages.error(request, 'Сервер почты отклонил логин или пароль. '
-                                        'Для Яндекса и Gmail нужен пароль приложения, а не пароль от почты')
+                messages.error(
+                    request,
+                    'Сервер почты отклонил логин или пароль. '
+                    'Для Яндекса и Gmail нужен пароль приложения, а не пароль от почты',
+                )
             except (smtplib.SMTPException, socket.error, OSError) as error:
                 messages.error(request, f'Не удалось отправить письмо: {error}')
             else:
-                messages.success(request, f'Тестовое письмо отправлено на {request.user.email}. Проверьте почту и папку «Спам»')
+                messages.success(
+                    request,
+                    f'Тестовое письмо отправлено на {request.user.email}. Проверьте почту и папку «Спам»',
+                )
         return redirect(url)

@@ -1,4 +1,5 @@
 """Доступ модератора в админ-панель выдается вместе с группой «Модератор»."""
+
 from django.contrib.auth.models import Group, User
 from django.db.models.signals import m2m_changed
 from django.dispatch import receiver

@@ -1,8 +1,10 @@
-"""Капча DDoS-Guard (dCAPTCHA): https://ddos-guard.ru/tutorials/captcha/integration
+"""Серверная проверка токенов капчи DDoS-Guard (dCAPTCHA).
 
 На странице виджет добавляет в форму скрытое поле ddg-captcha-token. Сервер проверяет токен
 POST-запросом на /siteverify с приватным ключом. Токен одноразовый.
+Документация: https://ddos-guard.ru/tutorials/captcha/integration
 """
+
 import json
 import logging
 import urllib.error
@@ -26,16 +28,25 @@ CONFIG_ERRORS = {'missing-input-secret', 'invalid-input-secret', 'bad-request'}
 
 
 def verify_captcha(token, site_settings=None):
-    """Проверяет токен капчи. Возвращает текст ошибки для пользователя или None, если проверка пройдена.
+    """Проверить одноразовый токен капчи на стороне сервиса.
 
     Если сервис капчи недоступен, пользователь не пропускается: иначе бот мог бы
     проходить регистрацию, пока сервис не отвечает.
+
+    Args:
+        token: Токен виджета из отправленной формы.
+        site_settings: Настройки сайта; по умолчанию загружаются из базы.
+
+    Returns:
+        None при успешной проверке либо безопасный текст ошибки для пользователя.
     """
     site_settings = site_settings or SiteSettings.load()
     if not token:
         return ERROR_MESSAGES['missing-input-response']
 
-    body = json.dumps({'response': token, 'private_key': site_settings.get_captcha_private_key()}).encode()
+    body = json.dumps(
+        {'response': token, 'private_key': site_settings.get_captcha_private_key()}
+    ).encode()
     request = urllib.request.Request(
         VERIFY_URL, data=body, method='POST', headers={'Content-Type': 'application/json'}
     )

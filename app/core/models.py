@@ -19,14 +19,14 @@ class SiteSettings(models.Model):
         'Название сайта',
         max_length=100,
         default='Гильдия',
-        help_text='Отображается в заголовке вкладки браузера и в шапке сайта'
+        help_text='Отображается в заголовке вкладки браузера и в шапке сайта',
     )
     favicon = models.FileField(
         'Иконка сайта (favicon)',
         upload_to='site/',
         blank=True,
         validators=[FileExtensionValidator(['ico', 'png'])],
-        help_text='Файл .ico или .png, лучше квадратный (32×32 или 64×64). Если не загружен — используется стандартная иконка'
+        help_text='Файл .ico или .png, лучше квадратный (32×32 или 64×64). Если не загружен — используется стандартная иконка',
     )
     accent_color = models.CharField(
         'Цвет оформления по умолчанию',
@@ -34,19 +34,22 @@ class SiteSettings(models.Model):
         choices=ACCENT_CHOICES,
         default=DEFAULT_ACCENT,
         help_text='Цвет гильдии: его видят гости на страницах входа и все, кто не выбрал себе другой цвет '
-                  '(меню пользователя в шапке админ-панели → «Цвет оформления»)'
+        '(меню пользователя в шапке админ-панели → «Цвет оформления»)',
     )
 
     # ===== Быстрые сборы =====
     skirmish_ts_channel = models.CharField(
-        'TS-канал для замесов', max_length=255, blank=True,
-        help_text='Полный путь, например «Гильдия / Замесы». Настраивается один раз для всех быстрых сборов.'
+        'TS-канал для замесов',
+        max_length=255,
+        blank=True,
+        help_text='Полный путь, например «Гильдия / Замесы». Настраивается один раз для всех быстрых сборов.',
     )
     skirmish_include_children = models.BooleanField('Учитывать подканалы', default=True)
     skirmish_min_minutes = models.PositiveSmallIntegerField(
-        'Минимум минут для участия в замесе', default=10,
+        'Минимум минут для участия в замесе',
+        default=10,
         validators=[MinValueValidator(1), MaxValueValidator(1440)],
-        help_text='Присутствие считает TS-бот. Вход по коду сам по себе не подтверждает участие.'
+        help_text='Присутствие считает TS-бот. Вход по коду сам по себе не подтверждает участие.',
     )
 
     # ===== Регистрация =====
@@ -54,38 +57,55 @@ class SiteSettings(models.Model):
         'Подтверждать email при регистрации',
         default=False,
         help_text='Новый пользователь сможет войти только после перехода по ссылке из письма. '
-                  'Нужна настроенная почта (раздел «Почта»). Если выключено — аккаунт активен сразу'
+        'Нужна настроенная почта (раздел «Почта»). Если выключено — аккаунт активен сразу',
     )
     captcha_enabled = models.BooleanField(
         'Капча при регистрации',
         default=False,
-        help_text='Защита формы регистрации от ботов капчей DDoS-Guard (dCAPTCHA). Нужны ключи (раздел «Капча»)'
+        help_text='Защита формы регистрации от ботов капчей DDoS-Guard (dCAPTCHA). Нужны ключи (раздел «Капча»)',
     )
 
     # ===== Почта (SMTP) =====
-    email_host = models.CharField('SMTP-сервер', max_length=255, blank=True, help_text='Например, smtp.yandex.ru или smtp.gmail.com')
+    email_host = models.CharField(
+        'SMTP-сервер',
+        max_length=255,
+        blank=True,
+        help_text='Например, smtp.yandex.ru или smtp.gmail.com',
+    )
     email_port = models.PositiveIntegerField(
         'Порт', default=587, validators=[MinValueValidator(1), MaxValueValidator(65535)]
     )
-    email_security = models.CharField('Шифрование', max_length=4, choices=EMAIL_SECURITY_CHOICES, default='tls')
-    email_host_user = models.CharField('Логин', max_length=255, blank=True, help_text='Обычно — полный адрес почты')
+    email_security = models.CharField(
+        'Шифрование', max_length=4, choices=EMAIL_SECURITY_CHOICES, default='tls'
+    )
+    email_host_user = models.CharField(
+        'Логин', max_length=255, blank=True, help_text='Обычно — полный адрес почты'
+    )
     # Хранится зашифрованным. Читать — get_email_password().
     email_host_password = models.CharField(
-        'Пароль', max_length=500, blank=True,
+        'Пароль',
+        max_length=500,
+        blank=True,
         help_text='Для Яндекса и Gmail — пароль приложения, а не пароль от почты. '
-                  'Оставьте поле пустым, чтобы не менять сохранённый пароль'
+        'Оставьте поле пустым, чтобы не менять сохранённый пароль',
     )
     email_from = models.CharField(
-        'Адрес отправителя', max_length=255, blank=True,
-        help_text='Например: Гильдия <noreply@myguild.ru>. Если пусто — используется логин'
+        'Адрес отправителя',
+        max_length=255,
+        blank=True,
+        help_text='Например: Гильдия <noreply@myguild.ru>. Если пусто — используется логин',
     )
 
     # ===== Капча DDoS-Guard =====
-    captcha_site_key = models.CharField('Site key', max_length=255, blank=True, help_text='Открытый ключ — виден в коде страницы')
+    captcha_site_key = models.CharField(
+        'Site key', max_length=255, blank=True, help_text='Открытый ключ — виден в коде страницы'
+    )
     # Хранится зашифрованным. Читать — get_captcha_private_key().
     captcha_private_key = models.CharField(
-        'Private key', max_length=500, blank=True,
-        help_text='Секретный ключ — используется только на сервере. Оставьте поле пустым, чтобы не менять сохранённый ключ'
+        'Private key',
+        max_length=500,
+        blank=True,
+        help_text='Секретный ключ — используется только на сервере. Оставьте поле пустым, чтобы не менять сохранённый ключ',
     )
 
     class Meta:
@@ -141,10 +161,10 @@ class SiteSettings(models.Model):
 
     @property
     def captcha_active(self):
-        """Капча включена и есть оба ключа."""
+        """Проверить включение капчи и наличие обоих ключей."""
         return self.captcha_enabled and self.captcha_configured
 
     def secret_unreadable(self, field):
-        """Секрет сохранён, но не расшифровывается — обычно после смены DJANGO_SECRET_KEY."""
+        """Проверить, сохранён ли секрет, который не удаётся расшифровать."""
         value = getattr(self, field)
         return bool(value) and decrypt_secret(value) is None

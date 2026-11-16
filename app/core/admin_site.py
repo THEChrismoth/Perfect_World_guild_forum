@@ -3,6 +3,7 @@
 Подключается через core.apps.GuildAdminConfig вместо django.contrib.admin, поэтому все
 @admin.register и admin.site в проекте работают с этим классом без изменений.
 """
+
 from django.contrib import admin
 from django.urls import path, reverse
 from django.views.decorators.http import require_POST
@@ -51,15 +52,17 @@ class GuildAdminSite(admin.AdminSite):
             context['ga_nav'] = self._build_nav(request, context['available_apps'])
 
         menu = accent_menu(request.user, site_settings.accent_color)
-        context.update({
-            'ga_accent': menu['accent'],
-            # Что отмечено в меню выбора: свой цвет или «Цвет гильдии».
-            'ga_accent_choice': menu['choice'],
-            'ga_guild_accent': menu['guild'],
-            'ga_guild_accent_name': menu['guild_name'],
-            'ga_guild_accent_value': menu['guild_value'],
-            'ga_accent_choices': menu['choices'],
-        })
+        context.update(
+            {
+                'ga_accent': menu['accent'],
+                # Что отмечено в меню выбора: свой цвет или «Цвет гильдии».
+                'ga_accent_choice': menu['choice'],
+                'ga_guild_accent': menu['guild'],
+                'ga_guild_accent_name': menu['guild_name'],
+                'ga_guild_accent_value': menu['guild_value'],
+                'ga_accent_choices': menu['choices'],
+            }
+        )
         return context
 
     def get_urls(self):
@@ -68,7 +71,7 @@ class GuildAdminSite(admin.AdminSite):
         ] + super().get_urls()
 
     def set_accent_view(self, request):
-        """Сохраняет цвет оформления из меню в шапке админки (та же логика, что и на сайте)."""
+        """Сохранить цвет оформления из меню в шапке админки (та же логика, что и на сайте)."""
         from .accents import handle_accent_post
 
         return handle_accent_post(request, reverse('admin:index'))
@@ -80,11 +83,13 @@ class GuildAdminSite(admin.AdminSite):
             if app['app_label'] == 'events':
                 positions = {'EventType': 0, 'EventNotification': 1}
                 app['models'].sort(key=lambda model: positions.get(model['object_name'], 2))
-        app_list.sort(key=lambda app: (APP_POSITION.get(app['app_label'], len(APP_ORDER)), app['name']))
+        app_list.sort(
+            key=lambda app: (APP_POSITION.get(app['app_label'], len(APP_ORDER)), app['name'])
+        )
         return app_list
 
     def _build_nav(self, request, available_apps):
-        """Группы бокового меню с отметкой раздела, в котором сейчас находимся."""
+        """Собрать группы бокового меню с отметкой текущего раздела."""
         path = request.path
         # Таблица активности открывается из раздела профилей, но её адрес лежит внутри пользователей
         # (profiles/admin.py) — на ней подсвечиваем профили, а не «Пользователи».
@@ -95,8 +100,14 @@ class GuildAdminSite(admin.AdminSite):
 
         apps = {}
         for app in available_apps:
-            models = [{'name': model['name'], 'url': model['admin_url'], 'current': is_current(model['admin_url'])}
-                      for model in app['models']]
+            models = [
+                {
+                    'name': model['name'],
+                    'url': model['admin_url'],
+                    'current': is_current(model['admin_url']),
+                }
+                for model in app['models']
+            ]
             apps[app['app_label']] = {
                 'name': app['name'],
                 'icon': APP_ICON.get(app['app_label'], 'folder'),
