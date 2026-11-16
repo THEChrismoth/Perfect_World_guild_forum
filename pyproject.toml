@@ -14,3 +14,17 @@ dependencies = [
     "psycopg[binary]>=3.3.6",
     "python-dotenv==1.2.2",
 ]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+extend-exclude = ["**/migrations/**"]
+
+[tool.ruff.per-file-target-version]
+"cli/*.py" = "py38"
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
