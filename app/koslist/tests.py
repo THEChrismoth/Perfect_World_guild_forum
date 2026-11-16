@@ -12,7 +12,9 @@ class ClassIconTests(TestCase):
             for value, label in choices:
                 with self.subTest(player_class=value):
                     self.assertIn(value, CLASS_ICONS)
-                    self.assertIsNotNone(finders.find(CLASS_ICONS[value]), f'нет файла {CLASS_ICONS[value]}')
+                    self.assertIsNotNone(
+                        finders.find(CLASS_ICONS[value]), f'нет файла {CLASS_ICONS[value]}'
+                    )
 
 
 @override_settings(SECURE_SSL_REDIRECT=False)

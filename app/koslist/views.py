@@ -3,7 +3,9 @@ from django.shortcuts import render
 from profiles.models import class_icon_url
 from .models import Guild, Player
 
+
 def kos_view(request):
+    """Показать гильдии и игроков кос-листа, сгруппированных по классам персонажей."""
     guilds = Guild.objects.all()
 
     players_by_class = {}
