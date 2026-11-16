@@ -28,8 +28,12 @@ class PermanentRosterMigrationTests(TransactionTestCase):
             Party.objects.create(event=first, number=1, leader=user)
             party = Party.objects.create(event=second, number=1)
             Member.objects.create(party=party, user=user)
-            draft = Invitation.objects.create(event_type=kind, event_date=date(2030, 1, 1), subject='Draft', message='')
-            sent = Invitation.objects.create(event_type=kind, event_date=date(2030, 1, 2), subject='Sent', message='')
+            draft = Invitation.objects.create(
+                event_type=kind, event_date=date(2030, 1, 1), subject='Draft', message=''
+            )
+            sent = Invitation.objects.create(
+                event_type=kind, event_date=date(2030, 1, 2), subject='Sent', message=''
+            )
             sent.sent_to_users.add(user)
             Invitation.objects.filter(pk=sent.pk).update(sent_at=timezone.now())
             executor = MigrationExecutor(connection)
@@ -42,7 +46,14 @@ class PermanentRosterMigrationTests(TransactionTestCase):
             roster = NewEvent.objects.get(event_type_id=kind.pk)
             self.assertIn('First', roster.notes)
             self.assertIn('Second', roster.notes)
-            self.assertEqual(list(NewParty.objects.filter(event=roster).order_by('number').values_list('number', flat=True)), [1, 2])
+            self.assertEqual(
+                list(
+                    NewParty.objects.filter(event=roster)
+                    .order_by('number')
+                    .values_list('number', flat=True)
+                ),
+                [1, 2],
+            )
             self.assertTrue(NewParty.objects.filter(event=roster, leader_id=user.pk).exists())
             self.assertTrue(NewMember.objects.filter(party__event=roster, user_id=user.pk).exists())
             self.assertEqual(NewParty.objects.filter(event__event_type_id=missing.pk).count(), 2)

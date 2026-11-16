@@ -7,13 +7,16 @@ from .models import EventNotification, EventRosterEntry, Party
 
 
 def get_recipient_users(notification):
-    """Возвращает список пользователей-получателей на основе выбранных групп.
+    """Выбрать активных получателей по группам или группу гильдии по умолчанию.
 
-    Аргументы:
-        notification: объект EventNotification.
+    Args:
+        notification: Приглашение с настройкой групп получателей.
+
+    Returns:
+        QuerySet активных пользователей без дубликатов.
     """
     groups = notification.recipient_groups.all()
-    
+
     if groups.exists():
         # Если выбраны группы — берем пользователей из этих групп.
         users = User.objects.filter(groups__in=groups, is_active=True).distinct()
@@ -24,59 +27,77 @@ def get_recipient_users(notification):
             users = guild_group.user_set.filter(is_active=True)
         except Group.DoesNotExist:
             users = User.objects.none()
-    
+
     return users
 
 
 @transaction.atomic
 def send_event_notification(notification_id):
-    """Отправляет уведомление выбранным группам пользователей через модуль notifications.
+    """Отправить уведомление выбранным группам пользователей через модуль notifications.
 
-    Аргументы:
-        notification_id: ID уведомления.
+    Args:
+        notification_id: ID приглашения на дату ивента.
+
+    Returns:
+        Число получателей новой рассылки; ноль для отсутствующего, уже отправленного
+        или недоступного для отправки приглашения.
     """
-    
+
     try:
-        notification = EventNotification.objects.select_for_update(of=('self',)).select_related('event_type').get(id=notification_id)
+        notification = (
+            EventNotification.objects.select_for_update(of=('self',))
+            .select_related('event_type')
+            .get(id=notification_id)
+        )
     except EventNotification.DoesNotExist:
         return 0
-    
+
     if notification.sent_at:
         return 0
 
     event_type = notification.event_type
-    if (not event_type.is_active or notification.event_date < timezone.localdate()
-            or (notification.ends_at and notification.ends_at <= timezone.now())):
+    if (
+        not event_type.is_active
+        or notification.event_date < timezone.localdate()
+        or (notification.ends_at and notification.ends_at <= timezone.now())
+    ):
         return 0
     event_date = notification.event_date
     event_date_str = event_date.strftime('%d.%m.%Y')
     weekday = get_weekday_name(event_date)
-    
+
     # Получаем пользователей для отправки.
     users = list(get_recipient_users(notification))
     if not users:
         return 0
-    
+
     # Ссылка для голосования.
-    vote_url = f"/events/vote/{notification.id}/"
-    
+    vote_url = f'/events/vote/{notification.id}/'
+
     # Формируем сообщение без текстовой ссылки (только кнопка добавится в notifications/utils.py).
     full_message = f"""{notification.message}
 
 📅 Дата: {weekday}, {event_date_str}
 🎯 Ивент: {event_type.icon} {event_type.name}"""
-    
-    Notification.objects.bulk_create([
-        Notification(user=user, title=notification.subject,
-                     message=build_message_html(full_message, vote_url, VOTE_BUTTON),
-                     notification_type='warning', link=vote_url)
-        for user in users
-    ])
+
+    Notification.objects.bulk_create(
+        [
+            Notification(
+                user=user,
+                title=notification.subject,
+                message=build_message_html(full_message, vote_url, VOTE_BUTTON),
+                notification_type='warning',
+                link=vote_url,
+            )
+            for user in users
+        ]
+    )
     notification.sent_to_users.set(users)
     sent_count = len(users)
 
     # Состав фиксируется один раз: последующее редактирование не меняет историю.
     from .models import Event
+
     Event.objects.select_for_update().get(event_type=event_type)
     invited_ids = {user.pk for user in users}
     entries = {}
@@ -86,25 +107,33 @@ def send_event_notification(notification_id):
         for member in party.members.all():
             if member.user_id in invited_ids:
                 entries.setdefault(member.user_id, (party.number, False))
-    EventRosterEntry.objects.bulk_create([
-        EventRosterEntry(notification=notification, user_id=user_id, party_number=number, is_leader=leader)
-        for user_id, (number, leader) in entries.items()
-    ])
+    EventRosterEntry.objects.bulk_create(
+        [
+            EventRosterEntry(
+                notification=notification, user_id=user_id, party_number=number, is_leader=leader
+            )
+            for user_id, (number, leader) in entries.items()
+        ]
+    )
 
     # Обновляем время отправки.
     notification.sent_at = timezone.now()
     notification.save()
-    
+
     return sent_count
 
 
 def get_attendance_stats(notification_id):
-    """Возвращает статистику ответов на уведомление.
+    """Вернуть статистику ответов на уведомление.
 
-    Аргументы:
-        notification_id: ID уведомления.
+    Args:
+        notification_id: ID приглашения.
+
+    Returns:
+        Словарь счётчиков и списков ответов yes, no и maybe. Для отсутствующего
+        приглашения вернуть нулевые счётчики и пустые списки.
     """
-    
+
     try:
         notification = EventNotification.objects.get(id=notification_id)
     except EventNotification.DoesNotExist:
@@ -116,15 +145,15 @@ def get_attendance_stats(notification_id):
             'yes_users': [],
             'no_users': [],
             'maybe_users': [],
-            'notification': None
+            'notification': None,
         }
-    
+
     attendances = notification.attendances.select_related('user__profile')
-    
+
     yes_users = [a for a in attendances if a.status == 'yes']
     no_users = [a for a in attendances if a.status == 'no']
     maybe_users = [a for a in attendances if a.status == 'maybe']
-    
+
     return {
         'yes_count': len(yes_users),
         'no_count': len(no_users),
@@ -133,21 +162,25 @@ def get_attendance_stats(notification_id):
         'yes_users': yes_users,
         'no_users': no_users,
         'maybe_users': maybe_users,
-        'notification': notification
+        'notification': notification,
     }
 
 
 def get_weekday_name(date_obj):
-    """Возвращает русское название дня недели."""
+    """Вернуть русское название дня недели."""
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     return weekdays[date_obj.weekday()]
 
 
 def get_presence_report(notification):
-    """Сопоставляет приглашение, ответ и фактическое посещение на одну дату."""
+    """Сопоставить приглашение, ответ и фактическое посещение на одну дату."""
     from teamspeak.models import EventPresence
+
     responses = {item.user_id: item for item in notification.attendances.select_related('user')}
-    presence = {item.user_id: item for item in EventPresence.objects.filter(notification=notification).select_related('user')}
+    presence = {
+        item.user_id: item
+        for item in EventPresence.objects.filter(notification=notification).select_related('user')
+    }
     slots = {item.user_id: item for item in notification.roster_entries.all()}
     users = {user.pk: user for user in notification.sent_to_users.all()}
     for item in [*responses.values(), *presence.values()]:
@@ -169,6 +202,14 @@ def get_presence_report(notification):
             label = 'Учёт идёт'
         else:
             label = 'Ожидается'
-        rows.append({'user': user, 'answer': answer, 'minutes': minutes, 'slot': slot,
-                     'present': present, 'presence_label': label})
+        rows.append(
+            {
+                'user': user,
+                'answer': answer,
+                'minutes': minutes,
+                'slot': slot,
+                'present': present,
+                'presence_label': label,
+            }
+        )
     return rows

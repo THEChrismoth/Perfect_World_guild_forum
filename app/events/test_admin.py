@@ -22,15 +22,27 @@ class EventAdminTests(TestCase):
         self.client.force_login(self.admin_user)
 
     def type_values(self):
-        return {'name': self.kind.name, 'parties_count': 1, 'party_size': 2, 'icon': 'x', 'order': 0,
-                'is_active': 'on', 'min_presence_minutes': 30, 'points_present': 0, 'points_absent': 0,
-                'penalty_scope': 'promised', 'roster_notes': 'Постоянные примечания'}
+        return {
+            'name': self.kind.name,
+            'parties_count': 1,
+            'party_size': 2,
+            'icon': 'x',
+            'order': 0,
+            'is_active': 'on',
+            'min_presence_minutes': 30,
+            'points_present': 0,
+            'points_absent': 0,
+            'penalty_scope': 'promised',
+            'roster_notes': 'Постоянные примечания',
+        }
 
     def test_menu_has_only_types_and_dates_in_workflow_order(self):
         request = RequestFactory().get('/admin/')
         request.user = self.admin_user
         models = admin.site.get_app_list(request, app_label='events')[0]['models']
-        self.assertEqual([item['object_name'] for item in models], ['EventType', 'EventNotification'])
+        self.assertEqual(
+            [item['object_name'] for item in models], ['EventType', 'EventNotification']
+        )
 
     def test_type_settings_and_notes_save_without_points_requirement(self):
         values = self.type_values()
@@ -68,14 +80,22 @@ class EventAdminTests(TestCase):
     def test_date_form_can_save_draft_then_send_once(self):
         url = reverse('admin:events_eventnotification_add')
         self.assertContains(self.client.get(url), 'Сохранить черновик')
-        values = {'event_type': self.kind.pk, 'event_date': (timezone.localdate() + timedelta(days=1)).isoformat(),
-                  'start_time': '20:00', 'duration_minutes': 60, 'subject': '', 'message': ''}
+        values = {
+            'event_type': self.kind.pk,
+            'event_date': (timezone.localdate() + timedelta(days=1)).isoformat(),
+            'start_time': '20:00',
+            'duration_minutes': 60,
+            'subject': '',
+            'message': '',
+        }
         self.assertEqual(self.client.post(url, {**values, '_continue': '1'}).status_code, 302)
         date = EventNotification.objects.get(event_type=self.kind)
         self.assertIsNone(date.sent_at)
         edit = reverse('admin:events_eventnotification_change', args=[date.pk])
         self.assertContains(self.client.get(edit), 'Сохранить и отправить')
-        self.assertEqual(self.client.post(edit, {**values, '_send_notification': '1'}).status_code, 302)
+        self.assertEqual(
+            self.client.post(edit, {**values, '_send_notification': '1'}).status_code, 302
+        )
         date.refresh_from_db()
         self.assertIsNotNone(date.sent_at)
         response = self.client.get(edit)
