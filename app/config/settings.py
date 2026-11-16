@@ -25,8 +25,9 @@ if not SECRET_KEY:
         raise ImproperlyConfigured('Не задана переменная окружения DJANGO_SECRET_KEY')
     SECRET_KEY = 'django-insecure-dev-only-key'
 
+
 def _env_list(name):
-    """Список из переменной окружения через запятую: 'a.ru, www.a.ru' -> ['a.ru', 'www.a.ru']."""
+    """Разобрать список значений переменной окружения, разделённых запятыми."""
     return [item.strip() for item in os.getenv(name, '').split(',') if item.strip()]
 
 
@@ -101,7 +102,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Ключ переписки независим от Django и хранится отдельно от базы и её копий.
 PRIVATE_MESSAGES_KEYS = tuple(_env_list('PRIVATE_MESSAGES_KEYS'))
-PRIVATE_MESSAGES_KEY_FILE = os.getenv('PRIVATE_MESSAGES_KEY_FILE', os.path.join(ROOT_DIR, 'secrets', 'messages.keys'))
+PRIVATE_MESSAGES_KEY_FILE = os.getenv(
+    'PRIVATE_MESSAGES_KEY_FILE', os.path.join(ROOT_DIR, 'secrets', 'messages.keys')
+)
 
 
 # База данных: https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -175,7 +178,7 @@ TSBOT_API_TOKEN = os.getenv('TSBOT_API_TOKEN', '')
 
 # Ограничения на загрузку файлов.
 DATA_UPLOAD_MAX_MEMORY_SIZE = 60 * 1024 * 1024  # Общий размер запроса
-FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # Крупнее — пишется во временный файл
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024  # Крупнее — пишется во временный файл
 
 # HTTPS-настройки включаются переменной USE_HTTPS=True в .env, когда на сервере есть SSL.
 USE_HTTPS = os.getenv('USE_HTTPS', 'False') == 'True'
@@ -188,21 +191,24 @@ CSRF_COOKIE_SECURE = USE_HTTPS
 # За прокси (Caddy) Django проверяет, что формы отправлены с нашего домена.
 # По умолчанию доверяем всем доменам из ALLOWED_HOSTS.
 CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS') or [
-    f"{'https' if USE_HTTPS else 'http'}://{host.lstrip('.')}"
-    for host in ALLOWED_HOSTS if host != '*'
+    f'{"https" if USE_HTTPS else "http"}://{host.lstrip(".")}'
+    for host in ALLOWED_HOSTS
+    if host != '*'
 ]
 
 # Демо-сайт с вымышленной гильдией (docker/demo/). На обычном сайте не включайте:
-# появляются кнопки входа без пароля, а команда demo_seed стирает базу.
+# Появляются кнопки входа без пароля, а команда demo_seed стирает базу.
 DEMO_MODE = os.getenv('DEMO_MODE', 'False') == 'True'
 if DEMO_MODE:
     # В демо нет Caddy — статику раздает сам Django через WhiteNoise (ставится только в образ демо).
     MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
     # Общий для всех процессов gunicorn кэш: в нем лимит гостевых аккаунтов с одного IP (demo/limits.py).
-    CACHES = {'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': os.path.join(tempfile.gettempdir(), 'guild-demo-cache'),
-    }}
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': os.path.join(tempfile.gettempdir(), 'guild-demo-cache'),
+        }
+    }
 
 # Почта (SMTP), подтверждение email и капча настраиваются в админ-панели: Настройки сайта.
 # Письма сайта отправляет core.mail; пока почта не настроена, они печатаются в консоль.
