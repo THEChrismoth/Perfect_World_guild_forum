@@ -21,10 +21,13 @@ def _subcategory_item(subcategory, topics_count, posts_count, last_post=None):
 
 
 def _last_post(subcategory):
-    """Последний пост в самой свежей теме подкатегории."""
-    return Post.objects.filter(
-        topic__subcategory=subcategory
-    ).select_related('author__profile', 'topic').order_by('-topic__updated_at', '-created_at').first()
+    """Найти последний пост в самой свежей теме подкатегории."""
+    return (
+        Post.objects.filter(topic__subcategory=subcategory)
+        .select_related('author__profile', 'topic')
+        .order_by('-topic__updated_at', '-created_at')
+        .first()
+    )
 
 
 def forum_view(request):
@@ -54,18 +57,17 @@ def forum_view(request):
 
             # Аукцион, ивенты и заявки — отдельные разделы в меню слева, в форуме только темы для общения.
             last_post = _last_post(subcategory) if subcategory.topics_num else None
-            visible_subcategories.append(_subcategory_item(
-                subcategory, subcategory.topics_num, subcategory.posts_num, last_post=last_post
-            ))
+            visible_subcategories.append(
+                _subcategory_item(
+                    subcategory, subcategory.topics_num, subcategory.posts_num, last_post=last_post
+                )
+            )
 
         visible_subcategories.sort(key=lambda x: (x.get('order', 0), x['title']))
 
         # Добавляем категорию только если есть видимые подкатегории.
         if visible_subcategories:
-            categories.append({
-                'category': category,
-                'subcategories': visible_subcategories
-            })
+            categories.append({'category': category, 'subcategories': visible_subcategories})
 
     return render(request, 'forum/forum_index.html', {'categories': categories})
 
@@ -75,7 +77,7 @@ def subcategory_detail(request, slug):
 
     # Проверяем доступ к подкатегории.
     if not subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой подкатегории")
+        raise PermissionDenied('У вас нет доступа к этой подкатегории')
 
     topics = subcategory.topics.select_related('author__profile').annotate(posts_num=Count('posts'))
     context = {'subcategory': subcategory, 'topics': topics}
@@ -93,7 +95,7 @@ def topic_create(request, slug):
 
     # Проверяем доступ к подкатегории.
     if not subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой подкатегории")
+        raise PermissionDenied('У вас нет доступа к этой подкатегории')
 
     if request.method == 'POST':
         form = TopicForm(request.POST)
@@ -110,9 +112,7 @@ def topic_create(request, slug):
 
             # Создаем пост.
             post = Post.objects.create(
-                content=form.cleaned_data['content'],
-                author=request.user,
-                topic=topic
+                content=form.cleaned_data['content'], author=request.user, topic=topic
             )
 
             # Сохраняем все загруженные изображения.
@@ -137,7 +137,7 @@ def topic_detail(request, slug):
 
     # Проверяем доступ к подкатегории темы.
     if not topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой теме")
+        raise PermissionDenied('У вас нет доступа к этой теме')
 
     posts = topic.posts.select_related('author__profile').prefetch_related('images')
     form = PostForm()
@@ -155,10 +155,10 @@ def topic_edit(request, slug):
 
     # Проверяем доступ к подкатегории.
     if not topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой теме")
+        raise PermissionDenied('У вас нет доступа к этой теме')
 
     if request.user != topic.author and not request.user.is_superuser:
-        raise PermissionDenied("У вас нет прав на редактирование этой темы")
+        raise PermissionDenied('У вас нет прав на редактирование этой темы')
 
     if request.method == 'POST':
         form = TopicEditForm(request.POST, instance=topic)
@@ -186,10 +186,10 @@ def topic_delete(request, slug):
 
     # Проверяем доступ к подкатегории.
     if not topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой теме")
+        raise PermissionDenied('У вас нет доступа к этой теме')
 
     if request.user != topic.author and not request.user.is_superuser:
-        raise PermissionDenied("У вас нет прав на удаление этой темы")
+        raise PermissionDenied('У вас нет прав на удаление этой темы')
 
     if request.method == 'POST':
         subcategory_slug = topic.subcategory.slug
@@ -209,7 +209,7 @@ def post_create(request, slug):
     topic = get_object_or_404(Topic, slug=slug)
 
     if not topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этой теме")
+        raise PermissionDenied('У вас нет доступа к этой теме')
 
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -250,13 +250,15 @@ def post_edit(request, post_id):
 
     # Проверяем доступ к подкатегории.
     if not post.topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этому сообщению")
+        raise PermissionDenied('У вас нет доступа к этому сообщению')
 
     if request.user != post.author and not request.user.is_superuser:
-        raise PermissionDenied("У вас нет прав на редактирование этого сообщения")
+        raise PermissionDenied('У вас нет прав на редактирование этого сообщения')
 
     if request.method == 'POST':
-        delete_images = [image_id for image_id in request.POST.getlist('delete_images') if image_id.isdigit()]
+        delete_images = [
+            image_id for image_id in request.POST.getlist('delete_images') if image_id.isdigit()
+        ]
         images_to_delete = PostImage.objects.filter(id__in=delete_images, post=post)
 
         new_images = request.FILES.getlist('new_images')
@@ -294,10 +296,10 @@ def post_delete(request, post_id):
 
     # Проверяем доступ к подкатегории.
     if not post.topic.subcategory.is_visible_to_user(request.user):
-        raise PermissionDenied("У вас нет доступа к этому сообщению")
+        raise PermissionDenied('У вас нет доступа к этому сообщению')
 
     if request.user != post.author and not request.user.is_superuser:
-        raise PermissionDenied("У вас нет прав на удаление этого сообщения")
+        raise PermissionDenied('У вас нет прав на удаление этого сообщения')
 
     if request.method == 'POST':
         topic_slug = post.topic.slug

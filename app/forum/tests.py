@@ -11,15 +11,21 @@ class ForumTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user('alice', password='pass')
         self.category = Category.objects.create(title='Общее', slug='general')
-        self.subcategory = SubCategory.objects.create(title='Болталка', slug='chat', category=self.category)
-        self.topic = Topic.objects.create(title='Первая тема', author=self.user, subcategory=self.subcategory)
+        self.subcategory = SubCategory.objects.create(
+            title='Болталка', slug='chat', category=self.category
+        )
+        self.topic = Topic.objects.create(
+            title='Первая тема', author=self.user, subcategory=self.subcategory
+        )
         Post.objects.create(content='Текст', author=self.user, topic=self.topic)
         self.client.force_login(self.user)
 
 
 class TopicEditTests(ForumTestCase):
     def test_edit_title_with_cyrillic(self):
-        response = self.client.post(reverse('topic_edit', args=[self.topic.slug]), {'title': 'Новое название'})
+        response = self.client.post(
+            reverse('topic_edit', args=[self.topic.slug]), {'title': 'Новое название'}
+        )
 
         self.topic.refresh_from_db()
         self.assertEqual(self.topic.title, 'Новое название')
@@ -33,8 +39,12 @@ class TopicEditTests(ForumTestCase):
 
 class PostImageTests(ForumTestCase):
     def test_non_image_upload_rejected(self):
-        fake = SimpleUploadedFile('evil.html', b'<script>alert(1)</script>', content_type='image/png')
-        self.client.post(reverse('post_create', args=[self.topic.slug]), {'content': 'Ответ', 'images': [fake]})
+        fake = SimpleUploadedFile(
+            'evil.html', b'<script>alert(1)</script>', content_type='image/png'
+        )
+        self.client.post(
+            reverse('post_create', args=[self.topic.slug]), {'content': 'Ответ', 'images': [fake]}
+        )
 
         self.assertFalse(PostImage.objects.exists())
         self.assertEqual(self.topic.posts.count(), 1)

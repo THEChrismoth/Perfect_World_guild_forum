@@ -5,15 +5,16 @@ from django.utils import timezone
 from datetime import timedelta
 from profiles.models import Profile
 
+
 def _user_group_ids(user):
-    """ID групп пользователя, кешируются на объекте на время запроса."""
+    """Получить ID групп пользователя с кешированием на время запроса."""
     if not hasattr(user, '_forum_group_ids'):
         user._forum_group_ids = set(user.groups.values_list('id', flat=True))
     return user._forum_group_ids
 
 
 def _check_visibility(obj, user):
-    """Общая проверка доступа для категорий и подкатегорий.
+    """Проверить общие правила видимости категории или подкатегории.
 
     view_groups читаются через .all(), чтобы работал prefetch_related.
     """
@@ -39,12 +40,12 @@ class Category(models.Model):
         Group,
         blank=True,
         verbose_name='Группы с доступом',
-        help_text='Оставьте пустым, чтобы категорию видели все пользователи сайта'
+        help_text='Оставьте пустым, чтобы категорию видели все пользователи сайта',
     )
     order = models.IntegerField(
         'Порядок сортировки',
         default=0,
-        help_text='Чем меньше число, тем выше категория в списке. 0 = сортировка по алфавиту'
+        help_text='Чем меньше число, тем выше категория в списке. 0 = сортировка по алфавиту',
     )
 
     class Meta:
@@ -54,31 +55,29 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title
-    
+
     def is_visible_to_user(self, user):
-        """Проверяет, видит ли пользователь эту категорию."""
+        """Проверить, видит ли пользователь эту категорию."""
         return _check_visibility(self, user)
+
 
 class SubCategory(models.Model):
     title = models.CharField('Название подкатегории', max_length=100)
     slug = models.SlugField('Адрес в ссылке', unique=True)
     category = models.ForeignKey(
-        Category, 
-        on_delete=models.CASCADE,
-        related_name='subcategories',
-        verbose_name='Категория'
+        Category, on_delete=models.CASCADE, related_name='subcategories', verbose_name='Категория'
     )
     # Группы, которые могут видеть эту подкатегорию (пусто = все вошедшие).
     view_groups = models.ManyToManyField(
         Group,
         blank=True,
         verbose_name='Группы с доступом',
-        help_text='Оставьте пустым, чтобы подкатегорию видели все пользователи сайта'
+        help_text='Оставьте пустым, чтобы подкатегорию видели все пользователи сайта',
     )
     order = models.IntegerField(
         'Порядок сортировки',
         default=0,
-        help_text='Чем меньше число, тем выше подкатегория в списке. 0 = сортировка по алфавиту'
+        help_text='Чем меньше число, тем выше подкатегория в списке. 0 = сортировка по алфавиту',
     )
 
     class Meta:
@@ -87,27 +86,27 @@ class SubCategory(models.Model):
         ordering = ['category', 'order', 'title']
 
     def __str__(self):
-        return f"{self.title} ({self.category.title})"
-    
+        return f'{self.title} ({self.category.title})'
+
     def is_visible_to_user(self, user):
-        """Проверяет, видит ли пользователь эту подкатегорию."""
+        """Проверить, видит ли пользователь эту подкатегорию."""
         # Сначала проверяем видимость родительской категории.
         if not self.category.is_visible_to_user(user):
             return False
 
         return _check_visibility(self, user)
 
+
 class Topic(models.Model):
     title = models.CharField('Название темы', max_length=100)
     slug = models.SlugField('Адрес в ссылке', unique=True, blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topics', verbose_name='Автор')
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='topics', verbose_name='Автор'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     subcategory = models.ForeignKey(
-        SubCategory, 
-        on_delete=models.CASCADE,
-        related_name='topics',
-        verbose_name='Подкатегория'
+        SubCategory, on_delete=models.CASCADE, related_name='topics', verbose_name='Подкатегория'
     )
 
     class Meta:
@@ -122,59 +121,55 @@ class Topic(models.Model):
 
     def __str__(self):
         return self.title
-    
+
     def posts_count(self):
         return self.posts.count()
-    
+
     def last_post(self):
         return self.posts.order_by('-created_at').first()
 
+
 class PostImage(models.Model):
     """Модель для хранения изображений поста."""
-    post = models.ForeignKey(
-        'Post', 
-        on_delete=models.CASCADE, 
-        related_name='images'
-    )
-    image = models.ImageField(
-        'Изображение', 
-        upload_to='forum/posts/%Y/%m/%d/'
-    )
+
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField('Изображение', upload_to='forum/posts/%Y/%m/%d/')
     uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         ordering = ['uploaded_at']
         verbose_name = 'Изображение поста'
         verbose_name_plural = 'Изображения постов'
 
+
 class Post(models.Model):
     content = models.TextField('Содержание', blank=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', verbose_name='Автор')
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='posts', verbose_name='Автор'
+    )
     topic = models.ForeignKey(
-        Topic, 
-        on_delete=models.CASCADE,
-        related_name='posts',
-        verbose_name='Тема'
+        Topic, on_delete=models.CASCADE, related_name='posts', verbose_name='Тема'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['created_at']
         verbose_name = 'Пост'
         verbose_name_plural = 'Посты'
 
     def __str__(self):
-        return f"Пост от {self.author.username} в теме {self.topic.title}"
+        return f'Пост от {self.author.username} в теме {self.topic.title}'
 
     def get_topic_title(self):
         return self.topic.title
-    
+
     def get_topic_slug(self):
         return self.topic.slug
 
+
 def get_online_users():
-    """Возвращает список пользователей онлайн через время последней активности."""
+    """Вернуть список пользователей онлайн через время последней активности."""
     time_threshold = timezone.now() - timedelta(minutes=5)
 
     # Получаем профили с активностью в последние 5 минут.
